@@ -16,7 +16,7 @@
   Адаптеры (`knowledge`, `scanner`) реализуют порты. Сборка зависимостей — только в точках сборки (`mcp-server`, `apps/*`).
 - **Ошибки как значения**: сценарии возвращают `Result<T, DomainError>`; исключения — только для багов.
 - **Границы проверяются машиной**: dependency-cruiser в CI запрещает, например, импорт `scanner` из `core` или `mcp-server` из `rules`.
-- Инструменты: Vitest (тесты), ESLint + typescript-eslint, Prettier, Changesets (версии), tsup/esbuild (сборка).
+- Инструменты: Vitest (тесты), ESLint + typescript-eslint, Prettier, Changesets (версии), esbuild (бандл сервера; библиотеки не собираются — см. ADR-0008).
   Точные версии фиксирует планировщик.
 
 ## Последствия

@@ -128,7 +128,7 @@ lawyer-152fz/
 │   └── adr/
 ├── .changeset/                   # версии и changelog
 ├── pnpm-workspace.yaml
-├── tsconfig.base.json
+├── tsconfig.json                 # одна программа проверки типов (ADR-0008)
 └── LICENSE                       # AGPL-3.0
 ```
 
@@ -294,3 +294,4 @@ sequenceDiagram
 | [0005](adr/0005-distribution-bundled-plugin-and-npm.md) | Поставка: бандл в плагине + npm-пакет |
 | [0006](adr/0006-security-untrusted-content-no-pd-retention.md) | Безопасность: недоверенный контент, SSRF, без хранения ПДн |
 | [0007](adr/0007-license-agpl-and-legal-content-policy.md) | AGPL-3.0 и политика правового контента |
+| [0008](adr/0008-internal-packages-as-ts-source.md) | Внутренние пакеты подключаются как исходники TypeScript |

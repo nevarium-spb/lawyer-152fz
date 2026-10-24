@@ -1,0 +1,18 @@
+{
+  "name": "@lawyer-152fz/mcp-server",
+  "version": "0.0.0",
+  "private": true,
+  "description": "MCP-сервер Lawyer 152-FZ — точка сборки всех пакетов.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@lawyer-152fz/core": "workspace:*",
+    "@lawyer-152fz/documents": "workspace:*",
+    "@lawyer-152fz/knowledge": "workspace:*",
+    "@lawyer-152fz/rules": "workspace:*",
+    "@lawyer-152fz/scanner": "workspace:*"
+  }
+}

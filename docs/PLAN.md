@@ -63,7 +63,7 @@ flowchart LR
 | Vitest | 5.0.5 | |
 | ESLint / typescript-eslint | 10.13.0 / 8.72.0 | flat config |
 | Prettier | 3.9.10 | |
-| tsup / esbuild | 9.0.0 / 0.28.2 | библиотеки — tsup, бандл сервера — esbuild |
+| esbuild | 0.28.2 | только бандл сервера; библиотеки не собираются (ADR-0008) |
 | @changesets/cli | 3.0.3 | |
 | dependency-cruiser | 18.7.0 | |
 | minisearch | 7.2.0 | |
@@ -84,7 +84,7 @@ flowchart LR
 |---|---|---|---|---|
 | T0.1 | `corepack enable`; корневой `package.json` (`packageManager`, `engines`), `pnpm-workspace.yaml`, `.nvmrc` | — | S | `pnpm install` на чистом клоне проходит |
 | T0.2 | `.gitattributes` (`* text=auto eol=lf`), `.gitignore`, `.editorconfig`; перенормализовать уже закоммиченные файлы | — | S | `git ls-files --eol` показывает только `lf` — иначе хеши норм разойдутся между Windows и Linux |
-| T0.3 | `tsconfig.base.json` (strict-флаги из ADR-0002), 6 пакетов-заготовок с `exports`, project references | T0.1 | M | `pnpm -r build` и `pnpm typecheck` зелёные |
+| T0.3 | `tsconfig.json` (strict-флаги из ADR-0002), 6 пакетов-заготовок с `exports` на исходники ([ADR-0008](adr/0008-internal-packages-as-ts-source.md)) | T0.1 | M | `pnpm typecheck` зелёный; дымовой тест подключения пакетов проходит |
 | T0.4 | ESLint + Prettier; dependency-cruiser с правилами границ из ADR-0002 | T0.3 | M | тестовый «запрещённый» импорт (`core` → `scanner`) валит `pnpm depcruise` |
 | T0.5 | Vitest workspace, пороги покрытия | T0.3 | S | `pnpm test` зелёный; порог ниже нормы валит сборку |
 | T0.6 | Changesets | T0.3 | S | `pnpm changeset` создаёт запись |
@@ -147,7 +147,7 @@ flowchart LR
 
 | ID | Задача | Зав. | Размер | Критерий готовности |
 |---|---|---|---|---|
-| **S1** | **Спайк R3**: рендер SPA в плагине — (а) `playwright-core` в бандле + системный Chrome, (б) `audit_html` с DOM от браузера хоста. Лимит 1 день | M4 | M | ADR-0008 с решением |
+| **S1** | **Спайк R3**: рендер SPA в плагине — (а) `playwright-core` в бандле + системный Chrome, (б) `audit_html` с DOM от браузера хоста. Лимит 1 день | M4 | M | ADR-0009 с решением |
 | T5.1 | `StaticPageLoader` с SSRF-защитой: проверка IP после DNS, редиректы, лимиты размера и времени | M4 | M | тесты блокируют `127.0.0.1`, `::1`, `169.254.169.254`, редирект на частный адрес (при `allowPrivateNetworks: false`) |
 | T5.2 | HTML-анализатор → `SiteSnapshot`: формы и поля ПДн (`name`, `type`, `autocomplete`, label), чекбоксы согласия, ссылки на политику, сторонние скрипты по сигнатурам, `Set-Cookie` | T5.1 | L | ≥ 10 HTML-фикстур с реальными паттернами (Tilda, WordPress, React) |
 | T5.3 | Обход сайта: тот же домен, `maxPages`, приоритет страниц с формами, контактами и политикой | T5.2 | M | обход 10 страниц фикстурного сайта детерминирован |
@@ -164,8 +164,8 @@ flowchart LR
 
 | ID | Задача | Зав. | Размер | Критерий готовности |
 |---|---|---|---|---|
-| **S2** | **Спайк R2**: программный доступ к официальным источникам (publication.pravo.gov.ru, pravo.gov.ru, pd.rkn.gov.ru) — формат, ограничения, антибот. Лимит 1 день | M4 | M | ADR-0009 с решением |
-| T6.1 | Выбор шаблонизатора: «без логики в шаблоне, юрист читает шаблон как текст» (кандидат — Handlebars) | M5 | S | решение в ADR-0010 |
+| **S2** | **Спайк R2**: программный доступ к официальным источникам (publication.pravo.gov.ru, pravo.gov.ru, pd.rkn.gov.ru) — формат, ограничения, антибот. Лимит 1 день | M4 | M | ADR-0010 с решением |
+| T6.1 | Выбор шаблонизатора: «без логики в шаблоне, юрист читает шаблон как текст» (кандидат — Handlebars) | M5 | S | решение в ADR-0011 |
 | T6.2 | `OperatorProfile`: схема, сообщения об ошибках на русском для дозапроса | T6.1 | M | все обязательные поля перечислены в ошибке за один вызов |
 | T6.3 | Шаблоны (кандидаты ниже) с `normRefs` + golden-тесты | T6.2 | L | эталоны в репозитории; изменение текста шаблона видно в диффе |
 | T6.4 | Инструменты `list_document_templates`, `render_document` | T6.3 | M | контракт + интеграция |
