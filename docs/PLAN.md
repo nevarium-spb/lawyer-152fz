@@ -96,12 +96,12 @@ flowchart LR
 
 Роль: Бэкенд · Результат: вся бизнес-логика сценариев работает на фейковых адаптерах.
 
-| ID   | Задача                                                                                                           | Зав. | Размер | Критерий готовности                                                      |
-| ---- | ---------------------------------------------------------------------------------------------------------------- | ---- | ------ | ------------------------------------------------------------------------ |
-| T1.1 | `Result<T, E>`, иерархия `DomainError` (`NotFound`, `Validation`, `SourceUnavailable`, `Forbidden`)              | M0   | S      | 100 % покрытие                                                           |
-| T1.2 | Типы и zod-схемы: `NormId` (парсер + форматтер), `Norm`, `Evidence`, `Finding`, `AuditReport`, `OperatorProfile` | T1.1 | M      | невалидный `NormId` («152/18») отвергается с понятной ошибкой на русском |
-| T1.3 | Порты: `NormRepository`, `PageLoader`, `CodebaseReader`, `SourceFreshnessChecker`, `Clock`                       | T1.2 | S      | только интерфейсы, ноль импортов I/O                                     |
-| T1.4 | Сценарии `LookupNorms`, `AuditSite`, `AuditCodebase`, `GenerateDocument` + фейковые адаптеры в `core/testing`    | T1.3 | M      | сценарии покрыты тестами на фейках; ≥ 90 %                               |
+| ID   | Задача                                                                                                            | Зав. | Размер | Критерий готовности                                                      |
+| ---- | ----------------------------------------------------------------------------------------------------------------- | ---- | ------ | ------------------------------------------------------------------------ |
+| T1.1 | `Result<T, E>`, иерархия `DomainError` (`NotFound`, `Validation`, `SourceUnavailable`, `Forbidden`)               | M0   | S      | 100 % покрытие                                                           |
+| T1.2 | Типы и zod-схемы: `NormId` (парсер + форматтер), `Norm`, `Evidence`, `Finding`, `AuditReport`, `OperatorProfile`  | T1.1 | M      | невалидный `NormId` («152/18») отвергается с понятной ошибкой на русском |
+| T1.3 | Порты: `NormRepository`, `SourceFreshnessChecker`, `SiteScanner`, `CodebaseScanner`, `DocumentTemplates`, `Clock` | T1.2 | S      | только интерфейсы, ноль импортов I/O                                     |
+| T1.4 | Сценарии `LookupNorms`, `AuditSite`, `AuditCodebase`, `GenerateDocument` + фейковые адаптеры в `core/testing`     | T1.3 | M      | сценарии покрыты тестами на фейках; ≥ 90 %                               |
 
 ## M2. База норм (`packages/knowledge`)
 

@@ -16,3 +16,5 @@ export * from './domain/operator-profile';
 export * from './domain/audit-report';
 export type * from './domain/snapshots';
 export type * from './domain/audit-rule';
+
+export type * from './ports';
