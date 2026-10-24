@@ -1,0 +1,8 @@
+# Единые переводы строк LF на всех ОС.
+# Критично для базы норм: sha256 текста статьи должен совпадать на Windows и Linux.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary
