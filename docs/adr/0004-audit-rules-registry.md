@@ -19,7 +19,9 @@ export const formConsentRule: AuditRule = {
   title: 'Форма собирает ПДн без согласия',
   appliesTo: ['site'],
   normRefs: ['152-fz/art-9/part-1'],
-  check(snapshot) { /* чистая функция → Finding[] */ },
+  check(snapshot) {
+    /* чистая функция → Finding[] */
+  },
 };
 ```
 
