@@ -1,0 +1,11 @@
+{
+  "name": "@lawyer-152fz/core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Домен, сценарии и порты. Без I/O (ADR-0002).",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "@lawyer-152fz/scanner",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Загрузка страниц с SSRF-защитой, анализ HTML и исходников (ADR-0006).",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@lawyer-152fz/core": "workspace:*"
+  }
+}

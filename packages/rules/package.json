@@ -1,0 +1,14 @@
+{
+  "name": "@lawyer-152fz/rules",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Реестр правил аудита — чистые функции над снимками (ADR-0004).",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@lawyer-152fz/core": "workspace:*"
+  }
+}
