@@ -3,3 +3,5 @@
  * Только для тестов: в продакшн-код не импортируется.
  */
 export * from './fixtures';
+export * from './fakes';
+export * from './norm-repository-contract';
