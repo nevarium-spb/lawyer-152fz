@@ -2,7 +2,7 @@
 
 ## Подготовка
 
-Нужен Node.js ≥ 22.12. Менеджер пакетов — pnpm, версия закреплена в `package.json`.
+Нужна последняя версия Node.js (сейчас ≥ 26, см. [ADR-0009](docs/adr/0009-latest-versions-policy.md)). Менеджер пакетов — pnpm, версия закреплена в `package.json`.
 
 ```bash
 corepack enable pnpm

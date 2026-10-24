@@ -20,10 +20,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-latest, node: '24' }
-          - { os: windows-latest, node: '24' }
-          # Минимальная поддерживаемая версия из engines
-          - { os: ubuntu-latest, node: '22.12' }
+          # Политика ADR-0009: только последняя версия Node, она же минимальная в engines.
+          - { os: ubuntu-latest, node: '26' }
+          - { os: windows-latest, node: '26' }
     steps:
       # Действия закреплены по SHA коммита (ADR-0006, цепочка поставок); обновляет Dependabot.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
