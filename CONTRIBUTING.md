@@ -2,14 +2,17 @@
 
 ## Подготовка
 
-Нужен Node.js ≥ 22.12. Менеджер пакетов — pnpm, версия закреплена в `package.json`.
+Нужна последняя версия Node.js (сейчас ≥ 26, см. [ADR-0009](docs/adr/0009-latest-versions-policy.md)). Менеджер пакетов — pnpm, версия закреплена в `package.json`.
+
+Начиная с Node 25 corepack не входит в поставку Node — ставим его из npm:
 
 ```bash
+npm install -g corepack@latest
 corepack enable pnpm
 pnpm install
 ```
 
-На Windows без прав администратора: `corepack enable --install-directory "$(npm config get prefix)" pnpm`.
+corepack берёт версию pnpm из поля `packageManager`, поэтому у всех она одинаковая.
 
 ## Команды
 

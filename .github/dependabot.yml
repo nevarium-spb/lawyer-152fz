@@ -1,13 +1,17 @@
+# Политика ADR-0009: всегда последние версии, включая мажорные. Проверка ежедневно.
 version: 2
 updates:
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: weekly
+      interval: daily
     groups:
-      tooling-minor-patch:
-        update-types: [minor, patch]
+      all-dependencies:
+        patterns: ['*']
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: daily
+    groups:
+      all-actions:
+        patterns: ['*']

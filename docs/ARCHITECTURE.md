@@ -244,7 +244,7 @@ sequenceDiagram
 | Границы               | Пакеты не импортируют то, что им запрещено (dependency-cruiser)                                                                                           | CI               |
 
 Нефункциональные требования: старт MCP-сервера < 1 с; работа офлайн (кроме `check_norm_freshness` и аудита
-внешних сайтов); Windows / macOS / Linux; Node ≥ 22.12 LTS (поддержка Node 20 закончилась в апреле 2026; 22.12 — минимум для Vitest 5).
+внешних сайтов); Windows / macOS / Linux; Node ≥ 26 — всегда последняя версия ([ADR-0009](adr/0009-latest-versions-policy.md)).
 
 ## 10. Безопасность и собственное соответствие 152-ФЗ
 
@@ -296,3 +296,4 @@ sequenceDiagram
 | [0006](adr/0006-security-untrusted-content-no-pd-retention.md) | Безопасность: недоверенный контент, SSRF, без хранения ПДн          |
 | [0007](adr/0007-license-agpl-and-legal-content-policy.md)      | AGPL-3.0 и политика правового контента                              |
 | [0008](adr/0008-internal-packages-as-ts-source.md)             | Внутренние пакеты подключаются как исходники TypeScript             |
+| [0009](adr/0009-latest-versions-policy.md)                     | Политика версий: всегда последние (Node 26, TS 7)                   |

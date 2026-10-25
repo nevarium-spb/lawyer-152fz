@@ -11,7 +11,7 @@
 ## Решение
 
 - **Монорепозиторий pnpm workspaces**: `packages/*` (библиотеки), `apps/*` (приложения), `plugins/*` (плагин Claude Code).
-- **TypeScript strict** (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`), ESM, Node ≥ 22.12 LTS.
+- **TypeScript strict** (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`), ESM, последняя версия Node (см. ADR-0009).
 - **Гексагональная архитектура**: `core` содержит домен, сценарии и порты (интерфейсы) и не делает I/O.
   Адаптеры (`knowledge`, `scanner`) реализуют порты. Сборка зависимостей — только в точках сборки (`mcp-server`, `apps/*`).
 - **Ошибки как значения**: сценарии возвращают `Result<T, DomainError>`; исключения — только для багов.
