@@ -16,7 +16,7 @@ export function makeNorm(overrides: Partial<NormInput> = {}): Norm {
     heading: 'Статья 9 (тестовая)',
     text: 'Текст нормы для тестов: согласие на обработку персональных данных.',
     editionDate: '2025-01-01',
-    sourceUrl: 'https://example.org/norm',
+    sourceUrl: 'http://actual.pravo.gov.ru/content/content.html#hash=test',
     verifiedAt: '2026-10-24',
     sha256: 'a'.repeat(64),
     ...overrides,

@@ -9,7 +9,7 @@ const valid = {
   heading: '  Статья 9 (тестовая)  ',
   text: '  Текст нормы для тестов.\n',
   editionDate: '2025-01-01',
-  sourceUrl: 'https://example.org/norm',
+  sourceUrl: 'http://actual.pravo.gov.ru/content/content.html#hash=test',
   verifiedAt: '2026-10-24',
   sha256: 'a'.repeat(64),
 };
@@ -26,10 +26,26 @@ describe('схема нормы', () => {
     expect(result.ok && result.value.text).toBe(valid.text);
   });
 
-  it('требует https для официального источника', () => {
-    expect(issuesOf({ ...valid, sourceUrl: 'http://example.org/norm' })).toContainEqual({
+  it.each([
+    'http://actual.pravo.gov.ru/content/content.html#hash=abc',
+    'http://publication.pravo.gov.ru/document/0001202607270001',
+    'http://www.kremlin.ru/acts/bank/24154',
+    'https://government.ru/docs/1/',
+  ])('принимает официальный источник %s', (sourceUrl) => {
+    expect(issuesOf({ ...valid, sourceUrl })).toEqual([]);
+  });
+
+  it.each([
+    'https://www.consultant.ru/document/cons_doc_LAW_61801/',
+    'https://base.garant.ru/12148567/',
+    'https://evilpravo.gov.ru/doc',
+    'https://pravo.gov.ru.evil.com/doc',
+    'ftp://pravo.gov.ru/doc',
+  ])('отвергает неофициальный источник %s', (sourceUrl) => {
+    expect(issuesOf({ ...valid, sourceUrl })[0]).toEqual({
       path: 'sourceUrl',
-      message: 'Официальный источник — https-ссылка',
+      message:
+        'Источник — ссылка на официальный портал: pravo.gov.ru, kremlin.ru, government.ru, rkn.gov.ru',
     });
   });
 

@@ -5,10 +5,11 @@ import { formatNormId, normId, normIdSchema, parseNormId, parseNormRef } from '.
 describe('идентификатор нормы', () => {
   it.each([
     ['152-fz/art-9', { act: '152-fz', article: '9' }],
-    ['152-fz/art-18/part-5', { act: '152-fz', article: '18', part: 5 }],
+    ['152-fz/art-18/part-5', { act: '152-fz', article: '18', part: '5' }],
+    ['152-fz/art-1/part-1.1', { act: '152-fz', article: '1', part: '1.1' }],
     ['152-fz/art-18.1', { act: '152-fz', article: '18.1' }],
-    ['koap/art-13.11/part-1', { act: 'koap', article: '13.11', part: 1 }],
-    ['152-fz/art-6/part-1/item-5', { act: '152-fz', article: '6', part: 1, item: '5' }],
+    ['koap/art-13.11/part-2.1', { act: 'koap', article: '13.11', part: '2.1' }],
+    ['152-fz/art-6/part-1/item-5', { act: '152-fz', article: '6', part: '1', item: '5' }],
     ['pp-1119/item-13', { act: 'pp-1119', item: '13' }],
   ])('разбирает %s', (raw, expected) => {
     expect(parseNormRef(raw)).toEqual({ ok: true, value: expected });
@@ -21,6 +22,7 @@ describe('идентификатор нормы', () => {
     '152-fz/part-1',
     '152-fz/art-018',
     '152-fz/art-18/part-0',
+    '152-fz/art-18/part-1.0',
     '152-fz/art-18/',
     ' 152-fz/art-18',
     '',
@@ -31,7 +33,12 @@ describe('идентификатор нормы', () => {
   });
 
   it('formatNormId и parseNormRef — взаимно обратные', () => {
-    for (const raw of ['152-fz/art-18/part-5', 'pp-1119/item-13', '152-fz/art-6/part-1/item-5']) {
+    for (const raw of [
+      '152-fz/art-18/part-5',
+      'koap/art-13.11/part-1.1',
+      'pp-687/item-13',
+      '152-fz/art-6/part-1/item-5',
+    ]) {
       const ref = parseNormRef(raw);
       expect(ref.ok && formatNormId(ref.value)).toBe(raw);
     }

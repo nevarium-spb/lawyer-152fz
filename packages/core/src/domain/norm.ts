@@ -2,6 +2,24 @@ import { z } from 'zod';
 
 import { ACT_ID_PATTERN, normIdSchema } from './norm-id';
 
+/**
+ * Официальные порталы, тексты с которых допустимы в базе (ADR-0003, ADR-0007).
+ * Проверяется домен, а не протокол: actual.pravo.gov.ru работает только по HTTP,
+ * а ссылка на коммерческую правовую систему не пройдёт и по HTTPS.
+ */
+export const OFFICIAL_SOURCE_HOSTS = ['pravo.gov.ru', 'kremlin.ru', 'government.ru', 'rkn.gov.ru'];
+
+const OFFICIAL_HOST_PATTERN = new RegExp(
+  `^(?:[a-z0-9-]+\\.)*(?:${OFFICIAL_SOURCE_HOSTS.map((host) => host.replaceAll('.', '\\.')).join('|')})$`,
+);
+
+/** Ссылка на документ на официальном портале. */
+export const officialSourceUrlSchema = z.url({
+  protocol: /^https?$/,
+  hostname: OFFICIAL_HOST_PATTERN,
+  error: `Источник — ссылка на официальный портал: ${OFFICIAL_SOURCE_HOSTS.join(', ')}`,
+});
+
 const isoDate = (label: string) => z.iso.date({ error: `${label} — дата в формате ГГГГ-ММ-ДД` });
 
 export const actIdSchema = z
@@ -22,7 +40,7 @@ export const normSchema = z
     heading: z.string().trim().min(1, 'Укажите заголовок статьи'),
     text: z.string().refine((text) => text.trim().length > 0, 'Текст нормы пуст'),
     editionDate: isoDate('Дата редакции'),
-    sourceUrl: z.url({ protocol: /^https$/, error: 'Официальный источник — https-ссылка' }),
+    sourceUrl: officialSourceUrlSchema,
     verifiedAt: isoDate('Дата сверки'),
     sha256: z
       .string()
