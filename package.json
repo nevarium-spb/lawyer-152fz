@@ -16,9 +16,10 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "depcruise": "depcruise packages --config .dependency-cruiser.cjs",
-    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm depcruise && pnpm test:coverage",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm depcruise && pnpm kb:check && pnpm test:coverage",
     "changeset": "changeset",
-    "kb:import": "tsx packages/knowledge/scripts/import-acts.ts"
+    "kb:import": "tsx packages/knowledge/scripts/import-acts.ts",
+    "kb:check": "tsx packages/knowledge/scripts/check-kb.ts"
   },
   "devDependencies": {
     "@changesets/cli": "3.0.3",

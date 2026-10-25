@@ -8,3 +8,6 @@ export * from './act-meta';
 export * from './structure';
 export * from './knowledge-base';
 export * from './load-from-dir';
+export * from './search-index';
+export * from './repository';
+export * from './kb-health';
