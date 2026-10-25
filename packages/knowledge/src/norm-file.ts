@@ -13,6 +13,12 @@ export interface NormFileContent {
 
 const DELIMITER = '---';
 
+/**
+ * Простой текст, а не Markdown: разметка исказила бы закон — «1. …» стал бы нумерованным
+ * списком (и его перенумеровали бы рендер и форматировщик), «- …» — маркером списка.
+ */
+export const NORM_FILE_EXTENSION = '.txt';
+
 export function serializeNormFile(data: Readonly<Record<string, unknown>>, text: string): string {
   return `${DELIMITER}\n${stringify(data, { lineWidth: 0 })}${DELIMITER}\n\n${text}\n`;
 }

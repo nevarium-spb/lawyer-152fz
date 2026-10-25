@@ -27,7 +27,7 @@ const normFile = (
   text: string,
   overrides: Record<string, unknown> = {},
 ): KnowledgeFile => ({
-  path: `${act}/${unit}.md`,
+  path: `${act}/${unit}.txt`,
   content: serializeNormFile(
     {
       id: `${act}/${unit}`,
@@ -90,7 +90,7 @@ describe('buildKnowledgeBase', () => {
       normFile('test-law', 'art-1', 'Текст.', { sha256: 'b'.repeat(64) }),
       normFile('test-law', 'art-2', '2. Вторая.\n\n1. Первая.'),
       normFile('other', 'art-3', 'Текст.'),
-      { path: 'test-law/art-4.md', content: 'без заголовка' },
+      { path: 'test-law/art-4.txt', content: 'без заголовка' },
       { path: 'broken/act.json', content: '{не json' },
     ]);
     expect(result.ok).toBe(false);
@@ -100,23 +100,23 @@ describe('buildKnowledgeBase', () => {
       expect.arrayContaining([
         expect.objectContaining({ path: 'broken/act.json' }),
         {
-          path: 'test-law/art-1.md',
+          path: 'test-law/art-1.txt',
           message: 'sha256 не совпадает с текстом: файл изменён вручную или повреждён',
         },
-        { path: 'test-law/art-2.md', message: 'нарушен порядок нумерации: 2 → 1' },
-        { path: 'other/art-3.md', message: 'нет корректного act.json для акта «other»' },
-        { path: 'test-law/art-4.md', message: 'нет YAML-заголовка между строками ---' },
+        { path: 'test-law/art-2.txt', message: 'нарушен порядок нумерации: 2 → 1' },
+        { path: 'other/art-3.txt', message: 'нет корректного act.json для акта «other»' },
+        { path: 'test-law/art-4.txt', message: 'нет YAML-заголовка между строками ---' },
       ]),
     );
   });
 
   it('ловит несоответствие каталога и повтор идентификатора', () => {
-    const moved = { ...normFile('test-law', 'art-1', 'Текст.'), path: 'misplaced/art-1.md' };
+    const moved = { ...normFile('test-law', 'art-1', 'Текст.'), path: 'misplaced/art-1.txt' };
     const result = buildKnowledgeBase([
       actFile('test-law'),
       { ...actFile('test-law'), path: 'wrong-dir/act.json' },
       normFile('test-law', 'art-1', 'Текст.'),
-      { ...normFile('test-law', 'art-1', 'Текст.'), path: 'test-law/art-1-copy.md' },
+      { ...normFile('test-law', 'art-1', 'Текст.'), path: 'test-law/art-1-copy.txt' },
       moved,
     ]);
     expect(!result.ok && result.error.issues.map((i) => i.message)).toEqual(

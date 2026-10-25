@@ -4,7 +4,7 @@ import type { Norm, Result, ValidationError, ValidationIssue } from '@lawyer-152
 import { actMetaSchema } from './act-meta';
 import type { ActMeta } from './act-meta';
 import { sha256 } from './hashing';
-import { parseNormFile } from './norm-file';
+import { NORM_FILE_EXTENSION, parseNormFile } from './norm-file';
 import { findNumberingProblem, splitNumbered } from './structure';
 
 /** Файл базы: путь относительно `data/` с прямыми слешами и содержимое. */
@@ -46,7 +46,7 @@ export function buildKnowledgeBase(
     else acts.set(meta.value.id, meta.value);
   }
 
-  for (const file of files.filter((f) => f.path.endsWith('.md'))) {
+  for (const file of files.filter((f) => f.path.endsWith(NORM_FILE_EXTENSION))) {
     const parsed = parseNormFile(file.content);
     if (!parsed) {
       addIssue(file.path, 'нет YAML-заголовка между строками ---');
