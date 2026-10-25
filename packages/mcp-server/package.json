@@ -13,6 +13,8 @@
     "@lawyer-152fz/documents": "workspace:*",
     "@lawyer-152fz/knowledge": "workspace:*",
     "@lawyer-152fz/rules": "workspace:*",
-    "@lawyer-152fz/scanner": "workspace:*"
+    "@lawyer-152fz/scanner": "workspace:*",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "zod": "4.6.7"
   }
 }
