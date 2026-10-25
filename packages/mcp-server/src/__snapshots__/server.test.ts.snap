@@ -1,0 +1,177 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`контракт MCP-инструментов (T3.3) > схемы, описания и аннотации инструментов не меняются незаметно 1`] = `
+[
+  {
+    "_meta": undefined,
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+    },
+    "description": "Ищет нормы 152-ФЗ, ст. 13.11 КоАП и постановлений Правительства о персональных данных (русская морфология, бытовые термины: «утечка», «локализация», «РКН»). Возвращает кандидатов с фрагментами. Цитировать можно только полный текст из get_norm. / Searches Russian personal-data law; call get_norm before quoting.",
+    "execution": {
+      "taskSupport": "forbidden",
+    },
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "properties": {
+        "acts": {
+          "description": "Ограничить актами: 152-fz, koap, pp-687, pp-1119",
+          "items": {
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "limit": {
+          "description": "Сколько результатов вернуть: 1–20, по умолчанию 5",
+          "type": "number",
+        },
+        "text": {
+          "description": "Вопрос или ключевые слова на русском, например «согласие на распространение»",
+          "type": "string",
+        },
+      },
+      "required": [
+        "text",
+      ],
+      "type": "object",
+    },
+    "name": "search_norms",
+    "outputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "hits": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "editionDate": {
+                "type": "string",
+              },
+              "heading": {
+                "type": "string",
+              },
+              "id": {
+                "type": "string",
+              },
+              "score": {
+                "type": "number",
+              },
+              "snippet": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "id",
+              "heading",
+              "snippet",
+              "editionDate",
+              "score",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "kbVersion": {
+          "type": "string",
+        },
+      },
+      "required": [
+        "kbVersion",
+        "hits",
+      ],
+      "type": "object",
+    },
+    "title": "Поиск норм о персональных данных",
+  },
+  {
+    "_meta": undefined,
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+    },
+    "description": "Возвращает полный текст нормы по идентификатору с датой редакции и источником. Единственный допустимый источник цитат (ADR-0001). / Returns the full norm text for quoting.",
+    "execution": {
+      "taskSupport": "forbidden",
+    },
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "properties": {
+        "id": {
+          "description": "Идентификатор нормы, например 152-fz/art-18/part-5 или pp-1119/item-13",
+          "type": "string",
+        },
+      },
+      "required": [
+        "id",
+      ],
+      "type": "object",
+    },
+    "name": "get_norm",
+    "outputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "norm": {
+          "additionalProperties": false,
+          "properties": {
+            "act": {
+              "type": "string",
+            },
+            "editionDate": {
+              "type": "string",
+            },
+            "heading": {
+              "type": "string",
+            },
+            "id": {
+              "type": "string",
+            },
+            "officialPublication": {
+              "type": "string",
+            },
+            "sha256": {
+              "type": "string",
+            },
+            "sourceType": {
+              "enum": [
+                "official",
+                "secondary",
+              ],
+              "type": "string",
+            },
+            "sourceUrl": {
+              "type": "string",
+            },
+            "text": {
+              "type": "string",
+            },
+            "verifiedAt": {
+              "type": "string",
+            },
+          },
+          "required": [
+            "id",
+            "act",
+            "heading",
+            "text",
+            "editionDate",
+            "sourceType",
+            "sourceUrl",
+            "verifiedAt",
+            "sha256",
+          ],
+          "type": "object",
+        },
+      },
+      "required": [
+        "norm",
+      ],
+      "type": "object",
+    },
+    "title": "Полный текст нормы",
+  },
+]
+`;
