@@ -25,8 +25,13 @@ TS 7 — нативный компилятор без JS-API, а typescript-esli
 и поддерживает TypeScript `<6.1`. Поэтому пакет `typescript@6.0.3` остаётся **только как движок
 typescript-eslint**: проверку типов он не выполняет и в сборку не попадает.
 
-**Условие снятия:** выход версии typescript-eslint с поддержкой TypeScript 7 — тогда `typescript` поднимается
-до 7, алиас `tsc7` удаляется, скрипт `typecheck` снова вызывает `tsc`.
+**Условие снятия:** выход версии typescript-eslint с поддержкой TypeScript 7
+([typescript-eslint#10940](https://github.com/typescript-eslint/typescript-eslint/issues/10940)) — тогда `typescript`
+поднимается до 7, алиас `tsc7` удаляется, скрипт `typecheck` снова вызывает `tsc`, правило `ignore` в
+`.github/dependabot.yml` удаляется. Такой же подход («TS 6 рядом с TS 7») рекомендует Microsoft в анонсе TypeScript 7.0.
+
+Подтверждено 2026-10-25: Dependabot PR #6 (`typescript` 6 → 7) упал в CI с ошибкой
+«typescript-eslint does not support TS 7.0». Мажорные обновления пакета `typescript` исключены в Dependabot до снятия.
 
 ## Последствия
 
