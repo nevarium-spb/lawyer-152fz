@@ -1,0 +1,14 @@
+{
+  "id": "koap",
+  "title": "Кодекс Российской Федерации об административных правонарушениях от 30.12.2001 № 195-ФЗ",
+  "kind": "code",
+  "editionDate": "2026-10-01",
+  "retrievedAt": "2026-10-25",
+  "source": {
+    "type": "official",
+    "provider": "actual.pravo.gov.ru",
+    "docHash": "6639c6c6580e8aa0bdf84170d25823669dfb6a4144b03da245ef4889f24765c0",
+    "redactionId": 496100,
+    "url": "http://actual.pravo.gov.ru/content/content.html#hash=6639c6c6580e8aa0bdf84170d25823669dfb6a4144b03da245ef4889f24765c0"
+  }
+}

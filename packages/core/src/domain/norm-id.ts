@@ -10,7 +10,7 @@ const ACT = '[a-z0-9]+(?:-[a-z0-9]+)*';
 const NUMBER = '[1-9]\\d*(?:\\.[1-9]\\d*)*';
 
 const NORM_ID_PATTERN = new RegExp(
-  `^(${ACT})(?:/art-(${NUMBER}))?(?:/part-([1-9]\\d*))?(?:/item-(${NUMBER}))?$`,
+  `^(${ACT})(?:/art-(${NUMBER}))?(?:/part-(${NUMBER}))?(?:/item-(${NUMBER}))?$`,
 );
 
 export const ACT_ID_PATTERN = new RegExp(`^${ACT}$`);
@@ -25,7 +25,8 @@ export const NORM_ID_HINT =
 export interface NormRef {
   readonly act: string;
   readonly article?: string;
-  readonly part?: number;
+  /** Номер части; бывает дробным: часть 1.1 статьи 13.11 КоАП (в тексте — 1¹). */
+  readonly part?: string;
   readonly item?: string;
 }
 
@@ -41,7 +42,7 @@ function matchNormRef(raw: string): NormRef | undefined {
   return {
     act,
     ...(article !== undefined && { article }),
-    ...(part !== undefined && { part: Number(part) }),
+    ...(part !== undefined && { part }),
     ...(item !== undefined && { item }),
   };
 }
@@ -82,7 +83,7 @@ export function normId(raw: string): NormId {
 export function formatNormId(ref: NormRef): NormId {
   const segments = [ref.act];
   if (ref.article !== undefined) segments.push(`art-${ref.article}`);
-  if (ref.part !== undefined) segments.push(`part-${String(ref.part)}`);
+  if (ref.part !== undefined) segments.push(`part-${ref.part}`);
   if (ref.item !== undefined) segments.push(`item-${ref.item}`);
   return normId(segments.join('/'));
 }

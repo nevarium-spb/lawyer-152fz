@@ -9,7 +9,7 @@ const valid = {
   heading: '  Статья 9 (тестовая)  ',
   text: '  Текст нормы для тестов.\n',
   editionDate: '2025-01-01',
-  sourceUrl: 'https://example.org/norm',
+  sourceUrl: 'http://actual.pravo.gov.ru/content/content.html#hash=test',
   verifiedAt: '2026-10-24',
   sha256: 'a'.repeat(64),
 };
@@ -26,10 +26,61 @@ describe('схема нормы', () => {
     expect(result.ok && result.value.text).toBe(valid.text);
   });
 
-  it('требует https для официального источника', () => {
-    expect(issuesOf({ ...valid, sourceUrl: 'http://example.org/norm' })).toContainEqual({
+  it.each([
+    'http://actual.pravo.gov.ru/content/content.html#hash=abc',
+    'http://publication.pravo.gov.ru/document/0001202607270001',
+    'http://www.kremlin.ru/acts/bank/24154',
+    'https://government.ru/docs/1/',
+  ])('принимает официальный источник %s', (sourceUrl) => {
+    expect(issuesOf({ ...valid, sourceUrl })).toEqual([]);
+  });
+
+  it.each([
+    'https://www.consultant.ru/document/cons_doc_LAW_61801/',
+    'https://base.garant.ru/12148567/',
+    'https://evilpravo.gov.ru/doc',
+    'https://pravo.gov.ru.evil.com/doc',
+  ])('отвергает неофициальный источник %s', (sourceUrl) => {
+    expect(issuesOf({ ...valid, sourceUrl })[0]).toEqual({
       path: 'sourceUrl',
-      message: 'Официальный источник — https-ссылка',
+      message:
+        'Источник — ссылка на официальный портал: pravo.gov.ru, kremlin.ru, government.ru, rkn.gov.ru',
+    });
+  });
+
+  it('отвергает не-HTTP протокол', () => {
+    expect(issuesOf({ ...valid, sourceUrl: 'ftp://pravo.gov.ru/doc' })[0]).toEqual({
+      path: 'sourceUrl',
+      message: 'Источник — ссылка http(s)',
+    });
+  });
+
+  describe('вторичный источник (ADR-0012)', () => {
+    const secondary = {
+      ...valid,
+      sourceType: 'secondary',
+      sourceUrl: 'https://www.consultant.ru/document/cons_doc_LAW_137356/',
+      officialPublication: '«Российская газета», 07.11.2012, № 256',
+    };
+
+    it('принимает КонсультантПлюс с реквизитами официальной публикации', () => {
+      expect(issuesOf(secondary)).toEqual([]);
+    });
+
+    it('требует реквизиты официальной публикации', () => {
+      expect(issuesOf({ ...secondary, officialPublication: undefined })).toEqual([
+        {
+          path: 'officialPublication',
+          message: 'Для вторичного источника укажите реквизиты официальной публикации',
+        },
+      ]);
+    });
+
+    it('не принимает произвольный сайт как вторичный источник', () => {
+      expect(issuesOf({ ...secondary, sourceUrl: 'https://base.garant.ru/70252506/' })[0]).toEqual({
+        path: 'sourceUrl',
+        message: 'Вторичный источник — ссылка на consultant.ru',
+      });
     });
   });
 
