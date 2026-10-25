@@ -3,6 +3,7 @@ id: 152-fz/art-2
 act: 152-fz
 heading: Статья 2. Цель настоящего Федерального закона
 editionDate: 2026-07-26
+sourceType: official
 sourceUrl: http://actual.pravo.gov.ru/content/content.html#hash=98490812b3409e2a8d78a11ca9010f434ea3d9250a11dbbdb78690cd5551bdd6
 verifiedAt: 2026-10-25
 sha256: d84d6429fa30133d95f41aa61d802e8c743b942472038f83a7556c31d3ae582b

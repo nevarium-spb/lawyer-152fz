@@ -3,6 +3,7 @@ id: 152-fz/art-18
 act: 152-fz
 heading: Статья 18. Обязанности оператора при сборе персональных данных
 editionDate: 2026-07-26
+sourceType: official
 sourceUrl: http://actual.pravo.gov.ru/content/content.html#hash=98490812b3409e2a8d78a11ca9010f434ea3d9250a11dbbdb78690cd5551bdd6
 verifiedAt: 2026-10-25
 sha256: 4fd42a7ed398e178e5600d5ba918d159ca69362af3146faad73e9997f652c0f2

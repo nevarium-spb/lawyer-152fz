@@ -9,16 +9,41 @@ import { ACT_ID_PATTERN, normIdSchema } from './norm-id';
  */
 export const OFFICIAL_SOURCE_HOSTS = ['pravo.gov.ru', 'kremlin.ru', 'government.ru', 'rkn.gov.ru'];
 
-const OFFICIAL_HOST_PATTERN = new RegExp(
-  `^(?:[a-z0-9-]+\\.)*(?:${OFFICIAL_SOURCE_HOSTS.map((host) => host.replaceAll('.', '\\.')).join('|')})$`,
-);
+/**
+ * Вторичные источники — только для актов, которых нет в официальных электронных
+ * источниках (ADR-0012). Норма из такого источника помечается и раскрывается пользователю.
+ */
+export const SECONDARY_SOURCE_HOSTS = ['consultant.ru'];
+
+export const SOURCE_TYPES = ['official', 'secondary'] as const;
+export type SourceType = (typeof SOURCE_TYPES)[number];
+
+const hostPattern = (hosts: readonly string[]) =>
+  new RegExp(
+    `^(?:[a-z0-9-]+\\.)*(?:${hosts.map((host) => host.replaceAll('.', '\\.')).join('|')})$`,
+  );
+
+const OFFICIAL_HOST_PATTERN = hostPattern(OFFICIAL_SOURCE_HOSTS);
+const SECONDARY_HOST_PATTERN = hostPattern(SECONDARY_SOURCE_HOSTS);
+
+const OFFICIAL_SOURCE_MESSAGE = `Источник — ссылка на официальный портал: ${OFFICIAL_SOURCE_HOSTS.join(', ')}`;
+const SECONDARY_SOURCE_MESSAGE = `Вторичный источник — ссылка на ${SECONDARY_SOURCE_HOSTS.join(', ')}`;
 
 /** Ссылка на документ на официальном портале. */
 export const officialSourceUrlSchema = z.url({
   protocol: /^https?$/,
   hostname: OFFICIAL_HOST_PATTERN,
-  error: `Источник — ссылка на официальный портал: ${OFFICIAL_SOURCE_HOSTS.join(', ')}`,
+  error: OFFICIAL_SOURCE_MESSAGE,
 });
+
+/** Ссылка на документ во вторичном источнике (ADR-0012). */
+export const secondarySourceUrlSchema = z.url({
+  protocol: /^https?$/,
+  hostname: SECONDARY_HOST_PATTERN,
+  error: SECONDARY_SOURCE_MESSAGE,
+});
+
+const hostOf = (url: string): string => new URL(url).hostname;
 
 const isoDate = (label: string) => z.iso.date({ error: `${label} — дата в формате ГГГГ-ММ-ДД` });
 
@@ -40,7 +65,10 @@ export const normSchema = z
     heading: z.string().trim().min(1, 'Укажите заголовок статьи'),
     text: z.string().refine((text) => text.trim().length > 0, 'Текст нормы пуст'),
     editionDate: isoDate('Дата редакции'),
-    sourceUrl: officialSourceUrlSchema,
+    sourceType: z.enum(SOURCE_TYPES).default('official'),
+    sourceUrl: z.url({ protocol: /^https?$/, error: 'Источник — ссылка http(s)' }),
+    /** Реквизиты официальной публикации; обязательны для вторичного источника. */
+    officialPublication: z.string().trim().min(1).optional(),
     verifiedAt: isoDate('Дата сверки'),
     sha256: z
       .string()
@@ -53,6 +81,19 @@ export const normSchema = z
   .refine((norm) => norm.verifiedAt >= norm.editionDate, {
     error: 'Дата сверки не может быть раньше даты редакции',
     path: ['verifiedAt'],
+  })
+  .refine(
+    (norm) => norm.sourceType !== 'official' || OFFICIAL_HOST_PATTERN.test(hostOf(norm.sourceUrl)),
+    { error: OFFICIAL_SOURCE_MESSAGE, path: ['sourceUrl'] },
+  )
+  .refine(
+    (norm) =>
+      norm.sourceType !== 'secondary' || SECONDARY_HOST_PATTERN.test(hostOf(norm.sourceUrl)),
+    { error: SECONDARY_SOURCE_MESSAGE, path: ['sourceUrl'] },
+  )
+  .refine((norm) => norm.sourceType !== 'secondary' || norm.officialPublication !== undefined, {
+    error: 'Для вторичного источника укажите реквизиты официальной публикации',
+    path: ['officialPublication'],
   });
 
 export type Norm = z.output<typeof normSchema>;

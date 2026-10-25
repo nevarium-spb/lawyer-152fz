@@ -74,6 +74,10 @@ export function buildKnowledgeBase(
       addIssue(file.path, 'sha256 не совпадает с текстом: файл изменён вручную или повреждён');
       continue;
     }
+    if (article.sourceType !== act.source.type) {
+      addIssue(file.path, `тип источника «${article.sourceType}» не совпадает с act.json`);
+      continue;
+    }
 
     addNorm(file.path, article);
     if (act.kind === 'decree') continue;

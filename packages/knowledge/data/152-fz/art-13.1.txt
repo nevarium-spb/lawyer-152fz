@@ -3,6 +3,7 @@ id: 152-fz/art-13.1
 act: 152-fz
 heading: Статья 13.1. Особенности обработки персональных данных, полученных в результате обезличивания персональных данных, при формировании составов данных и предоставления доступа к ним
 editionDate: 2026-07-26
+sourceType: official
 sourceUrl: http://actual.pravo.gov.ru/content/content.html#hash=98490812b3409e2a8d78a11ca9010f434ea3d9250a11dbbdb78690cd5551bdd6
 verifiedAt: 2026-10-25
 sha256: 5c8bde417f6c8b1d1d3f95049b87143e59f09253893b8c3e46fea20edb3dc3c7

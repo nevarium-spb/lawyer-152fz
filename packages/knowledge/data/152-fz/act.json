@@ -2,9 +2,13 @@
   "id": "152-fz",
   "title": "Федеральный закон от 27.07.2006 № 152-ФЗ «О персональных данных»",
   "kind": "law",
-  "officialDocHash": "98490812b3409e2a8d78a11ca9010f434ea3d9250a11dbbdb78690cd5551bdd6",
-  "redactionId": 495372,
   "editionDate": "2026-07-26",
-  "sourceUrl": "http://actual.pravo.gov.ru/content/content.html#hash=98490812b3409e2a8d78a11ca9010f434ea3d9250a11dbbdb78690cd5551bdd6",
-  "retrievedAt": "2026-10-25"
+  "retrievedAt": "2026-10-25",
+  "source": {
+    "type": "official",
+    "provider": "actual.pravo.gov.ru",
+    "docHash": "98490812b3409e2a8d78a11ca9010f434ea3d9250a11dbbdb78690cd5551bdd6",
+    "redactionId": 495372,
+    "url": "http://actual.pravo.gov.ru/content/content.html#hash=98490812b3409e2a8d78a11ca9010f434ea3d9250a11dbbdb78690cd5551bdd6"
+  }
 }

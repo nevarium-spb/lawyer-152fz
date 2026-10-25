@@ -18,6 +18,9 @@ const normalize = (text: string): string =>
     .replace(/\s+/g, ' ')
     .trim();
 
+/** Нормализация пробелов, общая для всех источников текстов. */
+export const normalizeText = normalize;
+
 /**
  * Разбирает HTML редакции с actual.pravo.gov.ru в абзацы.
  * Особенности разметки портала:

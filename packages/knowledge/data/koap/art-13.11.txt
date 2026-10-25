@@ -3,6 +3,7 @@ id: koap/art-13.11
 act: koap
 heading: Статья 13.11. Нарушение законодательства Российской Федерации в области персональных данных
 editionDate: 2026-10-01
+sourceType: official
 sourceUrl: http://actual.pravo.gov.ru/content/content.html#hash=6639c6c6580e8aa0bdf84170d25823669dfb6a4144b03da245ef4889f24765c0
 verifiedAt: 2026-10-25
 sha256: 736f5bd73e22ec94e4b0e11775342346c2ac4ee362c45291bacaf78ccd334055

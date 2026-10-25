@@ -1,15 +1,18 @@
 /**
- * Импорт актов с официального портала actual.pravo.gov.ru в `data/` (ADR-0011).
+ * Импорт актов в `data/`.
  *
  *   pnpm kb:import            — все акты
  *   pnpm kb:import 152-fz     — один акт
  *
- * Скрипт перезаписывает файлы акта целиком: изменения закона видны в git diff
- * и проходят ревью в PR, как изменения кода (ADR-0003).
+ * Источники: официальный портал actual.pravo.gov.ru (ADR-0011); для актов, которых там нет, —
+ * КонсультантПлюс как вторичный источник (ADR-0012). Скрипт перезаписывает файлы акта целиком:
+ * изменения закона видны в git diff и проходят ревью в PR, как изменения кода (ADR-0003).
  */
 import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import { createConsultantClient, consultantDocumentUrl } from '../src/consultant/consultant-client';
+import { parseConsultantHtml } from '../src/consultant/consultant-html';
 import {
   DATA_DIR,
   NORM_FILE_EXTENSION,
@@ -26,28 +29,50 @@ import {
 } from '../src/official/actual-pravo-client';
 import { extractArticles, extractDecreeItems } from '../src/official/extract';
 import type { ExtractedUnit } from '../src/official/extract';
+import type { OfficialParagraph } from '../src/official/official-html';
 import { parseOfficialHtml } from '../src/official/official-html';
 
-interface ActSource {
+interface DecreeLayout {
+  /** Заголовок утверждённого документа: пункты постановления до него не берутся. */
+  readonly start: RegExp;
+  readonly itemHeading: (item: string) => string;
+}
+
+interface ActBase {
   readonly id: string;
   readonly kind: ActKind;
   readonly title: string;
-  /** Идентификатор документа на actual.pravo.gov.ru. */
+  readonly decree?: DecreeLayout;
+}
+
+interface OfficialAct extends ActBase {
+  readonly provider: 'actual.pravo.gov.ru';
   readonly docHash: string;
   /** Для кодексов — только нужные статьи. */
   readonly onlyArticles?: readonly string[];
-  /** Для постановлений — заголовок утверждённого документа и заголовок пункта. */
-  readonly decree?: { readonly start: RegExp; readonly itemHeading: (item: string) => string };
 }
 
-const ACTS: readonly ActSource[] = [
+interface SecondaryAct extends ActBase {
+  readonly provider: 'consultant.ru';
+  readonly documentId: string;
+  readonly section: string;
+  /** Дата последней редакции: у вторичного источника её не получить из API. */
+  readonly editionDate: string;
+  /** Реквизиты официальной публикации — сверены по независимому источнику. */
+  readonly officialPublication: string;
+  readonly decree: DecreeLayout;
+}
+
+const ACTS: readonly (OfficialAct | SecondaryAct)[] = [
   {
+    provider: 'actual.pravo.gov.ru',
     id: '152-fz',
     kind: 'law',
     title: 'Федеральный закон от 27.07.2006 № 152-ФЗ «О персональных данных»',
     docHash: '98490812b3409e2a8d78a11ca9010f434ea3d9250a11dbbdb78690cd5551bdd6',
   },
   {
+    provider: 'actual.pravo.gov.ru',
     id: 'koap',
     kind: 'code',
     title: 'Кодекс Российской Федерации об административных правонарушениях от 30.12.2001 № 195-ФЗ',
@@ -55,6 +80,7 @@ const ACTS: readonly ActSource[] = [
     onlyArticles: ['13.11'],
   },
   {
+    provider: 'actual.pravo.gov.ru',
     id: 'pp-687',
     kind: 'decree',
     title:
@@ -66,38 +92,99 @@ const ACTS: readonly ActSource[] = [
         `Положение об обработке ПДн без средств автоматизации (ПП РФ № 687), пункт ${item}`,
     },
   },
+  {
+    // Нет в официальных электронных источниках: не менялось после 2022 г. (actual.pravo.gov.ru),
+    // а в 2012 г. постановления Правительства на publication.pravo.gov.ru не публиковались.
+    provider: 'consultant.ru',
+    id: 'pp-1119',
+    kind: 'decree',
+    title:
+      'Требования к защите персональных данных при их обработке в информационных системах персональных данных (утв. постановлением Правительства РФ от 01.11.2012 № 1119)',
+    documentId: 'LAW_137356',
+    section: '8c86cf6357879e861790a8a7ca8bea4227d56c72',
+    editionDate: '2012-11-01',
+    officialPublication:
+      '«Российская газета», 07.11.2012, № 256; Собрание законодательства РФ, 05.11.2012, № 45, ст. 6257',
+    decree: {
+      start: /^ТРЕБОВАНИЯ/,
+      itemHeading: (item) => `Требования к защите ПДн в ИСПДн (ПП РФ № 1119), пункт ${item}`,
+    },
+  },
 ];
 
-const client = createActualPravoClient();
+const actualPravo = createActualPravoClient();
+const consultant = createConsultantClient();
 const today = new Date().toISOString().slice(0, 10);
 const say = (line: string) => process.stdout.write(`${line}\n`);
 
-async function importAct(act: ActSource): Promise<void> {
-  const redactions = await client.redactions(act.docHash);
+interface Loaded {
+  readonly paragraphs: readonly OfficialParagraph[];
+  readonly editionDate: string;
+  readonly caption: string;
+  readonly source: ActMeta['source'];
+}
+
+async function loadOfficial(act: OfficialAct): Promise<Loaded> {
+  const redactions = await actualPravo.redactions(act.docHash);
   if (!redactions.ok) throw new Error(redactions.error.message);
 
   const current = currentRedaction(redactions.value);
   if (!current) throw new Error(`${act.id}: нет актуальной редакции`);
 
-  const html = await client.redactionHtml(current.id);
+  const html = await actualPravo.redactionHtml(current.id);
   if (!html.ok) throw new Error(html.error.message);
 
-  const paragraphs = parseOfficialHtml(html.value);
+  return {
+    paragraphs: parseOfficialHtml(html.value),
+    editionDate: current.date,
+    caption: `редакция ${current.caption}`,
+    source: {
+      type: 'official',
+      provider: 'actual.pravo.gov.ru',
+      docHash: act.docHash,
+      redactionId: current.id,
+      url: officialDocumentUrl(act.docHash),
+    },
+  };
+}
+
+async function loadSecondary(act: SecondaryAct): Promise<Loaded> {
+  const html = await consultant.documentHtml(act.documentId, act.section);
+  if (!html.ok) throw new Error(html.error.message);
+
+  return {
+    paragraphs: parseConsultantHtml(html.value),
+    editionDate: act.editionDate,
+    caption: `вторичный источник КонсультантПлюс, редакция от ${act.editionDate}`,
+    source: {
+      type: 'secondary',
+      provider: 'consultant.ru',
+      documentId: act.documentId,
+      url: consultantDocumentUrl(act.documentId, act.section),
+      officialPublication: act.officialPublication,
+    },
+  };
+}
+
+async function importAct(act: OfficialAct | SecondaryAct): Promise<void> {
+  const loaded =
+    act.provider === 'consultant.ru' ? await loadSecondary(act) : await loadOfficial(act);
+
   const units: ExtractedUnit[] = act.decree
-    ? extractDecreeItems(paragraphs, act.decree.start)
-    : extractArticles(paragraphs, act.onlyArticles);
+    ? extractDecreeItems(loaded.paragraphs, act.decree.start)
+    : extractArticles(
+        loaded.paragraphs,
+        act.provider === 'actual.pravo.gov.ru' ? act.onlyArticles : undefined,
+      );
   if (units.length === 0) throw new Error(`${act.id}: в тексте не найдено ни одной нормы`);
 
-  const sourceUrl = officialDocumentUrl(act.docHash);
   const meta: ActMeta = {
     id: act.id,
     title: act.title,
     kind: act.kind,
-    officialDocHash: act.docHash,
-    redactionId: current.id,
-    editionDate: current.date,
-    sourceUrl,
+    editionDate: loaded.editionDate,
     retrievedAt: today,
+    source: loaded.source,
   };
 
   const dir = join(DATA_DIR, act.id);
@@ -110,13 +197,16 @@ async function importAct(act: ActSource): Promise<void> {
 
   const unitKind = act.decree ? 'item' : 'art';
   for (const unit of units) {
-    const heading = act.decree ? act.decree.itemHeading(unit.number) : unit.heading;
     const frontmatter = {
       id: `${act.id}/${unitKind}-${unit.number}`,
       act: act.id,
-      heading,
-      editionDate: current.date,
-      sourceUrl,
+      heading: act.decree ? act.decree.itemHeading(unit.number) : unit.heading,
+      editionDate: loaded.editionDate,
+      sourceType: loaded.source.type,
+      sourceUrl: loaded.source.url,
+      ...(loaded.source.type === 'secondary' && {
+        officialPublication: loaded.source.officialPublication,
+      }),
       verifiedAt: today,
       sha256: sha256(unit.text),
       ...(unit.notes.length > 0 && { notes: unit.notes }),
@@ -127,7 +217,7 @@ async function importAct(act: ActSource): Promise<void> {
     );
   }
 
-  say(`✔ ${act.id}: ${String(units.length)} норм, редакция ${current.caption}`);
+  say(`✔ ${act.id}: ${String(units.length)} норм, ${loaded.caption}`);
 }
 
 const selected = process.argv.slice(2);

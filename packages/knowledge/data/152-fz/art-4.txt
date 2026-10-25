@@ -3,6 +3,7 @@ id: 152-fz/art-4
 act: 152-fz
 heading: Статья 4. Законодательство Российской Федерации в области персональных данных
 editionDate: 2026-07-26
+sourceType: official
 sourceUrl: http://actual.pravo.gov.ru/content/content.html#hash=98490812b3409e2a8d78a11ca9010f434ea3d9250a11dbbdb78690cd5551bdd6
 verifiedAt: 2026-10-25
 sha256: 1cacf27885de13b6078eb5a298cd6fcd18d51806d3e44bfbf142b3dc8d85329d

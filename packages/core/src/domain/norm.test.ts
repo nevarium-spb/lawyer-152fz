@@ -40,12 +40,47 @@ describe('схема нормы', () => {
     'https://base.garant.ru/12148567/',
     'https://evilpravo.gov.ru/doc',
     'https://pravo.gov.ru.evil.com/doc',
-    'ftp://pravo.gov.ru/doc',
   ])('отвергает неофициальный источник %s', (sourceUrl) => {
     expect(issuesOf({ ...valid, sourceUrl })[0]).toEqual({
       path: 'sourceUrl',
       message:
         'Источник — ссылка на официальный портал: pravo.gov.ru, kremlin.ru, government.ru, rkn.gov.ru',
+    });
+  });
+
+  it('отвергает не-HTTP протокол', () => {
+    expect(issuesOf({ ...valid, sourceUrl: 'ftp://pravo.gov.ru/doc' })[0]).toEqual({
+      path: 'sourceUrl',
+      message: 'Источник — ссылка http(s)',
+    });
+  });
+
+  describe('вторичный источник (ADR-0012)', () => {
+    const secondary = {
+      ...valid,
+      sourceType: 'secondary',
+      sourceUrl: 'https://www.consultant.ru/document/cons_doc_LAW_137356/',
+      officialPublication: '«Российская газета», 07.11.2012, № 256',
+    };
+
+    it('принимает КонсультантПлюс с реквизитами официальной публикации', () => {
+      expect(issuesOf(secondary)).toEqual([]);
+    });
+
+    it('требует реквизиты официальной публикации', () => {
+      expect(issuesOf({ ...secondary, officialPublication: undefined })).toEqual([
+        {
+          path: 'officialPublication',
+          message: 'Для вторичного источника укажите реквизиты официальной публикации',
+        },
+      ]);
+    });
+
+    it('не принимает произвольный сайт как вторичный источник', () => {
+      expect(issuesOf({ ...secondary, sourceUrl: 'https://base.garant.ru/70252506/' })[0]).toEqual({
+        path: 'sourceUrl',
+        message: 'Вторичный источник — ссылка на consultant.ru',
+      });
     });
   });
 

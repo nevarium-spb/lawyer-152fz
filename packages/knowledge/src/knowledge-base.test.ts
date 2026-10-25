@@ -13,11 +13,15 @@ const actFile = (id: string, kind: 'law' | 'decree' = 'law'): KnowledgeFile => (
     id,
     title: `Тестовый акт ${id}`,
     kind,
-    officialDocHash: 'a'.repeat(64),
-    redactionId: 1,
     editionDate: '2026-07-26',
-    sourceUrl: SOURCE,
     retrievedAt: '2026-10-25',
+    source: {
+      type: 'official',
+      provider: 'actual.pravo.gov.ru',
+      docHash: 'a'.repeat(64),
+      redactionId: 1,
+      url: SOURCE,
+    },
   }),
 });
 
@@ -137,5 +141,57 @@ describe('buildKnowledgeBase', () => {
       'sourceUrl: Источник — ссылка на официальный портал',
     );
     expect(!buildKnowledgeBase([]).ok).toBe(true);
+  });
+
+  describe('вторичный источник (ADR-0012)', () => {
+    const CONSULTANT = 'https://www.consultant.ru/document/cons_doc_LAW_1/';
+    const PUBLICATION = '«Российская газета», 01.01.2012, № 1';
+    const secondaryAct: KnowledgeFile = {
+      path: 'pp-1/act.json',
+      content: JSON.stringify({
+        id: 'pp-1',
+        title: 'Тестовое постановление',
+        kind: 'decree',
+        editionDate: '2012-01-01',
+        retrievedAt: '2026-10-25',
+        source: {
+          type: 'secondary',
+          provider: 'consultant.ru',
+          documentId: 'LAW_1',
+          url: CONSULTANT,
+          officialPublication: PUBLICATION,
+        },
+      }),
+    };
+    const secondaryNorm = (overrides: Record<string, unknown> = {}) =>
+      normFile('pp-1', 'item-1', '1. Пункт.', {
+        editionDate: '2012-01-01',
+        sourceType: 'secondary',
+        sourceUrl: CONSULTANT,
+        officialPublication: PUBLICATION,
+        ...overrides,
+      });
+
+    it('принимает норму из вторичного источника с реквизитами публикации', () => {
+      const result = buildKnowledgeBase([secondaryAct, secondaryNorm()]);
+      expect(result.ok && result.value.norms[0]).toMatchObject({
+        sourceType: 'secondary',
+        officialPublication: PUBLICATION,
+      });
+    });
+
+    it('тип источника нормы должен совпадать с act.json', () => {
+      const result = buildKnowledgeBase([
+        actFile('test-law'),
+        normFile('test-law', 'art-1', 'Текст.', {
+          sourceType: 'secondary',
+          sourceUrl: CONSULTANT,
+          officialPublication: PUBLICATION,
+        }),
+      ]);
+      expect(!result.ok && result.error.issues[0]?.message).toBe(
+        'тип источника «secondary» не совпадает с act.json',
+      );
+    });
   });
 });
