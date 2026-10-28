@@ -6,6 +6,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 import { describeKnowledgeBase, registerKbInfo } from './kb-info';
 import type { KbInfo } from './kb-info';
+import { SERVER_INSTRUCTIONS } from './instructions';
 import { registerNormTools } from './tools';
 import { SERVER_NAME, SERVER_VERSION } from './version';
 
@@ -42,7 +43,10 @@ export function composeServer(
   const lookup = createLookupNorms({ norms, freshness: pendingFreshness(clock), clock });
   const kbInfo = describeKnowledgeBase(knowledgeBase.value);
 
-  const server = new McpServer({ name: SERVER_NAME, version: SERVER_VERSION });
+  const server = new McpServer(
+    { name: SERVER_NAME, version: SERVER_VERSION },
+    { instructions: SERVER_INSTRUCTIONS },
+  );
   registerNormTools(server, lookup, knowledgeBase.value.kbVersion);
   registerKbInfo(server, kbInfo);
 

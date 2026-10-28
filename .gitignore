@@ -1,6 +1,8 @@
 node_modules/
 # Бандл сервера коммитит только релизный CI (ADR-0005)
 plugins/*/server/index.mjs
+# Отчёты прогонов claude plugin eval — локальные артефакты
+plugins/*/evals/results/
 dist/
 coverage/
 *.tsbuildinfo

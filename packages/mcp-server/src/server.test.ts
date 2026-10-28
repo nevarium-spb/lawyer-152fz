@@ -1,3 +1,4 @@
+import { LEGAL_DISCLAIMER } from '@lawyer-152fz/core';
 import { buildKnowledgeBase, readKnowledgeFiles } from '@lawyer-152fz/knowledge';
 import type { KnowledgeFile } from '@lawyer-152fz/knowledge';
 import { CODEBASE_RULES, SITE_RULES } from '@lawyer-152fz/rules';
@@ -36,6 +37,16 @@ describe('контракт MCP-инструментов (T3.3)', () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name)).toEqual(['search_norms', 'get_norm']);
     expect(tools).toMatchSnapshot();
+  });
+});
+
+describe('инструкции сервера', () => {
+  it('требуют базы вместо памяти, идентификаторов норм и дисклеймера', () => {
+    const instructions = client.getInstructions() ?? '';
+    expect(instructions).toContain('Не отвечай по памяти');
+    expect(instructions).toContain('lawyer-152fz');
+    expect(instructions).toContain('`152-fz/art-18/part-5`');
+    expect(instructions).toContain(LEGAL_DISCLAIMER);
   });
 });
 
