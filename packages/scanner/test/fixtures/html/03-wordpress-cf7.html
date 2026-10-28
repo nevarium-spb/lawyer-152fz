@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Юридическая компания — WordPress</title>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ABC123"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag('js', new Date());
+      gtag('config', 'G-ABC123');
+    </script>
+    <script src="/wp-content/plugins/contact-form-7/includes/js/index.js"></script>
+  </head>
+  <body class="page">
+    <div class="wpcf7 js" id="wpcf7-f42-p7-o1">
+      <form action="/kontakty/#wpcf7-f42-p7-o1" method="post" class="wpcf7-form init" novalidate>
+        <p>
+          <label>
+            Ваше имя<br /><span class="wpcf7-form-control-wrap" data-name="your-name"
+              ><input
+                size="40"
+                class="wpcf7-form-control wpcf7-text"
+                type="text"
+                name="your-name" /></span
+          ></label>
+        </p>
+        <p>
+          <label>
+            Ваш email<br /><span class="wpcf7-form-control-wrap"
+              ><input class="wpcf7-email" type="email" name="your-email" /></span
+          ></label>
+        </p>
+        <p>
+          <label> Телефон<br /><input class="wpcf7-tel" type="tel" name="your-tel" /></label>
+        </p>
+        <p>
+          <label> Сообщение<br /><textarea name="your-message"></textarea></label>
+        </p>
+        <span class="wpcf7-form-control-wrap" data-name="acceptance-1"
+          ><span class="wpcf7-form-control wpcf7-acceptance"
+            ><span class="wpcf7-list-item"
+              ><label
+                ><input type="checkbox" name="acceptance-1" value="1" aria-invalid="false" /><span
+                  class="wpcf7-list-item-label"
+                  >Я даю согласие на обработку персональных данных</span
+                ></label
+              ></span
+            ></span
+          ></span
+        >
+        <p><input class="wpcf7-submit" type="submit" value="Отправить" /></p>
+      </form>
+    </div>
+    <div id="cookie-notice" role="dialog">
+      Мы используем файлы cookie, чтобы сайт работал лучше.
+      <a href="/politika-konfidencialnosti/">Подробнее</a>
+    </div>
+  </body>
+</html>

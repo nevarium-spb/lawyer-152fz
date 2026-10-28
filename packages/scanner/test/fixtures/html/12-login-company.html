@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>Личный кабинет партнёра</title>
+  </head>
+  <body>
+    <form id="partner" action="/partner/register" method="post">
+      <label for="company">Название компании</label><input id="company" name="companyName" />
+      <label for="promo">Промокод</label><input id="promo" name="promo_code" />
+      <input type="email" name="login" autocomplete="email" />
+      <input type="password" name="password" />
+      <input type="hidden" name="csrf" value="token" />
+      <button type="submit">Зарегистрироваться</button>
+    </form>
+  </body>
+</html>

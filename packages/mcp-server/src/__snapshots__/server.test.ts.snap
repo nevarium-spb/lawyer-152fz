@@ -173,5 +173,635 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
     },
     "title": "Полный текст нормы",
   },
+  {
+    "_meta": undefined,
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+    },
+    "description": "Загружает страницы сайта (без браузера) и проверяет формы, согласия, политику, HTTPS, иностранные сервисы и счётчики. Возвращает отчёт: нарушения, риски, рекомендации, что не проверено. Если сайт — SPA (React, Vue), отчёт скажет об этом: тогда передайте DOM из браузера через audit_html. / Audits a website for Russian personal-data law.",
+    "execution": {
+      "taskSupport": "forbidden",
+    },
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "properties": {
+        "maxPages": {
+          "description": "Сколько страниц обойти: 1–50, по умолчанию 10",
+          "type": "number",
+        },
+        "url": {
+          "description": "Адрес сайта, например https://example.ru",
+          "type": "string",
+        },
+      },
+      "required": [
+        "url",
+      ],
+      "type": "object",
+    },
+    "name": "audit_site",
+    "outputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "disclaimer": {
+          "type": "string",
+        },
+        "findings": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "confidence": {
+                "enum": [
+                  "deterministic",
+                  "needs-review",
+                ],
+                "type": "string",
+              },
+              "evidence": {
+                "items": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "selector": {
+                          "type": "string",
+                        },
+                        "type": {
+                          "const": "page",
+                          "type": "string",
+                        },
+                        "untrustedExcerpt": {
+                          "type": "string",
+                        },
+                        "url": {
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "type",
+                        "url",
+                      ],
+                      "type": "object",
+                    },
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "line": {
+                          "type": "number",
+                        },
+                        "path": {
+                          "type": "string",
+                        },
+                        "type": {
+                          "const": "file",
+                          "type": "string",
+                        },
+                        "untrustedExcerpt": {
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "type",
+                        "path",
+                      ],
+                      "type": "object",
+                    },
+                  ],
+                },
+                "type": "array",
+              },
+              "kind": {
+                "enum": [
+                  "violation",
+                  "risk",
+                  "recommendation",
+                ],
+                "type": "string",
+              },
+              "normRefs": {
+                "items": {
+                  "type": "string",
+                },
+                "type": "array",
+              },
+              "remediation": {
+                "type": "string",
+              },
+              "ruleId": {
+                "type": "string",
+              },
+              "severity": {
+                "enum": [
+                  "critical",
+                  "high",
+                  "medium",
+                  "low",
+                  "info",
+                ],
+                "type": "string",
+              },
+              "title": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "ruleId",
+              "kind",
+              "severity",
+              "title",
+              "evidence",
+              "normRefs",
+              "remediation",
+              "confidence",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "generatedAt": {
+          "type": "string",
+        },
+        "kbVersion": {
+          "type": "string",
+        },
+        "notChecked": {
+          "items": {
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "target": {
+          "anyOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "const": "site",
+                  "type": "string",
+                },
+                "url": {
+                  "type": "string",
+                },
+              },
+              "required": [
+                "type",
+                "url",
+              ],
+              "type": "object",
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "path": {
+                  "type": "string",
+                },
+                "type": {
+                  "const": "codebase",
+                  "type": "string",
+                },
+              },
+              "required": [
+                "type",
+                "path",
+              ],
+              "type": "object",
+            },
+          ],
+        },
+      },
+      "required": [
+        "target",
+        "generatedAt",
+        "kbVersion",
+        "findings",
+        "notChecked",
+        "disclaimer",
+      ],
+      "type": "object",
+    },
+    "title": "Аудит сайта по 152-ФЗ",
+  },
+  {
+    "_meta": undefined,
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+    },
+    "description": "Проверяет страницу по готовому HTML, без сети. Для SPA: откройте страницу своим браузерным инструментом, получите DOM после отрисовки (document.documentElement.outerHTML) и передайте сюда вместе с адресом страницы. / Audits page HTML rendered by the host browser (ADR-0010).",
+    "execution": {
+      "taskSupport": "forbidden",
+    },
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "properties": {
+        "html": {
+          "description": "HTML страницы после отрисовки, до 3 млн символов",
+          "type": "string",
+        },
+        "url": {
+          "description": "Адрес страницы, с которой взят HTML",
+          "type": "string",
+        },
+      },
+      "required": [
+        "url",
+        "html",
+      ],
+      "type": "object",
+    },
+    "name": "audit_html",
+    "outputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "disclaimer": {
+          "type": "string",
+        },
+        "findings": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "confidence": {
+                "enum": [
+                  "deterministic",
+                  "needs-review",
+                ],
+                "type": "string",
+              },
+              "evidence": {
+                "items": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "selector": {
+                          "type": "string",
+                        },
+                        "type": {
+                          "const": "page",
+                          "type": "string",
+                        },
+                        "untrustedExcerpt": {
+                          "type": "string",
+                        },
+                        "url": {
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "type",
+                        "url",
+                      ],
+                      "type": "object",
+                    },
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "line": {
+                          "type": "number",
+                        },
+                        "path": {
+                          "type": "string",
+                        },
+                        "type": {
+                          "const": "file",
+                          "type": "string",
+                        },
+                        "untrustedExcerpt": {
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "type",
+                        "path",
+                      ],
+                      "type": "object",
+                    },
+                  ],
+                },
+                "type": "array",
+              },
+              "kind": {
+                "enum": [
+                  "violation",
+                  "risk",
+                  "recommendation",
+                ],
+                "type": "string",
+              },
+              "normRefs": {
+                "items": {
+                  "type": "string",
+                },
+                "type": "array",
+              },
+              "remediation": {
+                "type": "string",
+              },
+              "ruleId": {
+                "type": "string",
+              },
+              "severity": {
+                "enum": [
+                  "critical",
+                  "high",
+                  "medium",
+                  "low",
+                  "info",
+                ],
+                "type": "string",
+              },
+              "title": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "ruleId",
+              "kind",
+              "severity",
+              "title",
+              "evidence",
+              "normRefs",
+              "remediation",
+              "confidence",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "generatedAt": {
+          "type": "string",
+        },
+        "kbVersion": {
+          "type": "string",
+        },
+        "notChecked": {
+          "items": {
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "target": {
+          "anyOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "const": "site",
+                  "type": "string",
+                },
+                "url": {
+                  "type": "string",
+                },
+              },
+              "required": [
+                "type",
+                "url",
+              ],
+              "type": "object",
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "path": {
+                  "type": "string",
+                },
+                "type": {
+                  "const": "codebase",
+                  "type": "string",
+                },
+              },
+              "required": [
+                "type",
+                "path",
+              ],
+              "type": "object",
+            },
+          ],
+        },
+      },
+      "required": [
+        "target",
+        "generatedAt",
+        "kbVersion",
+        "findings",
+        "notChecked",
+        "disclaimer",
+      ],
+      "type": "object",
+    },
+    "title": "Аудит страницы по HTML из браузера",
+  },
+  {
+    "_meta": undefined,
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+    },
+    "description": "Читает исходники проекта (только чтение, с учётом .gitignore, без .env и ключей) и ищет иностранные SDK, базы и облака за рубежом, персональные данные в логах. Ничего не меняет в проекте: правки предложите пользователю. / Read-only audit of project source code.",
+    "execution": {
+      "taskSupport": "forbidden",
+    },
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "properties": {
+        "path": {
+          "description": "Абсолютный путь к папке проекта",
+          "type": "string",
+        },
+      },
+      "required": [
+        "path",
+      ],
+      "type": "object",
+    },
+    "name": "audit_codebase",
+    "outputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "disclaimer": {
+          "type": "string",
+        },
+        "findings": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "confidence": {
+                "enum": [
+                  "deterministic",
+                  "needs-review",
+                ],
+                "type": "string",
+              },
+              "evidence": {
+                "items": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "selector": {
+                          "type": "string",
+                        },
+                        "type": {
+                          "const": "page",
+                          "type": "string",
+                        },
+                        "untrustedExcerpt": {
+                          "type": "string",
+                        },
+                        "url": {
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "type",
+                        "url",
+                      ],
+                      "type": "object",
+                    },
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "line": {
+                          "type": "number",
+                        },
+                        "path": {
+                          "type": "string",
+                        },
+                        "type": {
+                          "const": "file",
+                          "type": "string",
+                        },
+                        "untrustedExcerpt": {
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "type",
+                        "path",
+                      ],
+                      "type": "object",
+                    },
+                  ],
+                },
+                "type": "array",
+              },
+              "kind": {
+                "enum": [
+                  "violation",
+                  "risk",
+                  "recommendation",
+                ],
+                "type": "string",
+              },
+              "normRefs": {
+                "items": {
+                  "type": "string",
+                },
+                "type": "array",
+              },
+              "remediation": {
+                "type": "string",
+              },
+              "ruleId": {
+                "type": "string",
+              },
+              "severity": {
+                "enum": [
+                  "critical",
+                  "high",
+                  "medium",
+                  "low",
+                  "info",
+                ],
+                "type": "string",
+              },
+              "title": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "ruleId",
+              "kind",
+              "severity",
+              "title",
+              "evidence",
+              "normRefs",
+              "remediation",
+              "confidence",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "generatedAt": {
+          "type": "string",
+        },
+        "kbVersion": {
+          "type": "string",
+        },
+        "notChecked": {
+          "items": {
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "target": {
+          "anyOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "const": "site",
+                  "type": "string",
+                },
+                "url": {
+                  "type": "string",
+                },
+              },
+              "required": [
+                "type",
+                "url",
+              ],
+              "type": "object",
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "path": {
+                  "type": "string",
+                },
+                "type": {
+                  "const": "codebase",
+                  "type": "string",
+                },
+              },
+              "required": [
+                "type",
+                "path",
+              ],
+              "type": "object",
+            },
+          ],
+        },
+      },
+      "required": [
+        "target",
+        "generatedAt",
+        "kbVersion",
+        "findings",
+        "notChecked",
+        "disclaimer",
+      ],
+      "type": "object",
+    },
+    "title": "Аудит исходников проекта по 152-ФЗ",
+  },
 ]
 `;

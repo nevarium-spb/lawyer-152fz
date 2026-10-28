@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Начать проект — Невариум Лаб ИИ</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&amp;family=Unbounded:wght@400;500;600;700;800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script type="module" src="/@vite/client"></script>
+  </head>
+  <body>
+    <div id="root">
+      <div class="layout">
+        <header class="pillnav is-scrolled">
+          <div class="pillnav-capsule">
+            <a class="pillnav-logo" aria-label="Невариум Лаб ИИ — на главную" href="/"
+              ><span>Невариум&nbsp;<em>Лаб&nbsp;ИИ</em></span></a
+            >
+            <nav class="pillnav-links" aria-label="Основная навигация">
+              <a href="/">Главная</a><a href="/platform">Платформа</a
+              ><a href="/scenarios">Сценарии</a><a href="/pricing">Тарифы</a
+              ><a href="/company">Компания</a>
+            </nav>
+            <a class="pillnav-cta" href="/start">Начать</a>
+          </div>
+        </header>
+        <main id="main">
+          <section class="pagehero">
+            <div class="container">
+              <p class="pagehero-kicker">Старт</p>
+              <h1 class="pagehero-title">
+                Три шага до <span class="gradient-text">бесплатной диагностики</span>
+              </h1>
+              <p class="pagehero-lead">
+                Два вопроса и контакт. Через рабочий день у вас на руках расчёт: где ИИ окупится в
+                вашем бизнесе, сколько сэкономит и с чего начать. Ни к чему не обязывает — кроме
+                честного взгляда на свою рутину.
+              </p>
+            </div>
+          </section>
+          <section class="section wizard-section">
+            <div class="container wizard-grid">
+              <div class="wizard-wrap">
+                <div class="wizard surface">
+                  <ol class="wizard-progress" aria-label="Шаг 3 из 3">
+                    <li class="is-done">Задача</li>
+                    <li class="is-done">Масштаб</li>
+                    <li class="is-current" aria-current="step">Контакты</li>
+                  </ol>
+                  <fieldset class="wizard-step">
+                    <legend>Куда прислать результат диагностики?</legend>
+                    <div class="wizard-field">
+                      <label for="wz-name">Ваше имя</label
+                      ><input
+                        id="wz-name"
+                        type="text"
+                        autocomplete="name"
+                        aria-invalid="false"
+                        value=""
+                      />
+                    </div>
+                    <div class="wizard-field">
+                      <label for="wz-contact">E-mail или Telegram</label
+                      ><input
+                        id="wz-contact"
+                        type="text"
+                        placeholder="you@mail.ru или @username"
+                        aria-invalid="false"
+                        value=""
+                      />
+                    </div>
+                    <div class="wizard-field">
+                      <label for="wz-note"
+                        >Пара слов о задаче
+                        <span class="wizard-optional">не обязательно</span></label
+                      ><textarea
+                        id="wz-note"
+                        rows="3"
+                        placeholder="Например: интернет-магазин косметики, 400 карточек товара…"
+                      ></textarea>
+                    </div>
+                    <div class="wizard-nav">
+                      <button type="button" class="btn btn-ghost">← Назад</button
+                      ><button type="button" class="btn btn-primary">Получить диагностику</button>
+                    </div>
+                    <p class="wizard-privacy">
+                      Нажимая кнопку, вы соглашаетесь на обработку персональных данных. Работаем по
+                      NDA — детали вашего бизнеса остаются между нами.
+                    </p>
+                  </fieldset>
+                </div>
+              </div>
+              <div class="wizard-aside">
+                <div class="wizard-aside-card surface">
+                  <h2>Не любите формы?</h2>
+                  <p>
+                    Напишите напрямую:
+                    <a href="mailto:nevariumai@gmail.com">nevariumai@gmail.com</a> или @nevarium_lab
+                    в Telegram. Или спросите Неву — он в правом нижнем углу.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+        <footer class="footer">
+          <div class="container">
+            <nav class="footer-nav" aria-label="Навигация в подвале">
+              <a href="/">Главная</a><a href="/platform">Платформа</a
+              ><a href="/scenarios">Сценарии</a><a href="/pricing">Тарифы</a
+              ><a href="/company">Компания</a><a href="/start">Начать</a>
+            </nav>
+            <div class="footer-contacts">
+              <a href="mailto:nevariumai@gmail.com">nevariumai@gmail.com</a
+              ><span>Telegram: @nevarium_lab</span>
+            </div>
+            <p class="footer-copy">© 2026 Невариум Лаб ИИ. Все права защищены.</p>
+          </div>
+        </footer>
+        <button type="button" class="chat-fab" aria-label="Открыть чат с ассистентом Нева">
+          💬
+        </button>
+      </div>
+    </div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

@@ -6,7 +6,7 @@
 import type { NormId } from './domain/norm-id';
 import type { Norm } from './domain/norm';
 import type { OperatorProfile } from './domain/operator-profile';
-import type { CodebaseSnapshot, SiteSnapshot } from './domain/snapshots';
+import type { CodebaseSnapshot, PageSnapshot, SiteSnapshot } from './domain/snapshots';
 import type { ForbiddenError, NotFoundError, SourceUnavailableError } from './shared/errors';
 import type { Result } from './shared/result';
 
@@ -72,6 +72,11 @@ export interface SiteScanner {
 /** Только чтение: сканер не пишет в проект пользователя (ADR-0006). */
 export interface CodebaseScanner {
   scan(path: string): Promise<Result<CodebaseSnapshot, SourceUnavailableError | ForbiddenError>>;
+}
+
+/** Разбор уже полученного HTML страницы без сети — для DOM от браузера хоста (ADR-0010). */
+export interface PageAnalyzer {
+  analyze(page: { readonly url: string; readonly html: string }): PageSnapshot;
 }
 
 // ─── Шаблоны документов — реализует packages/documents ───────────────────────

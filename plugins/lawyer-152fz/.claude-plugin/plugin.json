@@ -1,8 +1,11 @@
 {
   "name": "lawyer-152fz",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "ИИ-юрист по 152-ФЗ «О персональных данных» и работе с Роскомнадзором: консультации с цитатами из официальных текстов норм.",
-  "author": { "name": "Невариум Лаб ИИ", "url": "https://github.com/nevarium-spb" },
+  "author": {
+    "name": "Невариум Лаб ИИ",
+    "url": "https://github.com/nevarium-spb"
+  },
   "repository": "https://github.com/nevarium-spb/lawyer-152fz",
   "license": "AGPL-3.0-only",
   "keywords": ["152-фз", "персональные данные", "роскомнадзор", "ркн", "юрист", "compliance"]

@@ -12,7 +12,9 @@ export async function runStdioServer(files: readonly KnowledgeFile[]): Promise<v
   const config = loadConfig(process.env);
   if (!config.ok) fail(config.error.message, config.error.issues);
 
-  const composed = composeServer(files);
+  const composed = composeServer(files, undefined, {
+    allowPrivateNetworks: config.value.allowPrivateNetworks,
+  });
   if (!composed.ok) fail(composed.error.message, composed.error.issues);
 
   await composed.value.server.connect(new StdioServerTransport());

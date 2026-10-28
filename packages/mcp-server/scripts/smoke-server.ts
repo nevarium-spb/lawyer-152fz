@@ -33,7 +33,8 @@ const startupMs = Math.round(performance.now() - startedAt);
 try {
   const { tools } = await client.listTools();
   const names = tools.map((tool) => tool.name).join(', ');
-  if (names !== 'search_norms, get_norm') fail(`неожиданный набор инструментов: ${names}`);
+  if (names !== 'search_norms, get_norm, audit_site, audit_html, audit_codebase')
+    fail(`неожиданный набор инструментов: ${names}`);
 
   const search = await client.callTool({
     name: 'search_norms',

@@ -14,7 +14,7 @@ export * from './domain/finding';
 export * from './domain/identifiers';
 export * from './domain/operator-profile';
 export * from './domain/audit-report';
-export type * from './domain/snapshots';
+export * from './domain/snapshots';
 export type * from './domain/audit-rule';
 
 export type * from './ports';
@@ -23,4 +23,5 @@ export * from './use-cases/run-rules';
 export * from './use-cases/lookup-norms';
 export * from './use-cases/audit-site';
 export * from './use-cases/audit-codebase';
+export * from './use-cases/audit-html';
 export * from './use-cases/generate-document';

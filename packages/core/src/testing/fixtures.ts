@@ -59,9 +59,11 @@ export function makePage(overrides: Partial<PageSnapshot> = {}): PageSnapshot {
     url: 'https://example.ru/',
     isHttps: true,
     forms: [],
-    scripts: [],
+    thirdParties: [],
     cookies: [],
     policyLinks: [],
+    hasCookieNotice: false,
+    renderedByScript: false,
     ...overrides,
   };
 }
