@@ -23,3 +23,10 @@ export {
   createSiteScanner,
 } from './site/site-scanner';
 export type { SiteScannerDeps } from './site/site-scanner';
+export {
+  MAX_FILES,
+  MAX_FILE_BYTES,
+  MAX_TOTAL_BYTES,
+  createCodebaseReader,
+} from './code/codebase-reader';
+export type { CodebaseReaderLimits } from './code/codebase-reader';
