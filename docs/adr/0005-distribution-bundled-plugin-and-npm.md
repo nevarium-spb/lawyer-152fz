@@ -15,6 +15,9 @@ MCP-серверы плагина описываются в `.mcp.json` и за�
 - MCP-сервер собирается esbuild в **один файл** `plugins/lawyer-152fz/server/index.mjs` со вшитой базой норм.
   `.mcp.json` запускает его через `node ${CLAUDE_PLUGIN_ROOT}/server/index.mjs`.
 - Бандл кладёт в git **только релизный CI** при выпуске версии; в обычных PR CI проверяет, что бандл не правили руками.
+- **Уточнение (2026-10-26, веха M4):** бандл публикуется не в `main`, а в ветку **`release`** (workflow `release.yml`
+  по тегу `vX.Y.Z`). Маркетплейс берёт плагин оттуда: `source: git-subdir`, `path: plugins/lawyer-152fz`, `ref: release` —
+  этот формат подтверждён на официальном маркетплейсе Claude Code. В `main` бандла нет вовсе, в `.gitignore` он исключён.
 - Параллельно `@lawyer-152fz/mcp-server` публикуется в npm (с provenance) для Claude Desktop, Cursor и других клиентов.
 - Версия плагина = версия `mcp-server`; версия базы норм печатается отдельно.
 
