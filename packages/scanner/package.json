@@ -9,6 +9,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@lawyer-152fz/core": "workspace:*"
+    "@lawyer-152fz/core": "workspace:*",
+    "cheerio": "1.2.0"
   }
 }

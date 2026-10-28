@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>Запись к врачу</title>
+  </head>
+  <body>
+    <div id="root">
+      <main class="App">
+        <h1>Запись на приём</h1>
+        <div class="booking">
+          <label for="fullName">ФИО пациента</label>
+          <input id="fullName" class="MuiInputBase-input" />
+          <label for="birth">Дата рождения</label>
+          <input id="birth" type="date" />
+          <label for="contactPhone">Контактный телефон</label>
+          <input id="contactPhone" inputmode="tel" />
+          <label class="consent"
+            ><input type="checkbox" id="pd-consent" /> Даю согласие на обработку персональных
+            данных, в том числе данных о здоровье</label
+          >
+          <button type="button">Записаться</button>
+        </div>
+      </main>
+      <footer><a href="/privacy">Политика обработки персональных данных</a></footer>
+    </div>
+    <script type="text/javascript">
+      ym(87654321, 'init', { webvisor: true });
+    </script>
+    <script type="module" src="/assets/index-4f2a1c.js"></script>
+  </body>
+</html>

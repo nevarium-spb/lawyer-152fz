@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Доставка цветов</title>
+    <script src="https://www.google.com/recaptcha/api.js?render=6Lc_example"></script>
+  </head>
+  <body>
+    <form action="/order" method="post" class="wpcf7-form">
+      <input type="text" name="your-name" placeholder="Имя получателя" />
+      <input type="text" name="your-address" placeholder="Адрес доставки" />
+      <input type="tel" name="your-phone" />
+      <label
+        ><input type="checkbox" name="acceptance" value="1" checked="checked" /> Согласен с
+        <a href="/privacy-policy/">политикой обработки персональных данных</a></label
+      >
+      <input type="submit" value="Заказать" />
+    </form>
+  </body>
+</html>
