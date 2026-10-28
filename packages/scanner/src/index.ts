@@ -14,3 +14,12 @@ export {
   systemResolver,
 } from './network/static-page-loader';
 export type { LoadedPage, PageLoadError, PageLoader, Resolver } from './network/static-page-loader';
+export { analyzePage } from './html/analyze-page';
+export type { PageAnalysis, PageInput, PageLink } from './html/analyze-page';
+export {
+  RENDER_UNAVAILABLE,
+  SCRIPT_COOKIES_NOTE,
+  SPA_HINT,
+  createSiteScanner,
+} from './site/site-scanner';
+export type { SiteScannerDeps } from './site/site-scanner';
