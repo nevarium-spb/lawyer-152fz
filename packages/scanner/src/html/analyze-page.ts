@@ -240,6 +240,18 @@ export function analyzePage(input: PageInput): PageAnalysis {
       addResource({ kind, url: url.href, category: 'other', jurisdiction: 'unknown' });
   };
 
+  // Форма, которая отправляет данные на чужой адрес, — тоже сторонний сервис (Mailchimp, HubSpot…).
+  for (const form of forms) {
+    const action = new URL(form.action);
+    if (isFirstParty(action)) continue;
+    const vendor = vendorByUrl(action);
+    addResource({
+      kind: 'form-action',
+      url: action.href,
+      ...(vendor ?? { category: 'forms' as const, jurisdiction: 'unknown' as const }),
+    });
+  }
+
   $('script').each((_, element) => {
     const script = $(element);
     const src = script.attr('src');

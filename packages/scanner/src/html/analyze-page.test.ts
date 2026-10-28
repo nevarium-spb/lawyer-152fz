@@ -29,6 +29,13 @@ describe('анализ страницы по фикстурам (T5.2)', () => {
     expect(form?.fields.map((field) => field.personalData)).toEqual(['name', 'phone', 'email']);
     expect(form?.consentText).toContain('Я согласен на обработку персональных данных');
     expect(page.thirdParties).toEqual([
+      // Tilda принимает заявки на свой сервер; юрисдикцию по адресу не определить.
+      {
+        kind: 'form-action',
+        url: 'https://forms.tildacdn.com/procces/',
+        category: 'forms',
+        jurisdiction: 'unknown',
+      },
       {
         kind: 'inline-script',
         vendor: 'Яндекс Метрика',
@@ -144,6 +151,13 @@ describe('анализ страницы по фикстурам (T5.2)', () => {
       action: 'https://school.us21.list-manage.com/subscribe/post?u=abc&id=def',
       consent: 'none',
     });
+    expect(page.thirdParties).toContainEqual(
+      expect.objectContaining({
+        kind: 'form-action',
+        vendor: 'Mailchimp',
+        jurisdiction: 'foreign',
+      }),
+    );
   });
 
   it('виджет Битрикс24 без <form>: поля ПДн без согласия', () => {

@@ -55,9 +55,12 @@ export type ThirdPartyCategory =
 /** Где находится оператор сервиса: важно для локализации и трансграничной передачи. */
 export type Jurisdiction = 'ru' | 'foreign' | 'unknown';
 
-/** Сторонний сервис на странице: скрипт, встроенный фрагмент кода, iframe или пиксель. */
+/**
+ * Сторонний сервис на странице: скрипт, встроенный фрагмент кода, iframe, пиксель
+ * или чужой адрес, куда форма отправляет данные (`form-action`).
+ */
 export interface ThirdPartyResource {
-  readonly kind: 'script' | 'inline-script' | 'iframe' | 'pixel';
+  readonly kind: 'script' | 'inline-script' | 'iframe' | 'pixel' | 'form-action';
   /** Адрес ресурса; у встроенного скрипта его нет. */
   readonly url?: string;
   /** Опознанный сервис, например «Яндекс Метрика». У неопознанных сторонних скриптов нет. */
