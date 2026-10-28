@@ -4,6 +4,7 @@ import type {
   CookieSnapshot,
   FormField,
   FormSnapshot,
+  PageAnalyzer,
   PageSnapshot,
   ThirdPartyResource,
 } from '@lawyer-152fz/core';
@@ -330,3 +331,8 @@ export function analyzePage(input: PageInput): PageAnalysis {
     links,
   };
 }
+
+/** Порт ядра для `audit_html`: разбор DOM, который передал хост (ADR-0010). */
+export const pageAnalyzer: PageAnalyzer = {
+  analyze: (page) => analyzePage(page).page,
+};

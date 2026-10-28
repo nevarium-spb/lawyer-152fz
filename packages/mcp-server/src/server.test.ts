@@ -35,7 +35,13 @@ const call = (name: string, args: Record<string, unknown>) =>
 describe('контракт MCP-инструментов (T3.3)', () => {
   it('схемы, описания и аннотации инструментов не меняются незаметно', async () => {
     const { tools } = await client.listTools();
-    expect(tools.map((tool) => tool.name)).toEqual(['search_norms', 'get_norm']);
+    expect(tools.map((tool) => tool.name)).toEqual([
+      'search_norms',
+      'get_norm',
+      'audit_site',
+      'audit_html',
+      'audit_codebase',
+    ]);
     expect(tools).toMatchSnapshot();
   });
 });
@@ -47,6 +53,8 @@ describe('инструкции сервера', () => {
     expect(instructions).toContain('lawyer-152fz');
     expect(instructions).toContain('`152-fz/art-18/part-5`');
     expect(instructions).toContain(LEGAL_DISCLAIMER);
+    expect(instructions).toContain('audit_html');
+    expect(instructions).toContain('только после его согласия');
   });
 });
 

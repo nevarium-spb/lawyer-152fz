@@ -14,7 +14,7 @@ export {
   systemResolver,
 } from './network/static-page-loader';
 export type { LoadedPage, PageLoadError, PageLoader, Resolver } from './network/static-page-loader';
-export { analyzePage } from './html/analyze-page';
+export { analyzePage, pageAnalyzer } from './html/analyze-page';
 export type { PageAnalysis, PageInput, PageLink } from './html/analyze-page';
 export {
   RENDER_UNAVAILABLE,
