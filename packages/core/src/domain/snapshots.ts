@@ -60,7 +60,7 @@ export type Jurisdiction = 'ru' | 'foreign' | 'unknown';
  * или чужой адрес, куда форма отправляет данные (`form-action`).
  */
 export interface ThirdPartyResource {
-  readonly kind: 'script' | 'inline-script' | 'iframe' | 'pixel' | 'form-action';
+  readonly kind: 'script' | 'inline-script' | 'iframe' | 'pixel' | 'stylesheet' | 'form-action';
   /** Адрес ресурса; у встроенного скрипта его нет. */
   readonly url?: string;
   /** Опознанный сервис, например «Яндекс Метрика». У неопознанных сторонних скриптов нет. */

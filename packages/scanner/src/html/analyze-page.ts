@@ -15,10 +15,15 @@ import { personalDataKind } from './personal-data';
 import { vendorByUrl, vendorsInInlineScript } from './vendors';
 
 /** Подпись чекбокса, похожая на согласие на обработку ПДн или с политикой. */
-const CONSENT_LABEL = /соглас|consent|персональн|обработк|политик|privacy|accept/i;
-/** «Нажимая кнопку, вы соглашаетесь…» — уведомление вместо отдельного согласия. */
+const CONSENT_LABEL = /согла[сш]|consent|персональн|обработк|политик|privacy|accept/i;
+/**
+ * «Нажимая кнопку, вы соглашаетесь…» — уведомление вместо отдельного согласия.
+ * Основа «согла[сш]»: «согласие», но «соглашаетесь».
+ */
 const CONSENT_NOTICE =
-  /(?:нажима|отправля|оставля|кликая|заполня)[^.]{0,100}(?:соглас|подтвержда)|даю согласие|соглашаетесь|согласие на обработку/i;
+  /(?:нажима|отправля|оставля|кликая|заполня)[^.]{0,100}(?:согла[сш]|подтвержда)|даю согласие|соглашаетесь|согласие на обработку/i;
+/** Конец предложения: точка, восклицательный или вопросительный знак перед пробелом или концом текста. */
+const SENTENCE_END = /[.!?](?=\s|$)/;
 const POLICY_TEXT = /политик|конфиденциальн|персональн\S* данн|privacy|personal data/i;
 const POLICY_HREF = /privacy|policy|politika|politic|konfidenc|personal|pdn|soglasie|agreement/i;
 const COOKIE_NOTICE =
@@ -68,15 +73,13 @@ export function analyzePage(input: PageInput): PageAnalysis {
       return undefined;
     }
   };
-  const visibleText = (selection: ReturnType<typeof $>) =>
-    selection
-      .clone()
-      .find('script, style, noscript')
-      .remove()
-      .end()
-      .text()
-      .replace(/\s+/g, ' ')
-      .trim();
+  /** Видимый текст; между элементами — пробел, иначе «формы?Напишите» и «ГлавнаяПлатформа» слипаются. */
+  const visibleText = (selection: ReturnType<typeof $>) => {
+    const copy = selection.clone();
+    copy.find('script, style, noscript').remove();
+    copy.find('*').after(' ');
+    return copy.text().replace(/\s+/g, ' ').trim();
+  };
   const isFirstParty = (url: URL) => {
     const host = bareHost(url.hostname);
     const own = bareHost(base.hostname);
@@ -148,9 +151,14 @@ export function analyzePage(input: PageInput): PageAnalysis {
     // Текст родителя уже включает форму — берём его, иначе текст самой формы.
     const text = nearText || visibleText(scope);
     const notice = CONSENT_NOTICE.exec(text);
-    return notice
-      ? { consent: 'notice-only', consentText: toExcerpt(text.slice(notice.index), EXCERPT) }
-      : { consent: 'none' };
+    if (!notice) return { consent: 'none' };
+    // Только само предложение-уведомление, без соседнего текста страницы.
+    const sentence = text.slice(notice.index);
+    const end = SENTENCE_END.exec(sentence);
+    return {
+      consent: 'notice-only',
+      consentText: toExcerpt(end ? sentence.slice(0, end.index + 1) : sentence, EXCERPT),
+    };
   };
 
   const isPolicyLink = (anchor: ReturnType<typeof $>): boolean => {
@@ -266,6 +274,12 @@ export function analyzePage(input: PageInput): PageAnalysis {
   });
   $('iframe[src]').each((_, element) => {
     addByUrl('iframe', $(element).attr('src'), false);
+  });
+  // Стили и шрифты со стороннего сервера (Google Fonts) тоже получают IP посетителя; CDN без сигнатур не считаем.
+  $('link[href]').each((_, element) => {
+    const link = $(element);
+    if (/\bstylesheet\b/i.test(link.attr('rel') ?? ''))
+      addByUrl('stylesheet', link.attr('href'), true);
   });
   $('img[src]').each((_, element) => {
     addByUrl('pixel', $(element).attr('src'), true);

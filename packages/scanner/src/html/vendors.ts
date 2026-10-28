@@ -132,6 +132,12 @@ const SIGNATURES: readonly VendorSignature[] = [
     hosts: ['google.com', 'recaptcha.net'],
     path: '/recaptcha',
   },
+  {
+    vendor: 'Google Fonts',
+    category: 'other',
+    jurisdiction: 'foreign',
+    hosts: ['fonts.googleapis.com', 'fonts.gstatic.com'],
+  },
   { vendor: 'Intercom', category: 'chat', jurisdiction: 'foreign', hosts: ['intercom.io'] },
   { vendor: 'Tawk.to', category: 'chat', jurisdiction: 'foreign', hosts: ['tawk.to'] },
   {

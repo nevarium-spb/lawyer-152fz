@@ -185,6 +185,41 @@ describe('анализ страницы по фикстурам (T5.2)', () => {
     expect(page.hasCookieNotice).toBe(true);
   });
 
+  it('мастер на React без <form> (T5.8, сайт Невариум): «соглашаетесь», Google Fonts, нет политики', () => {
+    const page = analyze('13-react-wizard-notice.html');
+    const [form] = page.forms;
+
+    expect(form?.selector).toBe('поля вне <form>');
+    expect(form?.fields.filter((field) => field.personalData).map((field) => field.label)).toEqual([
+      'Ваше имя',
+      'E-mail или Telegram',
+    ]);
+    // Только предложение-уведомление, без слипшегося текста подвала.
+    expect(form?.consent).toBe('notice-only');
+    expect(form?.consentText).toBe(
+      'Нажимая кнопку, вы соглашаетесь на обработку персональных данных.',
+    );
+    expect(page.policyLinks).toEqual([]);
+    expect(page.thirdParties).toContainEqual({
+      kind: 'stylesheet',
+      url: 'https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&family=Unbounded:wght@400;500;600;700;800&display=swap',
+      vendor: 'Google Fonts',
+      category: 'other',
+      jurisdiction: 'foreign',
+    });
+  });
+
+  it('текст соседних элементов не слипается', () => {
+    const { page } = analyzePage({
+      url: PAGE_URL,
+      html: '<label><input type="checkbox" name="ok"><span>Соглашаюсь</span><span>с политикой</span></label><input name="email">',
+    });
+    expect(page.forms[0]).toMatchObject({
+      consent: 'checkbox',
+      consentText: 'Соглашаюсь с политикой',
+    });
+  });
+
   it('название компании и промокод — не ПДн; скрытые поля не попадают в список', () => {
     const [form] = analyze('12-login-company.html').forms;
 

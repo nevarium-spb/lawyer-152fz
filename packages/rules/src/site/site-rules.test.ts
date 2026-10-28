@@ -182,6 +182,21 @@ describe('PD-HTTPS', () => {
     });
   });
 
+  it.each([
+    'http://localhost:5173/start',
+    'http://127.0.0.1:3000/',
+    'http://site.local/',
+    'http://192.168.1.5/',
+  ])('локальный адрес %s без HTTPS — справка, а не нарушение (T5.8)', (url) => {
+    const findings = check(
+      httpsRule,
+      site(page({ url, isHttps: false, forms: [makeForm({ action: url })] })),
+    );
+
+    expect(findings).toHaveLength(1);
+    expect(findings[0]).toMatchObject({ kind: 'recommendation', severity: 'info' });
+  });
+
   it('HTTPS-страница отправляет форму на HTTP-адрес — нарушение с адресом', () => {
     const [finding] = check(
       httpsRule,

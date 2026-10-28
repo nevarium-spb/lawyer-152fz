@@ -29,7 +29,8 @@ const ru = (word: string) => `(?<![а-яё])${word}(?![а-яё])`;
 
 /** Порядок важен: «адрес электронной почты» — это e-mail, а не адрес. */
 const BY_TEXT: readonly (readonly [RegExp, PersonalDataKind])[] = [
-  [/\be-?mail\b|почт/, 'email'],
+  // После нормализации «E-mail» превращается в «e mail».
+  [/\be[\s-]?mail\b|почт/, 'email'],
   [/\b(?:tel|phone|mobile)\b|телефон|мобильн/, 'phone'],
   [new RegExp(`\\b(?:passport|snils|inn)\\b|паспорт|снилс|${ru('инн')}`), 'document'],
   [/\b(?:birth|bday|dob)\b|рожден/, 'birthdate'],
