@@ -110,7 +110,7 @@ lawyer-152fz/
 │   ├── agents/lawyer-152fz.md    # субагент: роль, правила цитирования, дисклеймер
 │   ├── skills/
 │   │   ├── pd-audit/SKILL.md     # /pd-audit <url | путь к проекту>
-│   │   ├── pd-docs/SKILL.md      # /pd-docs <тип документа>
+│   │   ├── pd-docs/SKILL.md      # /pd-docs: политика, согласия, сведения для уведомлений РКН
 │   │   └── pd-consult/SKILL.md   # автоактивация на вопросы о ПДн и РКН
 │   └── server/index.mjs          # бандл MCP-сервера (кладёт релизный CI, руками не правится)
 ├── packages/
@@ -227,7 +227,7 @@ sequenceDiagram
 
 ### 8.3 Генерация документа
 
-`/pd-docs policy` → `list_document_templates` → модель собирает `OperatorProfile` в диалоге →
+`/pd-docs` (например, «составь политику обработки ПДн») → `list_document_templates` → модель собирает `OperatorProfile` в диалоге →
 `render_document` → при ошибках валидации дозапрос недостающих полей → Markdown-файл в проект пользователя.
 
 ## 9. Качество и проверки
