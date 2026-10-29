@@ -2,11 +2,14 @@ import {
   createAuditCodebase,
   createAuditHtml,
   createAuditSite,
+  createGenerateDocument,
   createLookupNorms,
   err,
   ok,
 } from '@lawyer-152fz/core';
 import type { Clock, Result, SourceFreshnessChecker, ValidationError } from '@lawyer-152fz/core';
+import { createDocumentTemplates } from '@lawyer-152fz/documents';
+import type { TemplateFile } from '@lawyer-152fz/documents';
 import { buildKnowledgeBase, createNormRepository } from '@lawyer-152fz/knowledge';
 import type { KnowledgeFile } from '@lawyer-152fz/knowledge';
 import { CODEBASE_RULES, SITE_RULES } from '@lawyer-152fz/rules';
@@ -21,6 +24,7 @@ import type { PageLoader } from '@lawyer-152fz/scanner';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 import { registerAuditTools } from './audit-tools';
+import { registerDocumentTools } from './document-tools';
 import { describeKnowledgeBase, registerKbInfo } from './kb-info';
 import type { KbInfo } from './kb-info';
 import { SERVER_INSTRUCTIONS } from './instructions';
@@ -40,13 +44,19 @@ const pendingFreshness = (clock: Clock): SourceFreshnessChecker => ({
 
 const systemClock: Clock = { now: () => new Date() };
 
+/** Данные, вшитые в бандл или прочитанные с диска: база норм и шаблоны документов. */
+export interface ServerAssets {
+  readonly knowledgeFiles: readonly KnowledgeFile[];
+  readonly templateFiles: readonly TemplateFile[];
+}
+
 export interface ComposedServer {
   readonly server: McpServer;
   readonly kbInfo: KbInfo;
 }
 
 /**
- * Точка сборки (ADR-0002): база норм → репозиторий → сценарии ядра → MCP-инструменты.
+ * Точка сборки (ADR-0002): база норм и шаблоны → адаптеры → сценарии ядра → MCP-инструменты.
  * Единственное место, которое знает обо всех пакетах сразу.
  */
 export interface ComposeOptions {
@@ -57,12 +67,14 @@ export interface ComposeOptions {
 }
 
 export function composeServer(
-  files: readonly KnowledgeFile[],
+  assets: ServerAssets,
   clock: Clock = systemClock,
   options: ComposeOptions = {},
 ): Result<ComposedServer, ValidationError> {
-  const knowledgeBase = buildKnowledgeBase(files);
+  const knowledgeBase = buildKnowledgeBase(assets.knowledgeFiles);
   if (!knowledgeBase.ok) return err(knowledgeBase.error);
+  const templates = createDocumentTemplates(assets.templateFiles);
+  if (!templates.ok) return err(templates.error);
 
   const norms = createNormRepository(knowledgeBase.value);
   const lookup = createLookupNorms({ norms, freshness: pendingFreshness(clock), clock });
@@ -94,6 +106,7 @@ export function composeServer(
       rules: CODEBASE_RULES,
     }),
   });
+  registerDocumentTools(server, createGenerateDocument({ templates: templates.value, clock }));
 
   return ok({ server, kbInfo });
 }

@@ -35,7 +35,7 @@ const fakeSite = (pages: Record<string, string>): PageLoader => ({
 });
 
 async function connect(options: ComposeOptions = {}) {
-  const composed = composeServer(files, CLOCK, options);
+  const composed = composeServer({ knowledgeFiles: files, templateFiles: [] }, CLOCK, options);
   if (!composed.ok) throw new Error(composed.error.message);
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   await composed.value.server.connect(serverTransport);

@@ -803,5 +803,392 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
     },
     "title": "Аудит исходников проекта по 152-ФЗ",
   },
+  {
+    "_meta": undefined,
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+    },
+    "description": "Перечисляет шаблоны: политика обработки ПДн, согласия, сведения для уведомлений в РКН. Для каждого — назначение, нормы-основания и обязательные поля профиля оператора. / Lists document templates with required operator-profile fields.",
+    "execution": {
+      "taskSupport": "forbidden",
+    },
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "properties": {},
+      "type": "object",
+    },
+    "name": "list_document_templates",
+    "outputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "templates": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "description": {
+                "type": "string",
+              },
+              "id": {
+                "type": "string",
+              },
+              "normRefs": {
+                "items": {
+                  "type": "string",
+                },
+                "type": "array",
+              },
+              "requiredFields": {
+                "items": {
+                  "type": "string",
+                },
+                "type": "array",
+              },
+              "requires": {
+                "items": {
+                  "enum": [
+                    "consent",
+                    "publicDistribution",
+                    "rknNotification",
+                    "crossBorder",
+                  ],
+                  "type": "string",
+                },
+                "type": "array",
+              },
+              "title": {
+                "type": "string",
+              },
+            },
+            "required": [
+              "id",
+              "title",
+              "description",
+              "normRefs",
+              "requires",
+              "requiredFields",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+      },
+      "required": [
+        "templates",
+      ],
+      "type": "object",
+    },
+    "title": "Шаблоны документов по 152-ФЗ",
+  },
+  {
+    "_meta": undefined,
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+    },
+    "description": "Заполняет шаблон данными оператора и возвращает Markdown с дисклеймером. Если профиль неполный, перечисляет все недостающие поля разом — спросите их у пользователя одним сообщением. Сервер ничего не сохраняет: файл в проект пишет клиент с согласия пользователя. / Renders a template; lists all missing profile fields at once.",
+    "execution": {
+      "taskSupport": "forbidden",
+    },
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "properties": {
+        "profile": {
+          "description": "Профиль оператора персональных данных",
+          "properties": {
+            "consentTerm": {
+              "description": "Раздел consent: срок действия согласия",
+              "type": "string",
+            },
+            "contactEmail": {
+              "description": "E-mail для обращений субъектов персональных данных",
+              "type": "string",
+            },
+            "crossBorderTransfers": {
+              "description": "Трансграничные передачи; пусто — нет",
+              "items": {
+                "properties": {
+                  "assessmentDate": {
+                    "description": "Дата оценки мер получателя по защите ПДн, ГГГГ-ММ-ДД",
+                    "type": "string",
+                  },
+                  "country": {
+                    "description": "Код страны ISO 3166-1",
+                    "type": "string",
+                  },
+                  "dataCategories": {
+                    "description": "Передаваемые персональные данные",
+                    "items": {
+                      "type": "string",
+                    },
+                    "type": "array",
+                  },
+                  "legalBasis": {
+                    "description": "Правовое основание передачи",
+                    "type": "string",
+                  },
+                  "purpose": {
+                    "description": "Цель передачи",
+                    "type": "string",
+                  },
+                  "recipient": {
+                    "description": "Получатель за рубежом",
+                    "type": "string",
+                  },
+                  "subjectCategories": {
+                    "description": "Чьи данные передаются",
+                    "items": {
+                      "type": "string",
+                    },
+                    "type": "array",
+                  },
+                },
+                "type": "object",
+              },
+              "type": "array",
+            },
+            "cryptoTools": {
+              "description": "Раздел rknNotification: средства шифрования; [] — не используются",
+              "items": {
+                "type": "string",
+              },
+              "type": "array",
+            },
+            "databaseLocation": {
+              "description": "Где находится база данных с персональными данными",
+              "properties": {
+                "address": {
+                  "description": "Город и ЦОД или хостинг-провайдер",
+                  "type": "string",
+                },
+                "country": {
+                  "description": "Код страны ISO 3166-1; для баз с ПДн граждан РФ — RU (ч. 5 ст. 18)",
+                  "type": "string",
+                },
+              },
+              "type": "object",
+            },
+            "inn": {
+              "description": "ИНН: 10 цифр для организации, 12 — для ИП",
+              "type": "string",
+            },
+            "legalAddress": {
+              "description": "Адрес оператора с индексом",
+              "type": "string",
+            },
+            "name": {
+              "description": "Наименование оператора; для ИП — «Индивидуальный предприниматель Фамилия Имя Отчество»",
+              "type": "string",
+            },
+            "ogrn": {
+              "description": "ОГРН (13 цифр) или ОГРНИП (15 цифр), если есть",
+              "type": "string",
+            },
+            "processingEndCondition": {
+              "description": "Раздел rknNotification: срок или условие прекращения обработки",
+              "type": "string",
+            },
+            "processingStartDate": {
+              "description": "Раздел rknNotification: дата начала обработки, ГГГГ-ММ-ДД",
+              "type": "string",
+            },
+            "protectionLevel": {
+              "description": "Раздел rknNotification: уровень защищённости ПДн по ПП № 1119",
+              "enum": [
+                "1",
+                "2",
+                "3",
+                "4",
+              ],
+              "type": "string",
+            },
+            "publicData": {
+              "description": "Раздел publicDistribution: что и где публикуется",
+              "properties": {
+                "dataCategories": {
+                  "description": "Какие данные публикуются",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+                "purpose": {
+                  "description": "Цель распространения",
+                  "type": "string",
+                },
+                "resources": {
+                  "description": "URL страниц, где данные публикуются",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+              },
+              "type": "object",
+            },
+            "purposes": {
+              "description": "Цели обработки — по каждой отдельно (ст. 18.1, ч. 3.1 ст. 22)",
+              "items": {
+                "properties": {
+                  "actions": {
+                    "description": "Действия: сбор, запись, систематизация, хранение, использование, удаление…",
+                    "items": {
+                      "type": "string",
+                    },
+                    "type": "array",
+                  },
+                  "dataCategories": {
+                    "description": "Перечень персональных данных для этой цели",
+                    "items": {
+                      "type": "string",
+                    },
+                    "type": "array",
+                  },
+                  "legalBasis": {
+                    "description": "Правовое основание, например «согласие субъекта (п. 1 ч. 1 ст. 6 152-ФЗ)»",
+                    "type": "string",
+                  },
+                  "methods": {
+                    "description": "Способ обработки",
+                    "enum": [
+                      "automated",
+                      "non-automated",
+                      "mixed",
+                    ],
+                    "type": "string",
+                  },
+                  "retention": {
+                    "description": "Срок обработки и хранения для этой цели",
+                    "type": "string",
+                  },
+                  "subjectCategories": {
+                    "description": "Категории субъектов: клиенты, посетители сайта, работники…",
+                    "items": {
+                      "type": "string",
+                    },
+                    "type": "array",
+                  },
+                  "title": {
+                    "description": "Цель обработки, например «Обработка заявок с сайта»",
+                    "type": "string",
+                  },
+                },
+                "type": "object",
+              },
+              "type": "array",
+            },
+            "responsiblePerson": {
+              "description": "Ответственный за организацию обработки ПДн",
+              "properties": {
+                "email": {
+                  "description": "E-mail",
+                  "type": "string",
+                },
+                "fullName": {
+                  "description": "ФИО ответственного за организацию обработки ПДн",
+                  "type": "string",
+                },
+                "phone": {
+                  "description": "Телефон",
+                  "type": "string",
+                },
+                "position": {
+                  "description": "Должность",
+                  "type": "string",
+                },
+              },
+              "type": "object",
+            },
+            "rknNotificationRef": {
+              "description": "Раздел crossBorder: ранее поданное уведомление об обработке ПДн",
+              "properties": {
+                "date": {
+                  "description": "Дата, ГГГГ-ММ-ДД",
+                  "type": "string",
+                },
+                "number": {
+                  "description": "Регистрационный номер",
+                  "type": "string",
+                },
+              },
+              "type": "object",
+            },
+            "thirdParties": {
+              "description": "Кому передаются данные или поручается обработка; пусто — никому",
+              "items": {
+                "properties": {
+                  "address": {
+                    "description": "Адрес",
+                    "type": "string",
+                  },
+                  "name": {
+                    "description": "Наименование",
+                    "type": "string",
+                  },
+                  "purpose": {
+                    "description": "Зачем передаются данные или поручается обработка",
+                    "type": "string",
+                  },
+                },
+                "type": "object",
+              },
+              "type": "array",
+            },
+            "website": {
+              "description": "Сайт оператора, полный URL",
+              "type": "string",
+            },
+          },
+          "type": "object",
+        },
+        "templateId": {
+          "description": "Идентификатор из list_document_templates, например privacy-policy",
+          "type": "string",
+        },
+      },
+      "required": [
+        "templateId",
+        "profile",
+      ],
+      "type": "object",
+    },
+    "name": "render_document",
+    "outputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "markdown": {
+          "type": "string",
+        },
+        "normRefs": {
+          "items": {
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "suggestedPath": {
+          "type": "string",
+        },
+        "templateId": {
+          "type": "string",
+        },
+        "title": {
+          "type": "string",
+        },
+      },
+      "required": [
+        "templateId",
+        "title",
+        "normRefs",
+        "markdown",
+        "suggestedPath",
+      ],
+      "type": "object",
+    },
+    "title": "Заполнить документ по 152-ФЗ",
+  },
 ]
 `;

@@ -1,4 +1,6 @@
 import { LEGAL_DISCLAIMER } from '@lawyer-152fz/core';
+import { createDocumentTemplates, readTemplateFiles } from '@lawyer-152fz/documents';
+import type { TemplateFile } from '@lawyer-152fz/documents';
 import { buildKnowledgeBase, readKnowledgeFiles } from '@lawyer-152fz/knowledge';
 import type { KnowledgeFile } from '@lawyer-152fz/knowledge';
 import { CODEBASE_RULES, SITE_RULES } from '@lawyer-152fz/rules';
@@ -11,11 +13,16 @@ import { findMissingNormRefs } from './integrity';
 import { KB_INFO_URI } from './kb-info';
 
 let files: KnowledgeFile[];
+let templateFiles: TemplateFile[];
 let client: Client;
 
 beforeAll(async () => {
   files = await readKnowledgeFiles();
-  const composed = composeServer(files, { now: () => new Date('2026-10-25T10:00:00Z') });
+  templateFiles = await readTemplateFiles();
+  const composed = composeServer(
+    { knowledgeFiles: files, templateFiles },
+    { now: () => new Date('2026-10-25T10:00:00Z') },
+  );
   if (!composed.ok) throw new Error(composed.error.message);
 
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
@@ -41,6 +48,8 @@ describe('контракт MCP-инструментов (T3.3)', () => {
       'audit_site',
       'audit_html',
       'audit_codebase',
+      'list_document_templates',
+      'render_document',
     ]);
     expect(tools).toMatchSnapshot();
   });
@@ -115,11 +124,20 @@ describe('ресурс lawyer://kb/info', () => {
   });
 });
 
-describe('ссылочная целостность правил (T3.3)', () => {
-  it('все нормы, на которые ссылаются правила аудита, есть в базе', () => {
+describe('ссылочная целостность правил и шаблонов (T3.3)', () => {
+  const existingIds = () => {
     const knowledgeBase = buildKnowledgeBase(files);
     if (!knowledgeBase.ok) throw new Error(knowledgeBase.error.message);
-    const ids = new Set<string>(knowledgeBase.value.norms.map((norm) => norm.id));
-    expect(findMissingNormRefs([...SITE_RULES, ...CODEBASE_RULES], ids)).toEqual([]);
+    return new Set<string>(knowledgeBase.value.norms.map((norm) => norm.id));
+  };
+
+  it('все нормы, на которые ссылаются правила аудита, есть в базе', () => {
+    expect(findMissingNormRefs([...SITE_RULES, ...CODEBASE_RULES], existingIds())).toEqual([]);
+  });
+
+  it('все нормы, на которые ссылаются шаблоны документов, есть в базе', () => {
+    const templates = createDocumentTemplates(templateFiles);
+    if (!templates.ok) throw new Error(templates.error.message);
+    expect(findMissingNormRefs(templates.value.list(), existingIds())).toEqual([]);
   });
 });
