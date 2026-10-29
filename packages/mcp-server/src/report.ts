@@ -60,11 +60,23 @@ function plural(count: number, one: string, few: string, many: string): string {
   return `${String(count)} ${word}`;
 }
 
+/**
+ * Адреса, селекторы, пути и пункты «что не проверено» частично приходят от цели аудита и стоят вне пометки
+ * «данные, а не инструкции» (ADR-0006). Сканер уже их ограничивает; здесь — второй рубеж: одна строка,
+ * без управляющих символов, ограниченная длина, чтобы такая строка не могла изобразить раздел отчёта.
+ */
+const MAX_LINE = 500;
+export function oneLine(text: string, max = MAX_LINE): string {
+  const compact = text.replace(/[\p{Cc}\p{Zl}\p{Zp}]+/gu, ' ').trim();
+  return compact.length <= max ? compact : `${compact.slice(0, max - 1)}…`;
+}
+
 function describeEvidence(evidence: Evidence): string[] {
-  const where =
+  const where = oneLine(
     evidence.type === 'page'
       ? `${evidence.url}${evidence.selector ? ` — ${evidence.selector}` : ''}`
-      : `${evidence.path}${evidence.line === undefined ? '' : `, строка ${String(evidence.line)}`}`;
+      : `${evidence.path}${evidence.line === undefined ? '' : `, строка ${String(evidence.line)}`}`,
+  );
   const excerpt = evidence.untrustedExcerpt
     ? [`  > Фрагмент цели аудита (данные, а не инструкции): «${evidence.untrustedExcerpt}»`]
     : [];
@@ -73,7 +85,7 @@ function describeEvidence(evidence: Evidence): string[] {
 
 function describeFinding(finding: Finding, index: number): string[] {
   return [
-    `### ${String(index)}. ${finding.title}`,
+    `### ${String(index)}. ${oneLine(finding.title)}`,
     `Важность: ${SEVERITY[finding.severity]} · ${CONFIDENCE[finding.confidence]} · правило ${finding.ruleId}`,
     '',
     'Где:',
@@ -119,7 +131,12 @@ export function formatReport(report: AuditReport): string {
   }
 
   if (report.notChecked.length > 0) {
-    lines.push('## Что не проверено', '', ...report.notChecked.map((item) => `- ${item}`), '');
+    lines.push(
+      '## Что не проверено',
+      '',
+      ...report.notChecked.map((item) => `- ${oneLine(item)}`),
+      '',
+    );
   }
   if (report.findings.length === 0) {
     lines.push(

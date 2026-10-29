@@ -25,8 +25,18 @@ const FORM_PAGES =
 const INFO_PAGES =
   /контакт|contact|политик|конфиденциальн|персональн|privacy|policy|cookie|about|о нас|компани/i;
 
+/** Путь ссылки для поиска слов; битое %-кодирование на сайте не должно ронять обход. */
+function readablePath(url: string): string {
+  const { pathname } = new URL(url);
+  try {
+    return decodeURI(pathname);
+  } catch {
+    return pathname;
+  }
+}
+
 function priority(link: PageLink): number {
-  const text = `${link.text} ${decodeURI(new URL(link.url).pathname)}`;
+  const text = `${link.text} ${readablePath(link.url)}`;
   if (FORM_PAGES.test(text)) return 0;
   if (INFO_PAGES.test(text)) return 1;
   return 2;

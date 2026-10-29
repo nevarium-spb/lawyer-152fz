@@ -38,6 +38,7 @@ const NEAR_TEXT_LIMIT = 2000;
 const SKIP_LINK = /\.(?:pdf|docx?|xlsx?|pptx?|zip|rar|7z|jpe?g|png|gif|webp|svg|mp4|mp3|avi)$/i;
 const NOT_DATA_FIELDS = new Set(['hidden', 'submit', 'button', 'reset', 'image', 'checkbox']);
 const EXCERPT = 300;
+const SELECTOR_ATTR = 40;
 
 export interface PageInput {
   readonly url: string;
@@ -179,8 +180,12 @@ export function analyzePage(input: PageInput): PageAnalysis {
         !parent.is('body, html') && visibleText(parent).length <= NEAR_TEXT_LIMIT;
       const near = parentIsNear ? parent : form;
 
-      const id = form.attr('id');
-      const name = form.attr('name');
+      // id и name пишет автор сайта, а селектор в отчёте стоит вне пометки «данные цели аудита» (ADR-0006):
+      // одна строка и короткая длина, чтобы в нём не поместилась инструкция.
+      const attr = (value: string | undefined) =>
+        value === undefined || value.trim() === '' ? undefined : toExcerpt(value, SELECTOR_ATTR);
+      const id = attr(form.attr('id'));
+      const name = attr(form.attr('name'));
       const selector = id
         ? `form#${id}`
         : name

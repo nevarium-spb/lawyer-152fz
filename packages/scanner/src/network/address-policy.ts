@@ -68,12 +68,16 @@ function ipv6Groups(address: string): number[] {
   return [...left, ...Array<number>(8 - left.length - right.length).fill(0), ...right];
 }
 
-/** IPv4, спрятанный в IPv6: IPv4-mapped (`::ffff:0:0/96`), NAT64 (`64:ff9b::/96`), 6to4 (`2002::/16`). */
+/**
+ * IPv4, спрятанный в IPv6: IPv4-mapped (`::ffff:0:0/96`), IPv4-compatible (`::/96`, кроме `::` и `::1`),
+ * NAT64 (`64:ff9b::/96`), 6to4 (`2002::/16`).
+ */
 function embeddedIpv4(address: string): string | undefined {
   const g = ipv6Groups(address);
   const v4 = (hi: number, lo: number) => [hi >> 8, hi & 0xff, lo >> 8, lo & 0xff].join('.');
   const zeros = (from: number, to: number) => g.slice(from, to).every((group) => group === 0);
   if (zeros(0, 5) && g[5] === 0xffff) return v4(g[6] ?? 0, g[7] ?? 0);
+  if (zeros(0, 6) && !(g[6] === 0 && (g[7] ?? 0) <= 1)) return v4(g[6] ?? 0, g[7] ?? 0);
   if (g[0] === 0x64 && g[1] === 0xff9b && zeros(2, 6)) return v4(g[6] ?? 0, g[7] ?? 0);
   if (g[0] === 0x2002) return v4(g[1] ?? 0, g[2] ?? 0);
   return undefined;
