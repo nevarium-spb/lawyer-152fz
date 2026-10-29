@@ -5,7 +5,7 @@ heading: Статья 10.1. Особенности обработки персо
 editionDate: 2026-07-26
 sourceType: official
 sourceUrl: http://actual.pravo.gov.ru/content/content.html#hash=98490812b3409e2a8d78a11ca9010f434ea3d9250a11dbbdb78690cd5551bdd6
-verifiedAt: 2026-10-25
+verifiedAt: 2026-10-29
 sha256: 2be841c7a86abe451b23391f0230ffdba330de4fc91edc260d7114ad95660511
 notes:
   - (В редакции Федерального закона от 14.07.2022 № 266-ФЗ)

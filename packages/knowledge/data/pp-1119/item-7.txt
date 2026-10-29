@@ -6,7 +6,7 @@ editionDate: 2012-11-01
 sourceType: secondary
 sourceUrl: https://www.consultant.ru/document/cons_doc_LAW_137356/8c86cf6357879e861790a8a7ca8bea4227d56c72/
 officialPublication: «Российская газета», 07.11.2012, № 256; Собрание законодательства РФ, 05.11.2012, № 45, ст. 6257
-verifiedAt: 2026-10-25
+verifiedAt: 2026-10-29
 sha256: fa7465516d75d15b19b683c5d1c4eba021ff3c867f48c57bc69cfd633609c06c
 ---
 

@@ -5,7 +5,7 @@ heading: Статья 22.1. Лица, ответственные за орган
 editionDate: 2026-07-26
 sourceType: official
 sourceUrl: http://actual.pravo.gov.ru/content/content.html#hash=98490812b3409e2a8d78a11ca9010f434ea3d9250a11dbbdb78690cd5551bdd6
-verifiedAt: 2026-10-25
+verifiedAt: 2026-10-29
 sha256: 7d9ddb905704ba552fa3ea210cc80a244539acb88110d74f0571759ce30c341d
 notes:
   - (Дополнение статьей - Федеральный закон от 25.07.2011 № 261-ФЗ)

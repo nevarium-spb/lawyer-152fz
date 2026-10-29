@@ -5,7 +5,7 @@ heading: Статья 3. Основные понятия, используемы
 editionDate: 2026-07-26
 sourceType: official
 sourceUrl: http://actual.pravo.gov.ru/content/content.html#hash=98490812b3409e2a8d78a11ca9010f434ea3d9250a11dbbdb78690cd5551bdd6
-verifiedAt: 2026-10-25
+verifiedAt: 2026-10-29
 sha256: 3bf57df13e617a0e4bb5154cd02931da63b5e433eca60538bcbe58dcb5004639
 notes:
   - (Дополнение пунктом - Федеральный закон от 30.12.2020 № 519-ФЗ)

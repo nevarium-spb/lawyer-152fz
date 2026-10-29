@@ -33,8 +33,9 @@ const startupMs = Math.round(performance.now() - startedAt);
 try {
   const { tools } = await client.listTools();
   const names = tools.map((tool) => tool.name).join(', ');
-  if (names !== 'search_norms, get_norm, audit_site, audit_html, audit_codebase')
-    fail(`неожиданный набор инструментов: ${names}`);
+  const expected =
+    'search_norms, get_norm, check_norm_freshness, audit_site, audit_html, audit_codebase, list_document_templates, render_document';
+  if (names !== expected) fail(`неожиданный набор инструментов: ${names}`);
 
   const search = await client.callTool({
     name: 'search_norms',
@@ -44,6 +45,14 @@ try {
 
   const norm = await client.callTool({ name: 'get_norm', arguments: { id: '152-fz/art-9' } });
   if (norm.isError) fail('get_norm вернул ошибку');
+
+  // Шаблоны вшиты в бандл: пустой профиль даёт список недостающих полей, а не падение.
+  const document = await client.callTool({
+    name: 'render_document',
+    arguments: { templateId: 'privacy-policy', profile: {} },
+  });
+  const documentText = (document.content as { text?: string }[])[0]?.text ?? '';
+  if (!documentText.includes('- inn: ')) fail('render_document не перечислил недостающие поля');
 } finally {
   await client.close();
 }

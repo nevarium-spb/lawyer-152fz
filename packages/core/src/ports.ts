@@ -5,7 +5,7 @@
  */
 import type { NormId } from './domain/norm-id';
 import type { Norm } from './domain/norm';
-import type { OperatorProfile } from './domain/operator-profile';
+import type { OperatorProfile, ProfileSection } from './domain/operator-profile';
 import type { CodebaseSnapshot, PageSnapshot, SiteSnapshot } from './domain/snapshots';
 import type { ForbiddenError, NotFoundError, SourceUnavailableError } from './shared/errors';
 import type { Result } from './shared/result';
@@ -44,6 +44,10 @@ export interface FreshnessReport {
   /** Момент проверки, ISO 8601 UTC. */
   readonly checkedAt: string;
   readonly detail?: string;
+  /** Дата действующей редакции акта по источнику, ГГГГ-ММ-ДД — если источник ответил. */
+  readonly sourceEditionDate?: string;
+  /** Даты принятых, но ещё не вступивших в силу редакций акта, по возрастанию. */
+  readonly upcomingEditionDates?: readonly string[];
 }
 
 /**
@@ -84,13 +88,26 @@ export interface PageAnalyzer {
 export interface TemplateInfo {
   readonly id: string;
   readonly title: string;
+  /** Для чего документ и когда он нужен — подсказка модели при выборе. */
+  readonly description: string;
   readonly normRefs: readonly NormId[];
+  /** Разделы профиля, обязательные для этого документа сверх общих сведений. */
+  readonly requires: readonly ProfileSection[];
+}
+
+export interface RenderContext {
+  /** Дата составления документа, ISO 8601 (ГГГГ-ММ-ДД). */
+  readonly date: string;
 }
 
 export interface DocumentTemplates {
   list(): readonly TemplateInfo[];
   /** Markdown без дисклеймера: его добавляет сценарий, единообразно для всех документов. */
-  render(id: string, profile: OperatorProfile): Result<string, NotFoundError>;
+  render(
+    id: string,
+    profile: OperatorProfile,
+    context: RenderContext,
+  ): Result<string, NotFoundError>;
 }
 
 // ─── Время ───────────────────────────────────────────────────────────────────

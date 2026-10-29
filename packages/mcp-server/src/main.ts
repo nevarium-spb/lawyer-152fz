@@ -1,6 +1,10 @@
-/** Запуск из исходников (разработка): база норм читается из каталога пакета knowledge. */
+/** Запуск из исходников (разработка): база норм и шаблоны читаются из каталогов пакетов. */
+import { readTemplateFiles } from '@lawyer-152fz/documents';
 import { readKnowledgeFiles } from '@lawyer-152fz/knowledge';
 
 import { runStdioServer } from './run';
 
-await runStdioServer(await readKnowledgeFiles());
+await runStdioServer({
+  knowledgeFiles: await readKnowledgeFiles(),
+  templateFiles: await readTemplateFiles(),
+});

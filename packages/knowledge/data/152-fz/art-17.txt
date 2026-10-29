@@ -5,7 +5,7 @@ heading: Статья 17. Право на обжалование действи�
 editionDate: 2026-07-26
 sourceType: official
 sourceUrl: http://actual.pravo.gov.ru/content/content.html#hash=98490812b3409e2a8d78a11ca9010f434ea3d9250a11dbbdb78690cd5551bdd6
-verifiedAt: 2026-10-25
+verifiedAt: 2026-10-29
 sha256: b1e285e3a250c2a3997ea666dae52ce3b4ecf877a510fbe9768a52b0db46abfd
 ---
 

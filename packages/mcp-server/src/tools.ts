@@ -2,7 +2,7 @@ import type { DomainError, LookupNorms } from '@lawyer-152fz/core';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 
-import { formatError, formatNorm, formatSearchHits } from './format';
+import { formatError, formatFreshness, formatNorm, formatSearchHits } from './format';
 
 /**
  * Схемы инструментов описывают поля для модели. Ограничения (длина запроса, лимит, формат id)
@@ -28,6 +28,15 @@ const normShape = z.object({
   verifiedAt: z.string(),
   /** Хеш текста: позволяет убедиться, что цитата совпадает с базой. */
   sha256: z.string(),
+});
+
+const freshnessShape = z.object({
+  id: z.string(),
+  status: z.enum(['fresh', 'stale', 'unknown']),
+  checkedAt: z.string(),
+  detail: z.string().optional(),
+  sourceEditionDate: z.string().optional(),
+  upcomingEditionDates: z.array(z.string()).optional(),
 });
 
 const READ_ONLY = { readOnlyHint: true, destructiveHint: false, openWorldHint: false } as const;
@@ -92,6 +101,36 @@ export function registerNormTools(server: McpServer, lookup: LookupNorms, kbVers
       return {
         content: [{ type: 'text' as const, text: formatNorm(result.value) }],
         structuredContent: { norm: { ...result.value } },
+      };
+    },
+  );
+
+  server.registerTool(
+    'check_norm_freshness',
+    {
+      title: 'Проверка актуальности норм',
+      description:
+        'Сверяет редакцию норм в базе с официальным порталом actual.pravo.gov.ru: fresh — действующая ' +
+        'редакция совпадает, stale — на портале действует более новая, unknown — проверить не удалось ' +
+        '(портал недоступен, вторичный источник). Называет принятые, но не вступившие в силу редакции. ' +
+        '/ Checks norm editions against the official portal; unknown is never reported as fresh.',
+      inputSchema: {
+        ids: z
+          .array(z.string())
+          .describe(
+            'Идентификаторы норм, 1–20, например ["152-fz/art-9/part-1", "koap/art-13.11"]',
+          ),
+      },
+      outputSchema: { reports: z.array(freshnessShape) },
+      annotations: { ...READ_ONLY, openWorldHint: true },
+    },
+    async ({ ids }) => {
+      const result = await lookup.checkFreshness(ids);
+      if (!result.ok) return errorResult(result.error);
+      const reports = result.value.map((report) => ({ ...report }));
+      return {
+        content: [{ type: 'text' as const, text: formatFreshness(result.value) }],
+        structuredContent: { reports },
       };
     },
   );

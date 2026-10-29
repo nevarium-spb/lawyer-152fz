@@ -1,7 +1,7 @@
 import { LEGAL_DISCLAIMER } from '../domain/audit-report';
 import type { NormId } from '../domain/norm-id';
-import { operatorProfileSchema } from '../domain/operator-profile';
-import type { DocumentTemplates, TemplateInfo } from '../ports';
+import { operatorProfileSchemaFor } from '../domain/operator-profile';
+import type { Clock, DocumentTemplates, TemplateInfo } from '../ports';
 import { notFound } from '../shared/errors';
 import type { NotFoundError, ValidationError } from '../shared/errors';
 import { err, ok } from '../shared/result';
@@ -18,6 +18,7 @@ export interface RenderedDocument {
 
 export interface GenerateDocumentDeps {
   readonly templates: DocumentTemplates;
+  readonly clock: Clock;
 }
 
 export interface GenerateDocument {
@@ -38,13 +39,14 @@ export function createGenerateDocument(deps: GenerateDocumentDeps): GenerateDocu
       if (!info) return err(notFound('template', templateId));
 
       const profile = parseWith(
-        operatorProfileSchema,
+        operatorProfileSchemaFor(info.requires),
         rawProfile,
-        'Профиль оператора заполнен не полностью',
+        `Для документа «${info.title}» профиль оператора заполнен не полностью`,
       );
       if (!profile.ok) return profile;
 
-      const body = deps.templates.render(templateId, profile.value);
+      const date = deps.clock.now().toISOString().slice(0, 10);
+      const body = deps.templates.render(templateId, profile.value, { date });
       if (!body.ok) return body;
 
       return ok({

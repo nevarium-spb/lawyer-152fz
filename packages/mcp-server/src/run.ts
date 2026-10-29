@@ -1,18 +1,18 @@
-import type { KnowledgeFile } from '@lawyer-152fz/knowledge';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
 import { composeServer } from './compose';
+import type { ServerAssets } from './compose';
 import { loadConfig } from './config';
 
 /**
  * Запуск по stdio. stdout занят протоколом MCP — диагностика только в stderr.
- * Некорректная база или конфигурация — немедленный выход с понятной причиной.
+ * Некорректная база, шаблоны или конфигурация — немедленный выход с понятной причиной.
  */
-export async function runStdioServer(files: readonly KnowledgeFile[]): Promise<void> {
+export async function runStdioServer(assets: ServerAssets): Promise<void> {
   const config = loadConfig(process.env);
   if (!config.ok) fail(config.error.message, config.error.issues);
 
-  const composed = composeServer(files, undefined, {
+  const composed = composeServer(assets, undefined, {
     allowPrivateNetworks: config.value.allowPrivateNetworks,
   });
   if (!composed.ok) fail(composed.error.message, composed.error.issues);
