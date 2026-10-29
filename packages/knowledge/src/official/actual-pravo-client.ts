@@ -52,7 +52,11 @@ export interface ActualPravoClient {
   redactionHtml(redactionId: number): Promise<Result<string, SourceUnavailableError>>;
 }
 
-export function createActualPravoClient(fetchImpl: FetchLike = fetch): ActualPravoClient {
+/** `timeoutMs` — на один запрос: импорту базы хватает минуты, интерактивной проверке нужно меньше. */
+export function createActualPravoClient(
+  fetchImpl: FetchLike = fetch,
+  timeoutMs: number = REQUEST_TIMEOUT_MS,
+): ActualPravoClient {
   const unavailable = (detail: string) => err(sourceUnavailable(ACTUAL_PRAVO_API, detail));
 
   async function getJson<S extends z.ZodType>(
@@ -62,7 +66,7 @@ export function createActualPravoClient(fetchImpl: FetchLike = fetch): ActualPra
     let body: unknown;
     try {
       const response = await fetchImpl(`${ACTUAL_PRAVO_API}/${path}`, {
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        signal: AbortSignal.timeout(timeoutMs),
       });
       if (!response.ok) return unavailable(`HTTP ${String(response.status)}`);
       body = await response.json();

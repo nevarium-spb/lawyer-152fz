@@ -1,4 +1,10 @@
-import type { DomainError, Norm, NormSearchHit } from '@lawyer-152fz/core';
+import type {
+  DomainError,
+  FreshnessReport,
+  FreshnessStatus,
+  Norm,
+  NormSearchHit,
+} from '@lawyer-152fz/core';
 
 /**
  * Текстовые ответы инструментов для модели. Структурированные данные идут отдельно
@@ -37,6 +43,27 @@ export function formatNorm(norm: Norm): string {
     ...source,
     '',
     norm.text,
+  ].join('\n');
+}
+
+const FRESHNESS_LABELS: Record<FreshnessStatus, string> = {
+  fresh: 'актуальна',
+  stale: 'в базе не действующая редакция',
+  unknown: 'проверить не удалось',
+};
+
+export function formatFreshness(reports: readonly FreshnessReport[]): string {
+  const lines = reports.map(
+    (report) =>
+      `- ${report.id} — ${FRESHNESS_LABELS[report.status]}.${report.detail ? ` ${report.detail}` : ''}`,
+  );
+  const unknownNote = reports.some((report) => report.status === 'unknown')
+    ? ['', '«Проверить не удалось» не значит «актуальна»: так и скажите пользователю.']
+    : [];
+  return [
+    `Сверка с официальным порталом actual.pravo.gov.ru, норм: ${String(reports.length)}.`,
+    ...lines,
+    ...unknownNote,
   ].join('\n');
 }
 

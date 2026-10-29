@@ -34,7 +34,7 @@ try {
   const { tools } = await client.listTools();
   const names = tools.map((tool) => tool.name).join(', ');
   const expected =
-    'search_norms, get_norm, audit_site, audit_html, audit_codebase, list_document_templates, render_document';
+    'search_norms, get_norm, check_norm_freshness, audit_site, audit_html, audit_codebase, list_document_templates, render_document';
   if (names !== expected) fail(`неожиданный набор инструментов: ${names}`);
 
   const search = await client.callTool({

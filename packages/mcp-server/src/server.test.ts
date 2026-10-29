@@ -45,6 +45,7 @@ describe('контракт MCP-инструментов (T3.3)', () => {
     expect(tools.map((tool) => tool.name)).toEqual([
       'search_norms',
       'get_norm',
+      'check_norm_freshness',
       'audit_site',
       'audit_html',
       'audit_codebase',
@@ -64,6 +65,7 @@ describe('инструкции сервера', () => {
     expect(instructions).toContain(LEGAL_DISCLAIMER);
     expect(instructions).toContain('audit_html');
     expect(instructions).toContain('только после его согласия');
+    expect(instructions).toContain('check_norm_freshness');
   });
 });
 

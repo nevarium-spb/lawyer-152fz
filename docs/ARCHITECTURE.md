@@ -181,15 +181,15 @@ interface AuditReport {
 
 Инструменты — публичный API проекта. Ломающие изменения только с мажорной версией.
 
-| Инструмент                | Вход                          | Выход                                              | Назначение                                        |
-| ------------------------- | ----------------------------- | -------------------------------------------------- | ------------------------------------------------- |
-| `search_norms`            | `query`, `acts?`, `limit?`    | список `{id, heading, snippet, editionDate}`       | найти релевантные нормы                           |
-| `get_norm`                | `id`                          | `Norm` целиком                                     | **единственный** способ получить текст для цитаты |
-| `check_norm_freshness`    | `ids[]`                       | `{id, status: fresh / stale / unknown, checkedAt}` | сверка с официальным источником                   |
-| `audit_site`              | `url`, `maxPages?`, `render?` | `AuditReport`                                      | аудит сайта                                       |
-| `audit_codebase`          | `path`                        | `AuditReport`                                      | аудит исходников (только чтение)                  |
-| `list_document_templates` | —                             | список шаблонов и требуемых полей                  | что умеем генерировать                            |
-| `render_document`         | `templateId`, `profile`       | Markdown или список ошибок валидации               | генерация документа                               |
+| Инструмент                | Вход                          | Выход                                                                                               | Назначение                                        |
+| ------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `search_norms`            | `query`, `acts?`, `limit?`    | список `{id, heading, snippet, editionDate}`                                                        | найти релевантные нормы                           |
+| `get_norm`                | `id`                          | `Norm` целиком                                                                                      | **единственный** способ получить текст для цитаты |
+| `check_norm_freshness`    | `ids[]`                       | `{id, status: fresh / stale / unknown, checkedAt, detail, sourceEditionDate, upcomingEditionDates}` | сверка с официальным источником                   |
+| `audit_site`              | `url`, `maxPages?`, `render?` | `AuditReport`                                                                                       | аудит сайта                                       |
+| `audit_codebase`          | `path`                        | `AuditReport`                                                                                       | аудит исходников (только чтение)                  |
+| `list_document_templates` | —                             | список шаблонов и требуемых полей                                                                   | что умеем генерировать                            |
+| `render_document`         | `templateId`, `profile`       | Markdown или список ошибок валидации                                                                | генерация документа                               |
 
 Ресурс `lawyer://kb/info` отдаёт версию базы, список актов и даты редакций.
 

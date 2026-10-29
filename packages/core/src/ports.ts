@@ -44,6 +44,10 @@ export interface FreshnessReport {
   /** Момент проверки, ISO 8601 UTC. */
   readonly checkedAt: string;
   readonly detail?: string;
+  /** Дата действующей редакции акта по источнику, ГГГГ-ММ-ДД — если источник ответил. */
+  readonly sourceEditionDate?: string;
+  /** Даты принятых, но ещё не вступивших в силу редакций акта, по возрастанию. */
+  readonly upcomingEditionDates?: readonly string[];
 }
 
 /**

@@ -180,6 +180,86 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
       "openWorldHint": true,
       "readOnlyHint": true,
     },
+    "description": "Сверяет редакцию норм в базе с официальным порталом actual.pravo.gov.ru: fresh — действующая редакция совпадает, stale — на портале действует более новая, unknown — проверить не удалось (портал недоступен, вторичный источник). Называет принятые, но не вступившие в силу редакции. / Checks norm editions against the official portal; unknown is never reported as fresh.",
+    "execution": {
+      "taskSupport": "forbidden",
+    },
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "properties": {
+        "ids": {
+          "description": "Идентификаторы норм, 1–20, например ["152-fz/art-9/part-1", "koap/art-13.11"]",
+          "items": {
+            "type": "string",
+          },
+          "type": "array",
+        },
+      },
+      "required": [
+        "ids",
+      ],
+      "type": "object",
+    },
+    "name": "check_norm_freshness",
+    "outputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "reports": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "checkedAt": {
+                "type": "string",
+              },
+              "detail": {
+                "type": "string",
+              },
+              "id": {
+                "type": "string",
+              },
+              "sourceEditionDate": {
+                "type": "string",
+              },
+              "status": {
+                "enum": [
+                  "fresh",
+                  "stale",
+                  "unknown",
+                ],
+                "type": "string",
+              },
+              "upcomingEditionDates": {
+                "items": {
+                  "type": "string",
+                },
+                "type": "array",
+              },
+            },
+            "required": [
+              "id",
+              "status",
+              "checkedAt",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+      },
+      "required": [
+        "reports",
+      ],
+      "type": "object",
+    },
+    "title": "Проверка актуальности норм",
+  },
+  {
+    "_meta": undefined,
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+    },
     "description": "Загружает страницы сайта (без браузера) и проверяет формы, согласия, политику, HTTPS, иностранные сервисы и счётчики. Возвращает отчёт: нарушения, риски, рекомендации, что не проверено. Если сайт — SPA (React, Vue), отчёт скажет об этом: тогда передайте DOM из браузера через audit_html. / Audits a website for Russian personal-data law.",
     "execution": {
       "taskSupport": "forbidden",

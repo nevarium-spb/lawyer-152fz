@@ -10,7 +10,11 @@ import {
 import type { Clock, Result, SourceFreshnessChecker, ValidationError } from '@lawyer-152fz/core';
 import { createDocumentTemplates } from '@lawyer-152fz/documents';
 import type { TemplateFile } from '@lawyer-152fz/documents';
-import { buildKnowledgeBase, createNormRepository } from '@lawyer-152fz/knowledge';
+import {
+  buildKnowledgeBase,
+  createNormRepository,
+  createSourceFreshnessChecker,
+} from '@lawyer-152fz/knowledge';
 import type { KnowledgeFile } from '@lawyer-152fz/knowledge';
 import { CODEBASE_RULES, SITE_RULES } from '@lawyer-152fz/rules';
 import {
@@ -30,17 +34,6 @@ import type { KbInfo } from './kb-info';
 import { SERVER_INSTRUCTIONS } from './instructions';
 import { registerNormTools } from './tools';
 import { SERVER_NAME, SERVER_VERSION } from './version';
-
-/** До T6.6 актуальность не проверяется — честно «неизвестно», а не «актуально» (ADR-0003). */
-const pendingFreshness = (clock: Clock): SourceFreshnessChecker => ({
-  check: (norm) =>
-    Promise.resolve({
-      id: norm.id,
-      status: 'unknown',
-      checkedAt: clock.now().toISOString(),
-      detail: 'Проверка актуальности по официальному источнику появится в версии 0.3',
-    }),
-});
 
 const systemClock: Clock = { now: () => new Date() };
 
@@ -64,6 +57,8 @@ export interface ComposeOptions {
   readonly allowPrivateNetworks?: boolean;
   /** Подмена загрузчика страниц — для тестов без сети. */
   readonly pageLoader?: PageLoader;
+  /** Подмена сверки с официальным порталом — для тестов без сети. */
+  readonly freshness?: SourceFreshnessChecker;
 }
 
 export function composeServer(
@@ -77,7 +72,8 @@ export function composeServer(
   if (!templates.ok) return err(templates.error);
 
   const norms = createNormRepository(knowledgeBase.value);
-  const lookup = createLookupNorms({ norms, freshness: pendingFreshness(clock), clock });
+  const freshness = options.freshness ?? createSourceFreshnessChecker({ clock });
+  const lookup = createLookupNorms({ norms, freshness, clock });
   const kbInfo = describeKnowledgeBase(knowledgeBase.value);
 
   const server = new McpServer(
