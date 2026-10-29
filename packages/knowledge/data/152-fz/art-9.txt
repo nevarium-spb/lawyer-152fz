@@ -5,7 +5,7 @@ heading: Статья 9. Согласие субъекта персональн�
 editionDate: 2026-07-26
 sourceType: official
 sourceUrl: http://actual.pravo.gov.ru/content/content.html#hash=98490812b3409e2a8d78a11ca9010f434ea3d9250a11dbbdb78690cd5551bdd6
-verifiedAt: 2026-10-25
+verifiedAt: 2026-10-29
 sha256: 7669143b145b10f509d2de026ca12ee5ff54b4ce81bc6e2256d1f78ad385ba43
 notes:
   - (В редакции федеральных законов от 14.07.2022 № 266-ФЗ, от 24.06.2025 № 156-ФЗ)

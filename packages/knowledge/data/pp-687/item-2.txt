@@ -5,7 +5,7 @@ heading: Положение об обработке ПДн без средств
 editionDate: 2025-01-18
 sourceType: official
 sourceUrl: http://actual.pravo.gov.ru/content/content.html#hash=769a08b912ce64ea4a3bb70a97b6fc95617e9de77f0865edb76ee9928406a9cd
-verifiedAt: 2026-10-25
+verifiedAt: 2026-10-29
 sha256: e56b9bfc91da6641a60bb325dc84a6cbd8cfb3c0f83d062ef28c5dd91ac8eb40
 ---
 

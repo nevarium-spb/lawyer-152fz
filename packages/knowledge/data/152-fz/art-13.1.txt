@@ -5,7 +5,7 @@ heading: Статья 13.1. Особенности обработки персо
 editionDate: 2026-07-26
 sourceType: official
 sourceUrl: http://actual.pravo.gov.ru/content/content.html#hash=98490812b3409e2a8d78a11ca9010f434ea3d9250a11dbbdb78690cd5551bdd6
-verifiedAt: 2026-10-25
+verifiedAt: 2026-10-29
 sha256: 5c8bde417f6c8b1d1d3f95049b87143e59f09253893b8c3e46fea20edb3dc3c7
 notes:
   - (Дополнение статьей - Федеральный закон от 08.08.2024 № 233-ФЗ)

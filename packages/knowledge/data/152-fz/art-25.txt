@@ -5,7 +5,7 @@ heading: Статья 25. Заключительные положения
 editionDate: 2026-07-26
 sourceType: official
 sourceUrl: http://actual.pravo.gov.ru/content/content.html#hash=98490812b3409e2a8d78a11ca9010f434ea3d9250a11dbbdb78690cd5551bdd6
-verifiedAt: 2026-10-25
+verifiedAt: 2026-10-29
 sha256: 432278b482b0ea39608e2e615b3a08f24562eda9119f46d836c560cab34cca0d
 notes:
   - (Дополнение частью - Федеральный закон от 25.07.2011 № 261-ФЗ)

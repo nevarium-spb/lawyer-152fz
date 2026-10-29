@@ -5,7 +5,7 @@ heading: Статья 10. Специальные категории персон
 editionDate: 2026-07-26
 sourceType: official
 sourceUrl: http://actual.pravo.gov.ru/content/content.html#hash=98490812b3409e2a8d78a11ca9010f434ea3d9250a11dbbdb78690cd5551bdd6
-verifiedAt: 2026-10-25
+verifiedAt: 2026-10-29
 sha256: a86569c7da7ba545686cf601a1d1d8b0b647416d8d7ca3f9a2bf71c3ab3a0e2f
 notes:
   - (В редакции Федерального закона от 24.04.2020 № 123-ФЗ)
