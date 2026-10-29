@@ -83,6 +83,7 @@ const databaseLocationSchema = z.object(
 
 const publicDataSchema = z.object(
   {
+    purpose: requiredText('Укажите цель распространения персональных данных'),
     dataCategories: nonEmptyList(
       'Укажите, какие персональные данные субъект разрешает распространять',
     ),
@@ -140,6 +141,11 @@ const sectionShapes = {
 
 export type ProfileSection = keyof typeof sectionShapes;
 export const PROFILE_SECTIONS = Object.keys(sectionShapes) as readonly ProfileSection[];
+
+/** Поля профиля, которые относятся к разделу, — например, чтобы убрать их из эталона. */
+export function profileSectionFields(section: ProfileSection): readonly string[] {
+  return Object.keys(sectionShapes[section]);
+}
 
 /**
  * Профиль оператора персональных данных — вход для генерации документов.
