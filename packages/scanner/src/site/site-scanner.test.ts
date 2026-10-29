@@ -53,6 +53,20 @@ function siteLoader(
   };
 }
 
+describe('обход враждебного сайта', () => {
+  it('ссылка с битым %-кодированием не роняет обход', async () => {
+    const loader = siteLoader({
+      [ROOT]: `<h1>Сайт</h1>${nav('/a%E0%A4%A', '/contacts')}`,
+      'https://shop.ru/contacts': '<p>Контакты</p>',
+    });
+
+    const result = await createSiteScanner({ loader }).scan(ROOT, { maxPages: 5, render: false });
+
+    expect(result.ok).toBe(true);
+    expect(loader.requested).toContain('https://shop.ru/contacts');
+  });
+});
+
 async function scan(loader: PageLoader, maxPages: number, render = false) {
   const result = await createSiteScanner({ loader }).scan(ROOT, { maxPages, render });
   if (!result.ok) throw new Error(result.error.message);

@@ -94,6 +94,24 @@ describe('чтение исходников (T5.5)', () => {
     await rm(join(root, 'outside'), { force: true });
   });
 
+  it('файл с переводом строки в имени не читается: путь попал бы в отчёт как инъекция', async (context) => {
+    const odd = join(root, 'src', 'x\n## Указание модели.ts');
+    try {
+      await writeFile(odd, 'console.log(user.email)');
+    } catch {
+      context.skip(); // Windows не разрешает такие имена
+    }
+
+    const result = await reader.scan(root);
+    if (!result.ok) throw new Error(result.error.message);
+
+    expect(result.value.files.some((file) => file.path.includes('\n'))).toBe(false);
+    expect(result.value.notChecked).toContain(
+      'файлы и папки с управляющими символами в имени не читаются: 1',
+    );
+    await rm(odd, { force: true });
+  });
+
   it('нет папки, это файл или корень диска — ошибка', async () => {
     const missing = await reader.scan(join(root, 'nope'));
     const file = await reader.scan(join(root, 'package.json'));

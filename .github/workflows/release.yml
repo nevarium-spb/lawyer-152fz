@@ -26,6 +26,7 @@ jobs:
           node-version: '26'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --audit-level high
 
       - name: Версия тега совпадает с манифестами
         run: |

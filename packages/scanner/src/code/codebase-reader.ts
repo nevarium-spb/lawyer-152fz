@@ -88,6 +88,8 @@ const LOCKFILES = new Set([
   'go.sum',
 ]);
 
+const CONTROL_CHARS = /\p{Cc}/u;
+
 /** Файлы с секретами не читаем никогда: их содержимое не должно попасть в контекст модели (ADR-0006). */
 const isSecretFile = (name: string) =>
   (/^\.env(?:\..+)?$/.test(name) && !ENV_TEMPLATES.has(name)) ||
@@ -146,6 +148,8 @@ export function createCodebaseReader(limits: CodebaseReaderLimits = {}): Codebas
       let overLimit = 0;
       let totalBytes = 0;
       let symlinks = 0;
+      let oddNames = 0;
+      let unreadable = 0;
 
       const walk = async (dir: string, relDir: string): Promise<void> => {
         let entries: Dirent[];
@@ -158,6 +162,11 @@ export function createCodebaseReader(limits: CodebaseReaderLimits = {}): Codebas
 
         for (const entry of entries) {
           const rel = relDir ? `${relDir}/${entry.name}` : entry.name;
+          // Путь стоит в отчёте вне пометки «данные цели аудита»: имя с переводом строки — канал инъекции.
+          if (CONTROL_CHARS.test(entry.name)) {
+            oddNames++;
+            continue;
+          }
           if (entry.isSymbolicLink()) {
             symlinks++;
             continue;
@@ -176,7 +185,13 @@ export function createCodebaseReader(limits: CodebaseReaderLimits = {}): Codebas
           if (!isSourceFile(entry.name)) continue;
 
           const full = join(dir, entry.name);
-          const { size } = await stat(full);
+          let size: number;
+          try {
+            ({ size } = await stat(full));
+          } catch {
+            unreadable++;
+            continue;
+          }
           if (size > maxFileBytes) {
             tooLarge.push(rel);
             continue;
@@ -185,7 +200,13 @@ export function createCodebaseReader(limits: CodebaseReaderLimits = {}): Codebas
             overLimit++;
             continue;
           }
-          const content = await readFile(full, 'utf8');
+          let content: string;
+          try {
+            content = await readFile(full, 'utf8');
+          } catch {
+            unreadable++;
+            continue;
+          }
           if (content.includes('\u0000')) continue;
           totalBytes += size;
           files.push({ path: rel, content });
@@ -214,6 +235,12 @@ export function createCodebaseReader(limits: CodebaseReaderLimits = {}): Codebas
         );
       }
       if (symlinks > 0) notChecked.push(`символические ссылки не читаются: ${String(symlinks)}`);
+      if (oddNames > 0) {
+        notChecked.push(
+          `файлы и папки с управляющими символами в имени не читаются: ${String(oddNames)}`,
+        );
+      }
+      if (unreadable > 0) notChecked.push(`нет доступа к файлам: ${String(unreadable)}`);
 
       return ok({ rootPath: root, files, notChecked });
     },

@@ -1,7 +1,7 @@
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 
-import { err, forbidden, ok, sourceUnavailable } from '@lawyer-152fz/core';
+import { err, forbidden, ok, sourceUnavailable, toExcerpt } from '@lawyer-152fz/core';
 import type { ForbiddenError, Result, SourceUnavailableError } from '@lawyer-152fz/core';
 
 import type { AddressPolicy } from './address-policy';
@@ -131,7 +131,16 @@ export function createStaticPageLoader(deps: StaticPageLoaderDeps): PageLoader {
         const { status, headers, body } = response.value;
         if (status >= 300 && status < 400 && headers.location) {
           redirects.push(url.href);
-          url = new URL(headers.location, url);
+          try {
+            url = new URL(headers.location, url);
+          } catch {
+            return err(
+              sourceUnavailable(
+                url.origin,
+                `сервер перенаправил по некорректному адресу с ${url.href}`,
+              ),
+            );
+          }
           continue;
         }
         if (status >= 400) {
@@ -143,7 +152,8 @@ export function createStaticPageLoader(deps: StaticPageLoaderDeps): PageLoader {
           return err(
             sourceUnavailable(
               url.origin,
-              `по адресу ${url.href} не HTML-страница (${headers['content-type'] ?? ''})`,
+              // Content-Type пишет сервер цели аудита: в отчёт — только короткий фрагмент (ADR-0006).
+              `по адресу ${url.href} не HTML-страница (${toExcerpt(headers['content-type'] ?? '', 60)})`,
             ),
           );
         }
