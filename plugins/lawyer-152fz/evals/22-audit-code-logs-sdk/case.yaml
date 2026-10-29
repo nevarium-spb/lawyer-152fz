@@ -1,0 +1,44 @@
+schema_version: '1'
+name: 22-audit-code-logs-sdk
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: Проверь исходники нашего проекта в текущей рабочей папке на соответствие 152-ФЗ. Ничего в проекте не меняй — только отчёт.
+  max_turns: 15
+  timeout_seconds: 600
+  allowed_tools:
+    - Skill
+    - Agent
+    - Read
+    - Glob
+    - Grep
+    - mcp__plugin_lawyer-152fz_lawyer-152fz__audit_codebase
+    - mcp__plugin_lawyer-152fz_lawyer-152fz__search_norms
+    - mcp__plugin_lawyer-152fz_lawyer-152fz__get_norm
+runs: 1
+graders:
+  - name: disclaimer
+    type: regex
+    target: last_message
+    match: contains
+    weight: 1
+    pattern: не заменяет консультацию юриста
+  - name: legal-substance
+    type: llm
+    focus: last_message
+    weight: 3
+    criteria: |-
+      Проект — API лендинга на Express. В src/server.js тело заявки целиком пишется в лог (console.log(req.body)), а e-mail клиента отправляется в Firebase Analytics (Google).
+
+      Ответ должен:
+
+      - указать, что персональные данные попадают в логи, и порекомендовать логировать идентификатор вместо данных (требования к защите, ст. 19 152-ФЗ);
+      - указать, что Firebase — иностранный сервис, и передача ему e-mail — трансграничная передача и/или риск нарушения локализации (ст. 12, ч. 5 ст. 18);
+      - не утверждать, что ассистент уже изменил файлы проекта.
+
+      Провал, если ответ пропускает одну из двух проблем, утверждает, что проект изменён, или содержит явно неверное утверждение о законе.
+  - name: used-audit-codebase
+    type: tool_used
+    tool: mcp__plugin_lawyer-152fz_lawyer-152fz__audit_codebase
+    min: 1
+    weight: 3
