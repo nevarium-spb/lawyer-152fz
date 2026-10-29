@@ -2,9 +2,18 @@ import { describe, expect, it } from 'vitest';
 
 import { validProfileInput } from '../testing/fixtures';
 import { parseWith } from '../shared/validation';
-import { operatorProfileSchema } from './operator-profile';
+import {
+  operatorProfileSchema,
+  operatorProfileSchemaFor,
+  PROFILE_SECTIONS,
+} from './operator-profile';
+import type { ProfileSection } from './operator-profile';
 
+const parseFor = (sections: readonly ProfileSection[], input: unknown) =>
+  parseWith(operatorProfileSchemaFor(sections), input, 'Профиль неполный');
 const parse = (input: unknown) => parseWith(operatorProfileSchema, input, 'Профиль неполный');
+const paths = (result: ReturnType<typeof parse>) =>
+  result.ok ? [] : result.error.issues.map((issue) => issue.path);
 
 describe('профиль оператора', () => {
   it('принимает корректный профиль и подставляет пустые списки по умолчанию', () => {
@@ -19,13 +28,10 @@ describe('профиль оператора', () => {
 
   it('за один разбор перечисляет все обязательные поля — по-русски', () => {
     const result = parse({});
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-
-    expect(result.error.issues).toEqual([
-      { path: 'name', message: 'Укажите наименование оператора' },
+    expect(!result.ok && result.error.issues).toEqual([
+      { path: 'name', message: 'Укажите наименование оператора (для ИП — ФИО)' },
       { path: 'inn', message: 'Укажите ИНН' },
-      { path: 'legalAddress', message: 'Укажите юридический адрес' },
+      { path: 'legalAddress', message: 'Укажите адрес оператора' },
       {
         path: 'contactEmail',
         message: 'Укажите e-mail для обращений субъектов персональных данных',
@@ -35,30 +41,120 @@ describe('профиль оператора', () => {
         message: 'Укажите ответственного за организацию обработки персональных данных',
       },
       { path: 'purposes', message: 'Укажите хотя бы одну цель обработки' },
-      { path: 'dataCategories', message: 'Укажите категории обрабатываемых персональных данных' },
-      { path: 'subjectCategories', message: 'Укажите категории субъектов персональных данных' },
-      { path: 'storageCountry', message: 'Укажите код страны' },
+      {
+        path: 'databaseLocation',
+        message: 'Укажите место нахождения базы данных с персональными данными',
+      },
+    ]);
+  });
+
+  it('у цели обработки перечисляет все недостающие сведения сразу', () => {
+    const result = parse({ ...validProfileInput(), purposes: [{ title: 'Заявки' }] });
+    expect(paths(result)).toEqual([
+      'purposes.0.dataCategories',
+      'purposes.0.subjectCategories',
+      'purposes.0.legalBasis',
+      'purposes.0.actions',
+      'purposes.0.methods',
+      'purposes.0.retention',
     ]);
   });
 
   it('проверяет ИНН и ОГРН по контрольной сумме', () => {
     const result = parse({ ...validProfileInput(), inn: '1234567890', ogrn: '1027700000009' });
-    expect(!result.ok && result.error.issues.map((i) => i.path)).toEqual(['inn', 'ogrn']);
+    expect(paths(result)).toEqual(['inn', 'ogrn']);
   });
 
   it('не принимает пустые строки в списках', () => {
-    const result = parse({ ...validProfileInput(), purposes: ['  '] });
-    expect(!result.ok && result.error.issues[0]).toEqual({
-      path: 'purposes.0',
-      message: 'Укажите хотя бы одну цель обработки',
+    const input = validProfileInput();
+    const result = parse({
+      ...input,
+      purposes: [{ ...input.purposes[0], dataCategories: ['  '] }],
     });
+    expect(!result.ok && result.error.issues[0]).toEqual({
+      path: 'purposes.0.dataCategories.0',
+      message: 'Укажите перечень персональных данных для этой цели',
+    });
+  });
+
+  it('база данных за пределами РФ — ошибка со ссылкой на ст. 18 ч. 5', () => {
+    const result = parse({
+      ...validProfileInput(),
+      databaseLocation: { country: 'DE', address: 'Франкфурт' },
+    });
+    expect(!result.ok && result.error.issues[0]?.message).toContain('ст. 18 ч. 5');
   });
 
   it('RU в трансграничной передаче — ошибка', () => {
     const result = parse({
       ...validProfileInput(),
-      crossBorderTransfers: [{ country: 'RU', recipient: 'ООО «Тест»' }],
+      crossBorderTransfers: [
+        {
+          country: 'RU',
+          recipient: 'ООО «Тест»',
+          purpose: 'хостинг',
+          legalBasis: 'договор',
+          dataCategories: ['e-mail'],
+          subjectCategories: ['клиенты'],
+          assessmentDate: '2026-10-01',
+        },
+      ],
     });
-    expect(!result.ok && result.error.issues[0]?.path).toBe('crossBorderTransfers');
+    expect(paths(result)).toEqual(['crossBorderTransfers.0.country']);
+  });
+});
+
+describe('разделы профиля для отдельных документов', () => {
+  const rknFields = {
+    processingStartDate: '2026-11-01',
+    processingEndCondition: 'ликвидация организации',
+    cryptoTools: [],
+    protectionLevel: '4',
+  } as const;
+
+  it('без разделов сведения уведомлений не требуются', () => {
+    expect(parseFor([], validProfileInput()).ok).toBe(true);
+  });
+
+  it('уведомление в РКН требует свои поля — все за один разбор', () => {
+    const result = parseFor(['rknNotification'], validProfileInput());
+    expect(paths(result)).toEqual([
+      'processingStartDate',
+      'processingEndCondition',
+      'cryptoTools',
+      'protectionLevel',
+    ]);
+  });
+
+  it('пустой список средств шифрования допустим: «не используются» — тоже ответ', () => {
+    expect(parseFor(['rknNotification'], { ...validProfileInput(), ...rknFields }).ok).toBe(true);
+  });
+
+  it('дата — строго ГГГГ-ММ-ДД', () => {
+    const result = parseFor(['rknNotification'], {
+      ...validProfileInput(),
+      ...rknFields,
+      processingStartDate: '01.11.2026',
+    });
+    expect(!result.ok && result.error.issues[0]?.message).toContain('ГГГГ-ММ-ДД');
+  });
+
+  it('трансграничная передача требует хотя бы одну передачу и номер уведомления', () => {
+    const result = parseFor(['crossBorder'], validProfileInput());
+    expect(paths(result)).toEqual(['crossBorderTransfers', 'rknNotificationRef']);
+  });
+
+  it('разделы объединяются', () => {
+    const result = parseFor(['consent', 'publicDistribution'], validProfileInput());
+    expect(paths(result)).toEqual(['consentTerm', 'publicData']);
+  });
+
+  it('перечень разделов полный', () => {
+    expect(PROFILE_SECTIONS).toEqual([
+      'consent',
+      'publicDistribution',
+      'rknNotification',
+      'crossBorder',
+    ]);
   });
 });

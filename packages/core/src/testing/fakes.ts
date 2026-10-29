@@ -13,6 +13,7 @@ import type {
   DocumentTemplates,
   FreshnessStatus,
   NormRepository,
+  RenderContext,
   SiteScanOptions,
   SiteScanner,
   SourceFreshnessChecker,
@@ -113,15 +114,15 @@ export function createStubCodebaseScanner(
 
 export interface InMemoryTemplate {
   readonly info: TemplateInfo;
-  readonly render: (profile: OperatorProfile) => string;
+  readonly render: (profile: OperatorProfile, context: RenderContext) => string;
 }
 
 export function createInMemoryTemplates(templates: readonly InMemoryTemplate[]): DocumentTemplates {
   return {
     list: () => templates.map((template) => template.info),
-    render: (id, profile) => {
+    render: (id, profile, context) => {
       const template = templates.find((candidate) => candidate.info.id === id);
-      return template ? ok(template.render(profile)) : err(notFound('template', id));
+      return template ? ok(template.render(profile, context)) : err(notFound('template', id));
     },
   };
 }

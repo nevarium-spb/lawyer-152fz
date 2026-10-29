@@ -11,55 +11,184 @@ const countryCode = z
   .string({ error: 'Укажите код страны' })
   .regex(/^[A-Z]{2}$/, 'Код страны — две заглавные латинские буквы по ISO 3166-1, например RU');
 
+const isoDate = (message: string) => z.iso.date({ error: `${message} в формате ГГГГ-ММ-ДД` });
+
+/** Способы обработки (ст. 22 ч. 3.1): с использованием средств автоматизации, без них или смешанная. */
+export const PROCESSING_METHODS = ['automated', 'non-automated', 'mixed'] as const;
+export type ProcessingMethod = (typeof PROCESSING_METHODS)[number];
+
+/** Уровень защищённости ПДн по ПП РФ № 1119 (п. 8–12). */
+export const PROTECTION_LEVELS = ['1', '2', '3', '4'] as const;
+
+/**
+ * Цель обработки со всем, что закон требует указывать для каждой цели отдельно
+ * (ст. 18.1 ч. 1 п. 2, ст. 22 ч. 3.1).
+ */
+const purposeSchema = z.object(
+  {
+    title: requiredText('Укажите цель обработки'),
+    dataCategories: nonEmptyList('Укажите перечень персональных данных для этой цели'),
+    subjectCategories: nonEmptyList('Укажите категории субъектов для этой цели'),
+    legalBasis: requiredText(
+      'Укажите правовое основание обработки — например, согласие субъекта (ст. 6 ч. 1 п. 1) или договор (п. 5)',
+    ),
+    actions: nonEmptyList('Укажите действия с персональными данными для этой цели'),
+    methods: z.enum(PROCESSING_METHODS, {
+      error: 'Укажите способ обработки: automated, non-automated или mixed',
+    }),
+    retention: requiredText('Укажите срок обработки и хранения для этой цели'),
+  },
+  { error: 'Опишите цель обработки' },
+);
+
+const responsiblePersonSchema = z.object(
+  {
+    fullName: requiredText('Укажите ФИО ответственного за организацию обработки ПДн'),
+    position: requiredText('Укажите должность ответственного за организацию обработки ПДн'),
+    phone: requiredText('Укажите телефон ответственного за организацию обработки ПДн'),
+    email: z.email({ error: 'Укажите e-mail ответственного за организацию обработки ПДн' }),
+  },
+  { error: 'Укажите ответственного за организацию обработки персональных данных' },
+);
+
+const thirdPartySchema = z.object({
+  name: requiredText('Укажите наименование третьего лица'),
+  address: requiredText('Укажите адрес третьего лица'),
+  purpose: requiredText('Укажите цель передачи третьему лицу'),
+});
+
+const crossBorderTransferSchema = z.object({
+  country: countryCode.refine(
+    (code) => code !== 'RU',
+    'Передача внутри РФ не является трансграничной — уберите RU',
+  ),
+  recipient: requiredText('Укажите получателя за рубежом'),
+  purpose: requiredText('Укажите цель трансграничной передачи'),
+  legalBasis: requiredText('Укажите правовое основание трансграничной передачи'),
+  dataCategories: nonEmptyList('Укажите перечень передаваемых персональных данных'),
+  subjectCategories: nonEmptyList('Укажите категории субъектов, чьи данные передаются'),
+  assessmentDate: isoDate('Укажите дату оценки мер получателя по защите ПДн (ст. 12 ч. 4 п. 7)'),
+});
+
+const databaseLocationSchema = z.object(
+  {
+    country: countryCode.refine(
+      (code) => code === 'RU',
+      'Базы данных с ПДн граждан РФ должны находиться в РФ (ст. 18 ч. 5 152-ФЗ)',
+    ),
+    address: requiredText('Укажите адрес базы данных: город и центр обработки данных или хостинг'),
+  },
+  { error: 'Укажите место нахождения базы данных с персональными данными' },
+);
+
+const publicDataSchema = z.object(
+  {
+    dataCategories: nonEmptyList(
+      'Укажите, какие персональные данные субъект разрешает распространять',
+    ),
+    resources: z
+      .array(z.url({ error: 'Укажите адрес сайта или страницы, где данные публикуются' }), {
+        error: 'Укажите сайты или страницы, где персональные данные будут опубликованы',
+      })
+      .min(1, 'Укажите сайты или страницы, где персональные данные будут опубликованы'),
+  },
+  { error: 'Опишите, какие персональные данные распространяются и где' },
+);
+
+const rknNotificationRefSchema = z.object(
+  {
+    number: requiredText('Укажите регистрационный номер уведомления об обработке ПДн'),
+    date: isoDate('Укажите дату уведомления об обработке ПДн'),
+  },
+  {
+    error:
+      'Укажите номер и дату ранее поданного уведомления об обработке ПДн (ст. 12 ч. 4 п. 1) — сначала подаётся оно',
+  },
+);
+
+/** Сведения, которые нужны не каждому документу, — шаблон перечисляет нужные в `requires`. */
+const sectionShapes = {
+  /** Согласие на обработку (ст. 9 ч. 4 п. 8). */
+  consent: {
+    consentTerm: requiredText('Укажите срок действия согласия, например «5 лет» или «до отзыва»'),
+  },
+  /** Согласие на распространение (ст. 10.1). */
+  publicDistribution: {
+    publicData: publicDataSchema,
+  },
+  /** Уведомление об обработке в РКН (ст. 22 ч. 3). */
+  rknNotification: {
+    processingStartDate: isoDate('Укажите дату начала обработки персональных данных'),
+    processingEndCondition: requiredText(
+      'Укажите срок или условие прекращения обработки, например «ликвидация организации»',
+    ),
+    cryptoTools: z.array(requiredText('Укажите наименование средства шифрования'), {
+      error: 'Перечислите средства криптографической защиты; пустой список — если не используются',
+    }),
+    protectionLevel: z.enum(PROTECTION_LEVELS, {
+      error: 'Укажите уровень защищённости ПДн по ПП РФ № 1119: 1, 2, 3 или 4',
+    }),
+  },
+  /** Уведомление о трансграничной передаче (ст. 12 ч. 4). */
+  crossBorder: {
+    crossBorderTransfers: z
+      .array(crossBorderTransferSchema, { error: 'Опишите трансграничные передачи' })
+      .min(1, 'Для уведомления о трансграничной передаче опишите хотя бы одну передачу'),
+    rknNotificationRef: rknNotificationRefSchema,
+  },
+} satisfies Record<string, z.ZodRawShape>;
+
+export type ProfileSection = keyof typeof sectionShapes;
+export const PROFILE_SECTIONS = Object.keys(sectionShapes) as readonly ProfileSection[];
+
 /**
  * Профиль оператора персональных данных — вход для генерации документов.
- * Черновая схема вехи M1; состав полей уточняется в задаче T6.2.
- * Все недостающие поля сообщаются за один разбор, чтобы модель дозапросила их разом.
+ * Общие сведения обязательны всегда; сведения разделов обязательны, только если шаблон
+ * их требует (`operatorProfileSchemaFor`). Все недостающие поля сообщаются за один разбор,
+ * чтобы модель дозапросила их у пользователя разом.
  */
-export const operatorProfileSchema = z
-  .object({
-    name: requiredText('Укажите наименование оператора'),
-    inn: z
-      .string({ error: 'Укажите ИНН' })
-      .refine(isValidInn, 'ИНН некорректен: 10 или 12 цифр с верной контрольной суммой'),
-    ogrn: z
-      .string()
-      .refine(isValidOgrn, 'ОГРН/ОГРНИП некорректен: 13 или 15 цифр с верной контрольной суммой')
-      .optional(),
-    legalAddress: requiredText('Укажите юридический адрес'),
-    contactEmail: z.email({ error: 'Укажите e-mail для обращений субъектов персональных данных' }),
-    responsiblePerson: z.object(
-      {
-        fullName: requiredText('Укажите ФИО ответственного за организацию обработки ПДн'),
-        position: requiredText('Укажите должность ответственного за организацию обработки ПДн'),
-      },
-      { error: 'Укажите ответственного за организацию обработки персональных данных' },
-    ),
-    purposes: nonEmptyList('Укажите хотя бы одну цель обработки'),
-    dataCategories: nonEmptyList('Укажите категории обрабатываемых персональных данных'),
-    subjectCategories: nonEmptyList('Укажите категории субъектов персональных данных'),
-    thirdParties: z
-      .array(
-        z.object({
-          name: requiredText('Укажите наименование третьего лица'),
-          purpose: requiredText('Укажите цель передачи третьему лицу'),
-        }),
-      )
-      .default([]),
-    storageCountry: countryCode,
-    crossBorderTransfers: z
-      .array(
-        z.object({
-          country: countryCode,
-          recipient: requiredText('Укажите получателя за рубежом'),
-        }),
-      )
-      .default([]),
-  })
-  .refine((profile) => profile.crossBorderTransfers.every((t) => t.country !== 'RU'), {
-    error: 'Передача внутри РФ не является трансграничной — уберите RU из списка',
-    path: ['crossBorderTransfers'],
-  });
+export const operatorProfileSchema = z.object({
+  name: requiredText('Укажите наименование оператора (для ИП — ФИО)'),
+  inn: z
+    .string({ error: 'Укажите ИНН' })
+    .refine(isValidInn, 'ИНН некорректен: 10 или 12 цифр с верной контрольной суммой'),
+  ogrn: z
+    .string()
+    .refine(isValidOgrn, 'ОГРН/ОГРНИП некорректен: 13 или 15 цифр с верной контрольной суммой')
+    .optional(),
+  legalAddress: requiredText('Укажите адрес оператора'),
+  contactEmail: z.email({ error: 'Укажите e-mail для обращений субъектов персональных данных' }),
+  website: z.url({ error: 'Адрес сайта — полный URL, например https://example.ru' }).optional(),
+  responsiblePerson: responsiblePersonSchema,
+  purposes: z
+    .array(purposeSchema, { error: 'Укажите хотя бы одну цель обработки' })
+    .min(1, 'Укажите хотя бы одну цель обработки'),
+  databaseLocation: databaseLocationSchema,
+  thirdParties: z.array(thirdPartySchema).default([]),
+  crossBorderTransfers: z.array(crossBorderTransferSchema).default([]),
+
+  consentTerm: sectionShapes.consent.consentTerm.optional(),
+  publicData: publicDataSchema.optional(),
+  processingStartDate: sectionShapes.rknNotification.processingStartDate.optional(),
+  processingEndCondition: sectionShapes.rknNotification.processingEndCondition.optional(),
+  cryptoTools: sectionShapes.rknNotification.cryptoTools.optional(),
+  protectionLevel: sectionShapes.rknNotification.protectionLevel.optional(),
+  rknNotificationRef: rknNotificationRefSchema.optional(),
+});
 
 export type OperatorProfile = z.output<typeof operatorProfileSchema>;
 export type OperatorProfileInput = z.input<typeof operatorProfileSchema>;
+export type ProcessingPurpose = OperatorProfile['purposes'][number];
+
+/** Схема профиля, в которой обязательны и сведения перечисленных разделов. */
+export function operatorProfileSchemaFor(
+  sections: readonly ProfileSection[],
+): z.ZodType<OperatorProfile, OperatorProfileInput> {
+  let shape: z.ZodRawShape = {};
+  for (const section of sections) shape = { ...shape, ...sectionShapes[section] };
+  // Поля разделов сужают необязательные поля профиля до обязательных — тип результата прежний.
+  return operatorProfileSchema.extend(shape) as unknown as z.ZodType<
+    OperatorProfile,
+    OperatorProfileInput
+  >;
+}

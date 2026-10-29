@@ -44,12 +44,25 @@ export function validProfileInput(): OperatorProfileInput {
     ogrn: '1027700000008',
     legalAddress: '190000, г. Санкт-Петербург, тестовая ул., д. 1',
     contactEmail: 'privacy@example.ru',
-    responsiblePerson: { fullName: 'Иванов Иван Иванович', position: 'Директор' },
-    purposes: ['Обработка заявок с сайта'],
-    dataCategories: ['ФИО', 'номер телефона', 'адрес электронной почты'],
-    subjectCategories: ['Посетители сайта'],
+    responsiblePerson: {
+      fullName: 'Иванов Иван Иванович',
+      position: 'Директор',
+      phone: '+7 812 000-00-00',
+      email: 'dpo@example.ru',
+    },
+    purposes: [
+      {
+        title: 'Обработка заявок с сайта',
+        dataCategories: ['фамилия, имя', 'номер телефона', 'адрес электронной почты'],
+        subjectCategories: ['посетители сайта, оставившие заявку'],
+        legalBasis: 'согласие субъекта персональных данных (п. 1 ч. 1 ст. 6 152-ФЗ)',
+        actions: ['сбор', 'запись', 'хранение', 'использование', 'удаление', 'уничтожение'],
+        methods: 'automated',
+        retention: '1 год с момента получения заявки',
+      },
+    ],
+    databaseLocation: { country: 'RU', address: 'г. Санкт-Петербург, ЦОД хостинг-провайдера' },
     thirdParties: [],
-    storageCountry: 'RU',
     crossBorderTransfers: [],
   };
 }
