@@ -210,6 +210,7 @@ describe('формат отчёта', () => {
       generatedAt: '2026-10-28T10:00:00.000Z',
       kbVersion: 'kb-2026.10.25',
       findings: [],
+      checked: [],
       notChecked: [],
       disclaimer: LEGAL_DISCLAIMER,
     };
@@ -237,6 +238,7 @@ describe('формат отчёта', () => {
           confidence: 'needs-review',
         },
       ],
+      checked: [],
       notChecked: [`https://site.ru/x: ${fake}`],
       disclaimer: LEGAL_DISCLAIMER,
     };

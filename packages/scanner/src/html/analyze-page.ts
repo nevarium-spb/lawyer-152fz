@@ -22,6 +22,12 @@ const CONSENT_LABEL = /согла[сш]|consent|персональн|обраб�
  */
 const CONSENT_NOTICE =
   /(?:нажима|отправля|оставля|кликая|заполня)[^.]{0,100}(?:согла[сш]|подтвержда)|даю согласие|соглашаетесь|согласие на обработку/i;
+/**
+ * Только фраза о действии посетителя. По всей странице ищем её: слова «согласие на обработку»
+ * в тексте статьи ещё не значат, что форма получает согласие (T7.5).
+ */
+const CONSENT_ACTION_NOTICE =
+  /(?:нажима|отправля|оставля|кликая|заполня)[^.]{0,100}(?:согла[сш]|подтвержда)/i;
 /** Конец предложения: точка, восклицательный или вопросительный знак перед пробелом или концом текста. */
 const SENTENCE_END = /[.!?](?=\s|$)/;
 const POLICY_TEXT = /политик|конфиденциальн|персональн\S* данн|privacy|personal data/i;
@@ -138,6 +144,7 @@ export function analyzePage(input: PageInput): PageAnalysis {
   const consentOf = (
     scope: ReturnType<typeof $>,
     nearText: string,
+    noticePattern: RegExp = CONSENT_NOTICE,
   ): { consent: ConsentKind; consentText?: string } => {
     for (const element of scope.find('input').toArray()) {
       const checkbox = $(element);
@@ -151,7 +158,7 @@ export function analyzePage(input: PageInput): PageAnalysis {
     }
     // Текст родителя уже включает форму — берём его, иначе текст самой формы.
     const text = nearText || visibleText(scope);
-    const notice = CONSENT_NOTICE.exec(text);
+    const notice = noticePattern.exec(text);
     if (!notice) return { consent: 'none' };
     // Только само предложение-уведомление, без соседнего текста страницы.
     const sentence = text.slice(notice.index);
@@ -207,9 +214,29 @@ export function analyzePage(input: PageInput): PageAnalysis {
     });
 
   // Поля без <form> — частый случай в SPA: собираем их в одну условную форму.
-  const orphanFields = describeFields(
-    $('input, select, textarea').filter((_, element) => $(element).closest('form').length === 0),
+  const orphanElements = $('input, select, textarea').filter(
+    (_, element) => $(element).closest('form').length === 0,
   );
+  const orphanFields = describeFields(orphanElements);
+
+  /** Согласие для полей вне формы: уведомление ищем рядом с полями, а по всей странице — только явную фразу. */
+  const orphanConsent = (scope: ReturnType<typeof $>) => {
+    const inputs = orphanElements.toArray().filter((element) => {
+      const field = $(element);
+      const type = (field.attr('type') ?? 'text').toLowerCase();
+      return !field.is('input') || !NOT_DATA_FIELDS.has(type);
+    });
+    let near = inputs[0] ? $(inputs[0]).parent() : $();
+    while (near.length > 0 && !inputs.every((input) => $.contains(near[0] as never, input))) {
+      near = near.parent();
+    }
+    const nearText = near.length > 0 && !near.is('body, html') ? visibleText(near) : '';
+    if (nearText !== '' && nearText.length <= NEAR_TEXT_LIMIT) {
+      const nearby = consentOf(scope, nearText);
+      if (nearby.consent !== 'none') return nearby;
+    }
+    return consentOf(scope, '', CONSENT_ACTION_NOTICE);
+  };
 
   const allPolicyLinks = $('a[href]')
     .toArray()
@@ -226,7 +253,8 @@ export function analyzePage(input: PageInput): PageAnalysis {
       action: base.href,
       method: 'post',
       fields: orphanFields,
-      ...consentOf(outsideForms, ''),
+      outsideForm: true,
+      ...orphanConsent(outsideForms),
       hasPolicyLink: policyLinks.length > 0,
     });
   }

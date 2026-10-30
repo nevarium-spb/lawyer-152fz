@@ -53,6 +53,46 @@ function siteLoader(
   };
 }
 
+describe('варианты одной страницы (T7.5)', () => {
+  it('лимит уходит на разные страницы, а адреса с параметрами — после них', async () => {
+    const loader = siteLoader({
+      [ROOT]: `<h1>Сайт</h1>${nav('/a?x=1', '/a?x=2', '/b', '/c')}`,
+      'https://shop.ru/a?x=1': '<p>A</p>',
+      'https://shop.ru/a?x=2': '<p>A</p>',
+      'https://shop.ru/b': '<p>B</p>',
+      'https://shop.ru/c': '<p>C</p>',
+    });
+
+    await createSiteScanner({ loader }).scan(ROOT, { maxPages: 3, render: false });
+
+    expect(loader.requested).toEqual([ROOT, 'https://shop.ru/b', 'https://shop.ru/c']);
+  });
+
+  it('разделы, которые перенаправляют на одну страницу входа, не занимают лимит', async () => {
+    const loader = siteLoader(
+      {
+        [ROOT]: `<h1>Сайт</h1>${nav('/cart', '/orders', '/about')}`,
+        'https://shop.ru/auth?back=cart': '<form><input name="email"></form>',
+        'https://shop.ru/auth?back=orders': '<form><input name="email"></form>',
+        'https://shop.ru/about': '<p>О нас</p>',
+      },
+      {
+        'https://shop.ru/cart': 'https://shop.ru/auth?back=cart',
+        'https://shop.ru/orders': 'https://shop.ru/auth?back=orders',
+      },
+    );
+
+    const result = await createSiteScanner({ loader }).scan(ROOT, { maxPages: 10, render: false });
+    if (!result.ok) throw new Error(result.error.message);
+
+    expect(result.value.pages.map((page) => page.url)).toEqual([
+      ROOT,
+      'https://shop.ru/auth?back=cart',
+      'https://shop.ru/about',
+    ]);
+  });
+});
+
 describe('обход враждебного сайта', () => {
   it('ссылка с битым %-кодированием не роняет обход', async () => {
     const loader = siteLoader({
@@ -81,7 +121,7 @@ describe('обход сайта (T5.3)', () => {
     expect(first.pages).toHaveLength(10);
     expect(first.pages.map((page) => page.url)).toEqual(second.pages.map((page) => page.url));
     expect(first.notChecked).toEqual(second.notChecked);
-    expect(first.notChecked).toContain('ещё 4 страниц сайта не проверены: лимит 10 страниц');
+    expect(first.notChecked).toContain('страницы сайта вне лимита не проверены: ещё 4, лимит — 10');
   });
 
   it('при маленьком лимите сначала страницы с формами, контакты и политика', async () => {
