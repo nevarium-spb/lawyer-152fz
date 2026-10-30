@@ -66,6 +66,7 @@ describe('инструкции сервера', () => {
     expect(instructions).toContain('audit_html');
     expect(instructions).toContain('только после его согласия');
     expect(instructions).toContain('check_norm_freshness');
+    expect(instructions).toContain('GDPR');
   });
 });
 
