@@ -45,6 +45,20 @@ describe('шаблоны документов (T6.3)', () => {
     });
   });
 
+  it('согласие на распространение требует явной отметки об отсутствии запретов (ч. 5 ст. 10.1)', () => {
+    const result = generate.render('consent-distribution', FULL_REFERENCE_PROFILE);
+    const markdown = result.ok ? result.value.markdown : '';
+    expect(markdown).toContain('я не устанавливаю');
+    expect(markdown).toContain('Оператор не вправе распространять эти данные');
+    expect(markdown).not.toContain('вправе обрабатывать эти данные без них');
+  });
+
+  it('согласие на обработку предупреждает о письменной форме для спецкатегорий и биометрии', () => {
+    const info = templates.list().find((template) => template.id === 'consent-processing');
+    expect(info?.description).toContain('письменной форме');
+    expect(info?.description).toContain('поля паспорта и подписи убирать нельзя');
+  });
+
   it('бланки — знаком ＿, а не подчёркиваниями: «__» в Markdown превращается в курсив', async () => {
     for (const file of await readTemplateFiles()) {
       const body = file.content.slice(file.content.indexOf('\n---\n') + 5);

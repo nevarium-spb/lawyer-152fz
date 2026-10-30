@@ -44,6 +44,9 @@ const TEMPLATE_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const FRONT_MATTER = /^---\n([\s\S]*?)\n---\n\n?/;
 const REFERENCE_CONTEXT: RenderContext = { date: '2026-11-02' };
 
+/** Поля разделов, которые профиль обязан содержать и без раздела: раздел лишь требует непустое значение. */
+const ALWAYS_REQUIRED_FIELDS: ReadonlySet<string> = new Set(['crossBorderTransfers']);
+
 interface LoadedTemplate {
   readonly info: TemplateInfo;
   readonly compiled: CompiledTemplate;
@@ -60,9 +63,16 @@ export function referenceProfileFor(
   const profile: Record<string, unknown> = { ...base };
   for (const section of PROFILE_SECTIONS) {
     for (const field of profileSectionFields(section)) {
-      profile[field] = requires.includes(section)
-        ? (profile[field] ?? FULL_REFERENCE_PROFILE[field as keyof OperatorProfileInput])
-        : undefined;
+      if (!requires.includes(section)) {
+        // Раздел лишь ужесточает поле, обязательное в любом профиле, — его не убираем.
+        if (!ALWAYS_REQUIRED_FIELDS.has(field)) profile[field] = undefined;
+        continue;
+      }
+      const value = profile[field];
+      const isEmpty = value === undefined || (Array.isArray(value) && value.length === 0);
+      profile[field] = isEmpty
+        ? FULL_REFERENCE_PROFILE[field as keyof OperatorProfileInput]
+        : value;
     }
   }
   return profile as OperatorProfileInput;
