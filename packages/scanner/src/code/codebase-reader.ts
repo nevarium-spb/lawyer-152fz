@@ -217,7 +217,7 @@ export function createCodebaseReader(limits: CodebaseReaderLimits = {}): Codebas
       const notChecked: string[] = [];
       if (overLimit > 0) {
         notChecked.push(
-          `ещё ${String(overLimit)} файлов не прочитаны: лимит ${String(maxFiles)} файлов или ${String(Math.round(maxTotalBytes / 1024 / 1024))} МБ`,
+          `файлы вне лимита не прочитаны: ещё ${String(overLimit)}, лимит — ${String(maxFiles)} файлов или ${String(Math.round(maxTotalBytes / 1024 / 1024))} МБ`,
         );
       }
       if (tooLarge.length > 0) {

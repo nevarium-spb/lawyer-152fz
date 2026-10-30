@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import type { SiteRule } from '../domain/audit-rule';
-import { createAuditReport } from '../domain/audit-report';
+import { createAuditReport, describeSiteCoverage } from '../domain/audit-report';
 import type { AuditReport } from '../domain/audit-report';
 import type { Clock, NormRepository, SiteScanner } from '../ports';
 import type { ForbiddenError, SourceUnavailableError, ValidationError } from '../shared/errors';
@@ -46,6 +46,7 @@ export function createAuditSite(deps: AuditSiteDeps): AuditSite {
         outcome.findings,
         [...snapshot.value.notChecked, ...outcome.notChecked],
         { kbVersion: deps.norms.kbVersion, now: deps.clock.now() },
+        [describeSiteCoverage(snapshot.value.pages)],
       ),
     );
   };

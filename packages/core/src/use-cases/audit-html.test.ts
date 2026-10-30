@@ -55,6 +55,7 @@ describe('AuditHtml (ADR-0010)', () => {
         generatedAt: '2026-10-28T10:00:00.000Z',
         kbVersion: 'kb-2026.10.25',
         findings: [makeFinding()],
+        checked: [expect.stringContaining('Страниц: 1.')],
         notChecked: [HOST_DOM_NOTE],
         disclaimer: LEGAL_DISCLAIMER,
       },

@@ -286,6 +286,12 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
       "$schema": "http://json-schema.org/draft-07/schema#",
       "additionalProperties": false,
       "properties": {
+        "checked": {
+          "items": {
+            "type": "string",
+          },
+          "type": "array",
+        },
         "disclaimer": {
           "type": "string",
         },
@@ -457,6 +463,7 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
         "generatedAt",
         "kbVersion",
         "findings",
+        "checked",
         "notChecked",
         "disclaimer",
       ],
@@ -498,6 +505,12 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
       "$schema": "http://json-schema.org/draft-07/schema#",
       "additionalProperties": false,
       "properties": {
+        "checked": {
+          "items": {
+            "type": "string",
+          },
+          "type": "array",
+        },
         "disclaimer": {
           "type": "string",
         },
@@ -669,6 +682,7 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
         "generatedAt",
         "kbVersion",
         "findings",
+        "checked",
         "notChecked",
         "disclaimer",
       ],
@@ -705,6 +719,12 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
       "$schema": "http://json-schema.org/draft-07/schema#",
       "additionalProperties": false,
       "properties": {
+        "checked": {
+          "items": {
+            "type": "string",
+          },
+          "type": "array",
+        },
         "disclaimer": {
           "type": "string",
         },
@@ -876,6 +896,7 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
         "generatedAt",
         "kbVersion",
         "findings",
+        "checked",
         "notChecked",
         "disclaimer",
       ],

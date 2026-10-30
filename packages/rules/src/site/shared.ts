@@ -84,7 +84,11 @@ export function onPages(count: number): string {
   return count > 1 ? ` — на ${String(count)} страницах` : '';
 }
 
-/** Одна и та же форма на разных страницах (например, в подвале) — одна находка. */
+/**
+ * Одна и та же форма на разных страницах (например, в подвале) — одна находка.
+ * Параметры адреса отправки не различают формы: `?backurl=…` есть и у одной формы входа (T7.5).
+ */
 export function formKey({ form, kinds }: PersonalDataForm): string {
-  return [form.selector, form.action, form.consent, kinds.join(',')].join('|');
+  const { origin, pathname } = new URL(form.action);
+  return [form.selector, `${origin}${pathname}`, form.consent, kinds.join(',')].join('|');
 }

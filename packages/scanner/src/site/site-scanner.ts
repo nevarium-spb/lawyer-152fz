@@ -69,7 +69,7 @@ export function createSiteScanner(deps: SiteScannerDeps): SiteScanner {
       const siteHost = bareHost(new URL(root.value.url).hostname);
       const pages: PageSnapshot[] = [];
       const visited = new Set<string>([pageKey(url), pageKey(root.value.url)]);
-      const queue: { link: PageLink; priority: number; order: number }[] = [];
+      const queue: { link: PageLink; priority: number; variant: number; order: number }[] = [];
       let discovered = 0;
 
       const enqueue = (links: readonly PageLink[]) => {
@@ -77,9 +77,15 @@ export function createSiteScanner(deps: SiteScannerDeps): SiteScanner {
           const key = pageKey(link.url);
           if (visited.has(key)) continue;
           visited.add(key);
-          queue.push({ link, priority: priority(link), order: discovered++ });
+          queue.push({
+            link,
+            priority: priority(link),
+            // Адрес с параметрами часто та же страница: лимит сначала тратим на разные страницы.
+            variant: new URL(link.url).search === '' ? 0 : 1,
+            order: discovered++,
+          });
         }
-        queue.sort((a, b) => a.priority - b.priority || a.order - b.order);
+        queue.sort((a, b) => a.priority - b.priority || a.variant - b.variant || a.order - b.order);
       };
 
       const first = analyzePage(root.value);
@@ -88,6 +94,8 @@ export function createSiteScanner(deps: SiteScannerDeps): SiteScanner {
 
       const alreadyScanned = (url: string) =>
         pages.some((page) => pageKey(page.url) === pageKey(url));
+      const pathScanned = (url: string) =>
+        pages.some((page) => new URL(page.url).pathname === new URL(url).pathname);
 
       while (pages.length < options.maxPages) {
         const next = queue.shift();
@@ -105,6 +113,10 @@ export function createSiteScanner(deps: SiteScannerDeps): SiteScanner {
           continue;
         }
         if (alreadyScanned(loaded.value.url)) continue;
+        // Закрытые разделы перенаправляют на одну страницу входа, различается только `?backurl=…`.
+        if (pageKey(loaded.value.url) !== pageKey(next.link.url) && pathScanned(loaded.value.url)) {
+          continue;
+        }
 
         const analysis = analyzePage(loaded.value);
         pages.push(analysis.page);
@@ -113,7 +125,7 @@ export function createSiteScanner(deps: SiteScannerDeps): SiteScanner {
 
       if (queue.length > 0) {
         notChecked.push(
-          `ещё ${String(queue.length)} страниц сайта не проверены: лимит ${String(options.maxPages)} страниц`,
+          `страницы сайта вне лимита не проверены: ещё ${String(queue.length)}, лимит — ${String(options.maxPages)}`,
         );
       }
       for (const page of pages) {

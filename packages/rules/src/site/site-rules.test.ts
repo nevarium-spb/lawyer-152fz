@@ -96,6 +96,44 @@ describe('PD-FORM-CONSENT', () => {
     ]);
   });
 
+  it('поля вне <form> без согласия — риск на проверку, а не установленное нарушение (T7.5)', () => {
+    const page = makePage({
+      url: 'https://site.ru/tool',
+      forms: [
+        {
+          selector: 'поля вне <form>',
+          action: 'https://site.ru/tool',
+          method: 'post',
+          fields: [{ name: 'email', type: 'email', personalData: 'email' }],
+          outsideForm: true,
+          consent: 'none',
+          hasPolicyLink: true,
+        },
+      ],
+    });
+
+    const [finding] = formConsentRule.check(makeSiteSnapshot({ pages: [page] }));
+
+    expect(finding).toMatchObject({ kind: 'risk', confidence: 'needs-review' });
+  });
+
+  it('одна форма с разным ?backurl в адресе отправки — одна находка (T7.5)', () => {
+    const form = (backurl: string) => ({
+      selector: 'form[name="auth"]',
+      action: `https://site.ru/auth/?backurl=${backurl}`,
+      method: 'post' as const,
+      fields: [{ name: 'email', type: 'email', personalData: 'email' as const }],
+      consent: 'none' as const,
+      hasPolicyLink: false,
+    });
+    const pages = [
+      makePage({ url: 'https://site.ru/auth/?backurl=a', forms: [form('a')] }),
+      makePage({ url: 'https://site.ru/auth/?backurl=b', forms: [form('b')] }),
+    ];
+
+    expect(formConsentRule.check(makeSiteSnapshot({ pages }))).toHaveLength(1);
+  });
+
   it('форма без полей ПДн (поиск) не проверяется', () => {
     const search = makeForm({ consent: 'none', fields: [{ name: 'q', type: 'search' }] });
     expect(check(formConsentRule, site(page({ forms: [search] })))).toEqual([]);

@@ -76,7 +76,7 @@ describe('чтение исходников (T5.5)', () => {
     if (!result.ok) throw new Error(result.error.message);
 
     expect(result.value.files).toHaveLength(2);
-    expect(result.value.notChecked[0]).toMatch(/^ещё 6 файлов не прочитаны: лимит 2 файлов/);
+    expect(result.value.notChecked[0]).toMatch(/^файлы вне лимита не прочитаны: ещё 6, лимит — 2/);
   });
 
   it('символическая ссылка за пределы проекта не читается', async (context) => {

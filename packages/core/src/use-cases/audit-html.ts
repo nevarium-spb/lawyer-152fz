@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import type { SiteRule } from '../domain/audit-rule';
-import { createAuditReport } from '../domain/audit-report';
+import { createAuditReport, describeSiteCoverage } from '../domain/audit-report';
 import type { AuditReport } from '../domain/audit-report';
 import type { Clock, NormRepository, PageAnalyzer } from '../ports';
 import type { ValidationError } from '../shared/errors';
@@ -59,6 +59,7 @@ export function createAuditHtml(deps: AuditHtmlDeps): AuditHtml {
           outcome.findings,
           [...notChecked, ...outcome.notChecked],
           { kbVersion: deps.norms.kbVersion, now: deps.clock.now() },
+          [describeSiteCoverage([page])],
         ),
       ),
     );

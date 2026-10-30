@@ -42,6 +42,8 @@ export interface FormSnapshot {
   readonly action: string;
   readonly method: 'get' | 'post';
   readonly fields: readonly FormField[];
+  /** Поля без `<form>`: куда они отправляются и отправляются ли вообще, статический анализ не видит. */
+  readonly outsideForm?: boolean;
   readonly consent: ConsentKind;
   /** Текст согласия или уведомления рядом с формой. */
   readonly consentText?: string;
