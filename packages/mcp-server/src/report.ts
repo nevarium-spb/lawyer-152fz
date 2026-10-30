@@ -130,6 +130,9 @@ export function formatReport(report: AuditReport): string {
     for (const finding of findings) lines.push(...describeFinding(finding, ++index));
   }
 
+  if (report.checked.length > 0) {
+    lines.push('## Что проверено', '', ...report.checked.map((item) => `- ${oneLine(item)}`), '');
+  }
   if (report.notChecked.length > 0) {
     lines.push(
       '## Что не проверено',

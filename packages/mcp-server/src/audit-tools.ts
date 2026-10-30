@@ -48,6 +48,7 @@ const reportShape = {
   generatedAt: z.string(),
   kbVersion: z.string(),
   findings: z.array(findingShape),
+  checked: z.array(z.string()),
   notChecked: z.array(z.string()),
   disclaimer: z.string(),
 };

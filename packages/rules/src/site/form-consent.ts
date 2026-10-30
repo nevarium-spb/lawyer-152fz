@@ -39,6 +39,21 @@ function finding(group: NonEmpty<ConsentProblem>): Finding {
 
   switch (first.form.consent) {
     case 'none':
+      if (first.form.outsideForm) {
+        return {
+          ruleId: ID,
+          kind: 'risk',
+          severity: 'medium',
+          confidence: 'needs-review',
+          title: `На странице есть поля для ввода (${data}) вне формы, и согласия рядом с ними не видно${suffix}`,
+          evidence,
+          normRefs: [CONSENT, LEGAL_BASES],
+          remediation:
+            'Проверьте вручную, куда уходят эти данные. Если они отправляются оператору, добавьте рядом с кнопкой ' +
+            'отдельную галочку согласия, не отмеченную заранее, и ссылку на текст согласия. Если поля работают ' +
+            'только в браузере посетителя и никуда не отправляются, согласие для них не нужно.',
+        };
+      }
       return {
         ruleId: ID,
         kind: 'violation',

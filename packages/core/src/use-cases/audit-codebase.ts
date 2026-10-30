@@ -42,6 +42,7 @@ export function createAuditCodebase(deps: AuditCodebaseDeps): AuditCodebase {
         outcome.findings,
         [...snapshot.value.notChecked, ...outcome.notChecked],
         { kbVersion: deps.norms.kbVersion, now: deps.clock.now() },
+        [`Файлов исходников: ${String(snapshot.value.files.length)}.`],
       ),
     );
   };
