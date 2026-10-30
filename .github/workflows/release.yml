@@ -3,6 +3,12 @@ name: Release
 # Релиз по тегу vX.Y.Z (ADR-0005): полная проверка → сборка сервера → плагин с бандлом
 # публикуется в ветку `release`, откуда его ставит маркетплейс (source: git-subdir, ref: release).
 # В main собранный бандл не коммитится.
+#
+# Публикация в npm (T8.1) включается переменной репозитория NPM_PUBLISH=true и секретом NPM_TOKEN —
+# их создаёт владелец после T8.2 (организация @lawyer-152fz) и T8.4 (публичный репозиторий:
+# provenance не подписывается из приватного). Пока переменной нет, npm-шаги пропускаются.
+# Порядок: всё необратимое — в конце. Ветку release можно перезаписать, версию в npm — нет.
+# Откат описан в docs/RELEASING.md.
 
 on:
   push:
@@ -10,6 +16,8 @@ on:
 
 permissions:
   contents: write
+  # Подпись provenance для npm (OIDC GitHub Actions).
+  id-token: write
 
 concurrency:
   group: release
@@ -25,6 +33,7 @@ jobs:
         with:
           node-version: '26'
           cache: pnpm
+          registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
       - run: pnpm audit --audit-level high
 
@@ -42,8 +51,13 @@ jobs:
             if (wrong.length) { console.error(`Тег v${tag} не совпадает: ${JSON.stringify(versions)}`); process.exit(1); }
           '
 
-      # Включает сборку бандла и его дымовой запуск (старт < 1 с).
+      # Включает сборку бандла и его дымовой запуск (старт < 1 с), сборку npm-пакета в dist/npm
+      # и пробную установку из tarball.
       - run: pnpm check
+
+      - name: Пробная публикация в npm (без отправки)
+        if: vars.NPM_PUBLISH == 'true'
+        run: npm publish ./dist/npm --dry-run --provenance=false
 
       - name: Публикация плагина в ветку release
         run: |
@@ -53,6 +67,15 @@ jobs:
           git add --force plugins/lawyer-152fz/server/index.mjs
           git commit --message "release ${GITHUB_REF_NAME}: плагин с собранным MCP-сервером"
           git push --force origin HEAD:release
+          # Метка на коммите релиза плагина: по ней ветку release можно вернуть на прошлую версию.
+          git tag --force "plugin-${GITHUB_REF_NAME}"
+          git push --force origin "plugin-${GITHUB_REF_NAME}"
+
+      - name: Публикация в npm (с provenance)
+        if: vars.NPM_PUBLISH == 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish ./dist/npm
 
       - name: GitHub Release
         env:
