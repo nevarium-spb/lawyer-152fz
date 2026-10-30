@@ -16,14 +16,23 @@ const paths = (result: ReturnType<typeof parse>) =>
   result.ok ? [] : result.error.issues.map((issue) => issue.path);
 
 describe('профиль оператора', () => {
-  it('принимает корректный профиль и подставляет пустые списки по умолчанию', () => {
+  it('принимает явно пустые списки третьих лиц и трансграничных передач', () => {
+    const result = parse({ ...validProfileInput(), thirdParties: [], crossBorderTransfers: [] });
+    expect(result.ok && result.value.thirdParties).toEqual([]);
+    expect(result.ok && result.value.crossBorderTransfers).toEqual([]);
+  });
+
+  it('не подставляет пустые списки: «никому» и «нет» должен подтвердить пользователь', () => {
     const result = parse({
       ...validProfileInput(),
       thirdParties: undefined,
       crossBorderTransfers: undefined,
     });
-    expect(result.ok && result.value.thirdParties).toEqual([]);
-    expect(result.ok && result.value.crossBorderTransfers).toEqual([]);
+    expect(paths(result)).toEqual(['thirdParties', 'crossBorderTransfers']);
+    expect(!result.ok && result.error.issues.map((issue) => issue.message)).toEqual([
+      expect.stringContaining('пустой список []'),
+      expect.stringContaining('пустой список []'),
+    ]);
   });
 
   it('за один разбор перечисляет все обязательные поля — по-русски', () => {
@@ -44,6 +53,11 @@ describe('профиль оператора', () => {
       {
         path: 'databaseLocation',
         message: 'Укажите место нахождения базы данных с персональными данными',
+      },
+      { path: 'thirdParties', message: expect.stringContaining('пустой список []') as string },
+      {
+        path: 'crossBorderTransfers',
+        message: expect.stringContaining('пустой список []') as string,
       },
     ]);
   });

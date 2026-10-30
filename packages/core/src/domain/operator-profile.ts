@@ -170,8 +170,16 @@ export const operatorProfileSchema = z.object({
     .array(purposeSchema, { error: 'Укажите хотя бы одну цель обработки' })
     .min(1, 'Укажите хотя бы одну цель обработки'),
   databaseLocation: databaseLocationSchema,
-  thirdParties: z.array(thirdPartySchema).default([]),
-  crossBorderTransfers: z.array(crossBorderTransferSchema).default([]),
+  // Без значения по умолчанию: пустой список — это утверждение «никому не передаём»,
+  // оно попадает в политику и уведомление РКН, поэтому его должен подтвердить пользователь.
+  thirdParties: z.array(thirdPartySchema, {
+    error:
+      'Укажите, кому передаются данные или поручается обработка (хостинг, почта, аналитика, CRM, платежи, рассылки…); если никому — подтвердите это у пользователя и передайте пустой список []',
+  }),
+  crossBorderTransfers: z.array(crossBorderTransferSchema, {
+    error:
+      'Укажите трансграничные передачи (зарубежные сервисы аналитики, почты, CDN, форм…); если их нет — подтвердите это у пользователя и передайте пустой список []',
+  }),
 
   consentTerm: sectionShapes.consent.consentTerm.optional(),
   publicData: publicDataSchema.optional(),

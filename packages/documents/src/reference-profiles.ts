@@ -122,4 +122,7 @@ export const MINIMAL_REFERENCE_PROFILE: OperatorProfileInput = {
     },
   ],
   databaseLocation: { country: 'RU', address: 'Московская обл., г. Мытищи, офис оператора' },
+  // Пустые списки здесь — явное «никому» и «нет», а не значение по умолчанию.
+  thirdParties: [],
+  crossBorderTransfers: [],
 };

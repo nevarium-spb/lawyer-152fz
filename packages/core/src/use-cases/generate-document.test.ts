@@ -55,7 +55,7 @@ describe('GenerateDocument', () => {
 
   it('неполный профиль — список недостающих полей и название документа', () => {
     const result = generate.render('policy', { name: 'ООО «Тест»' });
-    expect(!result.ok && result.error.kind === 'validation' && result.error.issues.length).toBe(6);
+    expect(!result.ok && result.error.kind === 'validation' && result.error.issues.length).toBe(8);
     expect(!result.ok && result.error.message).toContain('«Политика (тестовая)»');
   });
 

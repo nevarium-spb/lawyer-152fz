@@ -71,7 +71,9 @@ const profileShape = z
         }),
       )
       .optional()
-      .describe('Кому передаются данные или поручается обработка; пусто — никому'),
+      .describe(
+        'Обязательно. Кому передаются данные или поручается обработка: хостинг, почта, аналитика, CRM, платежи, рассылки. Пустой список [] — только если пользователь прямо подтвердил, что никому',
+      ),
     crossBorderTransfers: z
       .array(
         z.object({
@@ -85,7 +87,9 @@ const profileShape = z
         }),
       )
       .optional()
-      .describe('Трансграничные передачи; пусто — нет'),
+      .describe(
+        'Обязательно. Трансграничные передачи: зарубежные сервисы аналитики, почты, CDN, форм. Пустой список [] — только если пользователь прямо подтвердил, что их нет',
+      ),
     consentTerm: text('Раздел consent: срок действия согласия'),
     publicData: z
       .object({
@@ -118,6 +122,8 @@ const BASE_FIELDS = [
   'responsiblePerson',
   'purposes',
   'databaseLocation',
+  'thirdParties',
+  'crossBorderTransfers',
 ];
 
 const templateShape = z.object({
@@ -130,8 +136,10 @@ const templateShape = z.object({
 });
 
 const requiredFields = (template: TemplateInfo) => [
-  ...BASE_FIELDS,
-  ...template.requires.flatMap((section) => profileSectionFields(section)),
+  ...new Set([
+    ...BASE_FIELDS,
+    ...template.requires.flatMap((section) => profileSectionFields(section)),
+  ]),
 ];
 
 function formatTemplates(templates: readonly TemplateInfo[]): string {
