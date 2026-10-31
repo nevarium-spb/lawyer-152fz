@@ -17,8 +17,22 @@ const isoDate = (message: string) => z.iso.date({ error: `${message} в форм
 export const PROCESSING_METHODS = ['automated', 'non-automated', 'mixed'] as const;
 export type ProcessingMethod = (typeof PROCESSING_METHODS)[number];
 
-/** Уровень защищённости ПДн по ПП РФ № 1119 (п. 8–12). */
-export const PROTECTION_LEVELS = ['1', '2', '3', '4'] as const;
+/**
+ * Уровень защищённости ПДн по ПП РФ № 1119 (п. 8–12). `not-determined` — оператор его ещё
+ * не определял: честный ответ лучше значения, взятого из примера.
+ */
+export const PROTECTION_LEVELS = ['1', '2', '3', '4', 'not-determined'] as const;
+
+/** Меры из ч. 1 ст. 18.1: в документ попадают только те, что оператор подтвердил как принятые. */
+export const IMPLEMENTED_MEASURES = [
+  'responsible-person',
+  'policy-and-local-acts',
+  'security-measures',
+  'internal-control',
+  'harm-assessment',
+  'staff-training',
+] as const;
+export type ImplementedMeasure = (typeof IMPLEMENTED_MEASURES)[number];
 
 /**
  * Цель обработки со всем, что закон требует указывать для каждой цели отдельно
@@ -158,7 +172,15 @@ const sectionShapes = {
       error: 'Перечислите средства криптографической защиты; пустой список — если не используются',
     }),
     protectionLevel: z.enum(PROTECTION_LEVELS, {
-      error: 'Укажите уровень защищённости ПДн по ПП РФ № 1119: 1, 2, 3 или 4',
+      error:
+        'Укажите уровень защищённости ПДн, который оператор определил по ПП РФ № 1119: 1, 2, 3 или 4; если не определял — not-determined. Значение из примера не подставляйте',
+    }),
+  },
+  /** Меры, которые политика и уведомление РКН называют принятыми (ст. 18.1, ст. 19). */
+  measures: {
+    implementedMeasures: z.array(z.enum(IMPLEMENTED_MEASURES), {
+      error:
+        'Спросите у пользователя, какие меры уже приняты: ответственный (responsible-person), политика и локальные акты (policy-and-local-acts), меры безопасности по ст. 19 (security-measures), внутренний контроль (internal-control), оценка вреда (harm-assessment), ознакомление работников (staff-training). Документ назовёт их принятыми, поэтому указывайте только то, что есть на самом деле; [] — если ничего',
     }),
   },
   /** Уведомление о трансграничной передаче (ст. 12 ч. 4). */
@@ -218,6 +240,7 @@ export const operatorProfileSchema = z.object({
   processingEndCondition: sectionShapes.rknNotification.processingEndCondition.optional(),
   cryptoTools: sectionShapes.rknNotification.cryptoTools.optional(),
   protectionLevel: sectionShapes.rknNotification.protectionLevel.optional(),
+  implementedMeasures: sectionShapes.measures.implementedMeasures.optional(),
   rknNotificationRef: rknNotificationRefSchema.optional(),
 });
 

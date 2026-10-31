@@ -203,7 +203,27 @@ describe('разделы профиля для отдельных докумен
       'processingConsent',
       'publicDistribution',
       'rknNotification',
+      'measures',
       'crossBorder',
     ]);
+  });
+
+  it('меры нужно перечислить явно, пустой список допустим, неизвестная мера — ошибка', () => {
+    expect(paths(parseFor(['measures'], validProfileInput()))).toEqual(['implementedMeasures']);
+    expect(parseFor(['measures'], { ...validProfileInput(), implementedMeasures: [] }).ok).toBe(
+      true,
+    );
+    expect(
+      parseFor(['measures'], { ...validProfileInput(), implementedMeasures: ['всё сделано'] }).ok,
+    ).toBe(false);
+  });
+
+  it('уровень защищённости можно честно не знать', () => {
+    const result = parseFor(['rknNotification'], {
+      ...validProfileInput(),
+      ...rknFields,
+      protectionLevel: 'not-determined',
+    });
+    expect(result.ok).toBe(true);
   });
 });

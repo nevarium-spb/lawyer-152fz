@@ -54,6 +54,17 @@ describe('инструменты документов (T6.4)', () => {
     expect(textOf(result)).toMatch(/^Предлагаемый путь: docs\/152-fz\/privacy-policy\.md\n\n# /);
   });
 
+  it('предупреждения идут отдельно от текста документа', async () => {
+    const result = await render('privacy-policy', {
+      ...FULL_REFERENCE_PROFILE,
+      implementedMeasures: [],
+    });
+    const document = result.structuredContent as { markdown: string; warnings: string[] };
+    expect(document.warnings.join()).toContain('оценка вреда');
+    expect(document.markdown).not.toContain('Не подтверждены');
+    expect(textOf(result)).toContain('Предупреждения (покажи пользователю');
+  });
+
   it('пустой профиль — все недостающие поля одним сообщением, по-русски', async () => {
     const result = await render('privacy-policy', {});
     expect(result.isError).toBe(true);

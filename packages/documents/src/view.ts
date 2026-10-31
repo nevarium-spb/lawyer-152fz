@@ -1,5 +1,6 @@
 import { isConsentBasis } from '@lawyer-152fz/core';
 import type {
+  ImplementedMeasure,
   OperatorProfile,
   ProcessingMethod,
   ProcessingPurpose,
@@ -16,6 +17,20 @@ const METHOD_TEXT: Record<ProcessingMethod, string> = {
   automated: 'автоматизированная обработка (с использованием средств автоматизации)',
   'non-automated': 'неавтоматизированная обработка (без использования средств автоматизации)',
   mixed: 'смешанная обработка (с использованием средств автоматизации и без них)',
+};
+
+const MEASURE_TEXT: Record<ImplementedMeasure, string> = {
+  'responsible-person': 'назначено лицо, ответственное за организацию обработки персональных данных',
+  'policy-and-local-acts':
+    'изданы документы, определяющие политику в отношении обработки персональных данных, и локальные акты по вопросам обработки',
+  'security-measures':
+    'применяются правовые, организационные и технические меры по обеспечению безопасности персональных данных в соответствии со статьёй 19 Закона',
+  'internal-control':
+    'осуществляется внутренний контроль и (или) аудит соответствия обработки персональных данных Закону и локальным актам',
+  'harm-assessment':
+    'проведена оценка вреда, который может быть причинён субъектам персональных данных в случае нарушения Закона',
+  'staff-training':
+    'работники, непосредственно осуществляющие обработку персональных данных, ознакомлены с законодательством о персональных данных и локальными актами',
 };
 
 const regionNames = new Intl.DisplayNames(['ru'], { type: 'region' });
@@ -92,7 +107,10 @@ export function buildView(profile: OperatorProfile, context: RenderContext) {
       : null,
     processingEndCondition: profile.processingEndCondition ?? null,
     cryptoTools: profile.cryptoTools ?? null,
-    protectionLevel: profile.protectionLevel ?? null,
+    protectionLevel:
+      profile.protectionLevel === 'not-determined' ? null : (profile.protectionLevel ?? null),
+    hasMeasures: (profile.implementedMeasures ?? []).length > 0,
+    measures: (profile.implementedMeasures ?? []).map((measure) => MEASURE_TEXT[measure]),
     rknNotificationRef: profile.rknNotificationRef
       ? {
           number: profile.rknNotificationRef.number,

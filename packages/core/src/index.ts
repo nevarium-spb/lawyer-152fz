@@ -24,4 +24,5 @@ export * from './use-cases/lookup-norms';
 export * from './use-cases/audit-site';
 export * from './use-cases/audit-codebase';
 export * from './use-cases/audit-html';
+export * from './domain/document-warnings';
 export * from './use-cases/generate-document';

@@ -95,6 +95,35 @@ describe('шаблоны документов (T6.3)', () => {
     },
   );
 
+  it.each(['privacy-policy', 'rkn-notification'])(
+    '%s называет принятыми только меры, которые подтвердил оператор',
+    (id) => {
+      const partial = generate.render(id, {
+        ...FULL_REFERENCE_PROFILE,
+        implementedMeasures: ['responsible-person'],
+      });
+      const markdown = partial.ok ? partial.value.markdown : '';
+      expect(markdown).toContain('назначено лицо, ответственное');
+      expect(markdown).not.toContain('оценка вреда');
+      expect(partial.ok && partial.value.warnings.join()).toContain('оценка вреда');
+
+      const none = generate.render(id, { ...FULL_REFERENCE_PROFILE, implementedMeasures: [] });
+      expect(none.ok && none.value.markdown).not.toContain('назначено лицо');
+    },
+  );
+
+  it('уведомление РКН не утверждает, что требования ПП № 1119 выполняются', () => {
+    const known = generate.render('rkn-notification', FULL_REFERENCE_PROFILE);
+    expect(known.ok && known.value.markdown).not.toContain('выполняются для уровня');
+    const unknown = generate.render('rkn-notification', {
+      ...FULL_REFERENCE_PROFILE,
+      protectionLevel: 'not-determined',
+    });
+    const markdown = unknown.ok ? unknown.value.markdown : '';
+    expect(markdown).toContain('Уровень защищённости оператор не определил');
+    expect(markdown).not.toContain('not-determined');
+  });
+
   it('бланки — знаком ＿, а не подчёркиваниями: «__» в Markdown превращается в курсив', async () => {
     for (const file of await readTemplateFiles()) {
       const body = file.content.slice(file.content.indexOf('\n---\n') + 5);

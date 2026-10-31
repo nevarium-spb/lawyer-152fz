@@ -45,6 +45,7 @@ describe('GenerateDocument', () => {
       title: 'Политика (тестовая)',
       normRefs: ['152-fz/art-9/part-1'],
       markdown: `# Политика\n\nОператор: ООО «Тестовый оператор», 2026-11-02\n\n---\n\n_${LEGAL_DISCLAIMER}_\n`,
+      warnings: [],
     });
   });
 

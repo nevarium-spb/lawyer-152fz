@@ -1,4 +1,5 @@
 import {
+  IMPLEMENTED_MEASURES,
   PROCESSING_METHODS,
   PROFILE_SECTIONS,
   PROTECTION_LEVELS,
@@ -112,7 +113,15 @@ const profileShape = z
     protectionLevel: z
       .enum(PROTECTION_LEVELS)
       .optional()
-      .describe('Раздел rknNotification: уровень защищённости ПДн по ПП № 1119'),
+      .describe(
+        'Раздел rknNotification: уровень защищённости, который оператор определил по ПП № 1119; not-determined — если не определял. Не бери значение из примера',
+      ),
+    implementedMeasures: z
+      .array(z.enum(IMPLEMENTED_MEASURES))
+      .optional()
+      .describe(
+        'Раздел measures: меры, которые уже приняты на самом деле, по ответу пользователя (ч. 1 ст. 18.1); [] — ни одной',
+      ),
     rknNotificationRef: z
       .object({ number: text('Регистрационный номер'), date: text('Дата, ГГГГ-ММ-ДД') })
       .optional()
@@ -213,6 +222,7 @@ export function registerDocumentTools(server: McpServer, documents: GenerateDocu
         title: z.string(),
         normRefs: z.array(z.string()),
         markdown: z.string(),
+        warnings: z.array(z.string()),
         suggestedPath: z.string(),
       },
       annotations: READ_ONLY,
@@ -226,10 +236,12 @@ export function registerDocumentTools(server: McpServer, documents: GenerateDocu
         };
       }
       const path = suggestedPath(templateId);
+      const warnings = result.value.warnings.map((warning) => `- ${warning}`).join('\n');
+      const header = warnings
+        ? `Предлагаемый путь: ${path}\n\nПредупреждения (покажи пользователю, в документ не вписывай):\n${warnings}`
+        : `Предлагаемый путь: ${path}`;
       return {
-        content: [
-          { type: 'text' as const, text: `Предлагаемый путь: ${path}\n\n${result.value.markdown}` },
-        ],
+        content: [{ type: 'text' as const, text: `${header}\n\n${result.value.markdown}` }],
         structuredContent: { ...result.value, suggestedPath: path },
       };
     },

@@ -954,6 +954,7 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                     "processingConsent",
                     "publicDistribution",
                     "rknNotification",
+                    "measures",
                     "crossBorder",
                   ],
                   "type": "string",
@@ -1073,6 +1074,21 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
               },
               "type": "object",
             },
+            "implementedMeasures": {
+              "description": "Раздел measures: меры, которые уже приняты на самом деле, по ответу пользователя (ч. 1 ст. 18.1); [] — ни одной",
+              "items": {
+                "enum": [
+                  "responsible-person",
+                  "policy-and-local-acts",
+                  "security-measures",
+                  "internal-control",
+                  "harm-assessment",
+                  "staff-training",
+                ],
+                "type": "string",
+              },
+              "type": "array",
+            },
             "inn": {
               "description": "ИНН: 10 цифр для организации, 12 — для ИП",
               "type": "string",
@@ -1098,12 +1114,13 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
               "type": "string",
             },
             "protectionLevel": {
-              "description": "Раздел rknNotification: уровень защищённости ПДн по ПП № 1119",
+              "description": "Раздел rknNotification: уровень защищённости, который оператор определил по ПП № 1119; not-determined — если не определял. Не бери значение из примера",
               "enum": [
                 "1",
                 "2",
                 "3",
                 "4",
+                "not-determined",
               ],
               "type": "string",
             },
@@ -1288,12 +1305,19 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
         "title": {
           "type": "string",
         },
+        "warnings": {
+          "items": {
+            "type": "string",
+          },
+          "type": "array",
+        },
       },
       "required": [
         "templateId",
         "title",
         "normRefs",
         "markdown",
+        "warnings",
         "suggestedPath",
       ],
       "type": "object",

@@ -1,4 +1,5 @@
 import { LEGAL_DISCLAIMER } from '../domain/audit-report';
+import { documentWarnings } from '../domain/document-warnings';
 import type { NormId } from '../domain/norm-id';
 import { operatorProfileSchemaFor } from '../domain/operator-profile';
 import type { Clock, DocumentTemplates, TemplateInfo } from '../ports';
@@ -14,6 +15,8 @@ export interface RenderedDocument {
   readonly normRefs: readonly NormId[];
   /** Markdown документа с дисклеймером в конце. */
   readonly markdown: string;
+  /** Что показать пользователю при выдаче документа; в текст документа не входит. */
+  readonly warnings: readonly string[];
 }
 
 export interface GenerateDocumentDeps {
@@ -54,6 +57,7 @@ export function createGenerateDocument(deps: GenerateDocumentDeps): GenerateDocu
         title: info.title,
         normRefs: info.normRefs,
         markdown: `${body.value.trimEnd()}\n\n---\n\n_${LEGAL_DISCLAIMER}_\n`,
+        warnings: documentWarnings(info.requires, profile.value),
       });
     },
   };
