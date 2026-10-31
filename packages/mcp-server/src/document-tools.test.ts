@@ -46,12 +46,20 @@ describe('инструменты документов (T6.4)', () => {
   it('render_document заполняет шаблон и предлагает путь в проекте', async () => {
     const result = await render('privacy-policy', FULL_REFERENCE_PROFILE);
     expect(result.isError).toBeFalsy();
-    const document = result.structuredContent as { markdown: string; suggestedPath: string };
+    const document = result.structuredContent as {
+      markdown: string;
+      disclaimer: string;
+      suggestedPath: string;
+    };
     expect(document.suggestedPath).toBe('docs/152-fz/privacy-policy.md');
     expect(document.markdown).toContain('Оператор: ООО «Ромашка»');
     expect(document.markdown).toContain('Редакция от 02.11.2026');
-    expect(document.markdown.trimEnd().endsWith(`_${LEGAL_DISCLAIMER}_`)).toBe(true);
-    expect(textOf(result)).toMatch(/^Предлагаемый путь: docs\/152-fz\/privacy-policy\.md\n\n# /);
+    // Политику публикуют как есть: дисклеймер плагина не должен попасть на сайт оператора.
+    expect(document.disclaimer).toBe(LEGAL_DISCLAIMER);
+    expect(document.markdown).not.toContain(LEGAL_DISCLAIMER);
+    const text = textOf(result);
+    expect(text).toMatch(/^Предлагаемый путь: docs\/152-fz\/privacy-policy\.md\n\n=== ТЕКСТ/);
+    expect(text.indexOf(LEGAL_DISCLAIMER)).toBeGreaterThan(text.indexOf('=== КОНЕЦ ДОКУМЕНТА ==='));
   });
 
   it('предупреждения идут отдельно от текста документа', async () => {

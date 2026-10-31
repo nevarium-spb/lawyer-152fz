@@ -38,13 +38,15 @@ describe('GenerateDocument', () => {
     expect(generate.list().map((t) => t.id)).toEqual(['policy', 'notification']);
   });
 
-  it('заполняет шаблон по профилю, датирует его и добавляет дисклеймер', () => {
+  it('заполняет шаблон по профилю, датирует его по Москве, а дисклеймер отдаёт отдельно', () => {
     const result = generate.render('policy', validProfileInput());
     expect(result.ok && result.value).toEqual({
       templateId: 'policy',
       title: 'Политика (тестовая)',
       normRefs: ['152-fz/art-9/part-1'],
-      markdown: `# Политика\n\nОператор: ООО «Тестовый оператор», 2026-11-02\n\n---\n\n_${LEGAL_DISCLAIMER}_\n`,
+      // 21:30 UTC — это уже 00:30 следующего дня по Москве.
+      markdown: `# Политика\n\nОператор: ООО «Тестовый оператор», 2026-11-03\n`,
+      disclaimer: LEGAL_DISCLAIMER,
       warnings: [],
     });
   });

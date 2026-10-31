@@ -992,7 +992,7 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
       "openWorldHint": false,
       "readOnlyHint": true,
     },
-    "description": "Заполняет шаблон данными оператора и возвращает Markdown с дисклеймером. Если профиль неполный, перечисляет все недостающие поля разом — спросите их у пользователя одним сообщением. Сервер ничего не сохраняет: файл в проект пишет клиент с согласия пользователя. / Renders a template; lists all missing profile fields at once.",
+    "description": "Заполняет шаблон данными оператора и возвращает Markdown документа, предупреждения и дисклеймер отдельно от него. Если профиль неполный, перечисляет все недостающие поля разом — спросите их у пользователя одним сообщением. Сервер ничего не сохраняет: файл в проект пишет клиент с согласия пользователя. / Renders a template; lists all missing profile fields at once.",
     "execution": {
       "taskSupport": "forbidden",
     },
@@ -1287,6 +1287,9 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
       "$schema": "http://json-schema.org/draft-07/schema#",
       "additionalProperties": false,
       "properties": {
+        "disclaimer": {
+          "type": "string",
+        },
         "markdown": {
           "type": "string",
         },
@@ -1317,6 +1320,7 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
         "title",
         "normRefs",
         "markdown",
+        "disclaimer",
         "warnings",
         "suggestedPath",
       ],

@@ -37,11 +37,20 @@ describe('рендерер шаблонов (ADR-0013)', () => {
   });
 
   it('экранирует служебные символы Markdown и HTML в данных', () => {
-    expect(render('{{name}}', { name: 'Рога_и*копыта <script>' })).toBe(
-      'Рога\\_и\\*копыта \\<script\\>',
+    expect(render('{{name}}', { name: 'Рога*и*копыта <script>' })).toBe(
+      'Рога\\*и\\*копыта \\<script\\>',
     );
-    expect(escapeMarkdown('[a](b) `c` # | \\')).toBe('\\[a\\](b) \\`c\\` \\# \\| \\\\');
+    expect(escapeMarkdown('[a](b) `c` | \\')).toBe('\\[a\\](b) \\`c\\` \\| \\\\');
+    expect(escapeMarkdown('_курсив_ __жирный__')).toBe('\\_курсив\\_ \\_\\_жирный\\_\\_');
+    expect(escapeMarkdown('# заголовок')).toBe('\\# заголовок');
   });
+
+  it.each(['john_doe@mail.ru', 'https://example.ru/my_page#contacts', 'ООО № 5 #1'])(
+    'не портит e-mail и адреса: %s',
+    (value) => {
+      expect(escapeMarkdown(value)).toBe(value);
+    },
+  );
 
   describe('строгость: пропуск в документе — ошибка', () => {
     it.each([

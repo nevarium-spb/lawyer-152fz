@@ -172,6 +172,9 @@ function formatTemplates(templates: readonly TemplateInfo[]): string {
 
 const suggestedPath = (templateId: string) => `docs/152-fz/${templateId}.md`;
 
+const DOCUMENT_START = '=== ТЕКСТ ДОКУМЕНТА ===';
+const DOCUMENT_END = '=== КОНЕЦ ДОКУМЕНТА ===';
+
 const READ_ONLY = { readOnlyHint: true, destructiveHint: false, openWorldHint: false } as const;
 
 /** Инструменты документов (T6.4): перечень шаблонов и заполнение шаблона по профилю оператора. */
@@ -207,7 +210,7 @@ export function registerDocumentTools(server: McpServer, documents: GenerateDocu
     {
       title: 'Заполнить документ по 152-ФЗ',
       description:
-        'Заполняет шаблон данными оператора и возвращает Markdown с дисклеймером. Если профиль неполный, ' +
+        'Заполняет шаблон данными оператора и возвращает Markdown документа, предупреждения и дисклеймер отдельно от него. Если профиль неполный, ' +
         'перечисляет все недостающие поля разом — спросите их у пользователя одним сообщением. ' +
         'Сервер ничего не сохраняет: файл в проект пишет клиент с согласия пользователя. ' +
         '/ Renders a template; lists all missing profile fields at once.',
@@ -222,6 +225,7 @@ export function registerDocumentTools(server: McpServer, documents: GenerateDocu
         title: z.string(),
         normRefs: z.array(z.string()),
         markdown: z.string(),
+        disclaimer: z.string(),
         warnings: z.array(z.string()),
         suggestedPath: z.string(),
       },
@@ -240,8 +244,13 @@ export function registerDocumentTools(server: McpServer, documents: GenerateDocu
       const header = warnings
         ? `Предлагаемый путь: ${path}\n\nПредупреждения (покажи пользователю, в документ не вписывай):\n${warnings}`
         : `Предлагаемый путь: ${path}`;
+      const text = [
+        header,
+        `${DOCUMENT_START}\n${result.value.markdown.trimEnd()}\n${DOCUMENT_END}`,
+        `Дисклеймер для ответа пользователю, в файл не вписывай: ${result.value.disclaimer}`,
+      ].join('\n\n');
       return {
-        content: [{ type: 'text' as const, text: `${header}\n\n${result.value.markdown}` }],
+        content: [{ type: 'text' as const, text }],
         structuredContent: { ...result.value, suggestedPath: path },
       };
     },
