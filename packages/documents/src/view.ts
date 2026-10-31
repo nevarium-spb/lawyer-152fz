@@ -1,4 +1,10 @@
-import type { OperatorProfile, ProcessingMethod, RenderContext } from '@lawyer-152fz/core';
+import { isConsentBasis } from '@lawyer-152fz/core';
+import type {
+  OperatorProfile,
+  ProcessingMethod,
+  ProcessingPurpose,
+  RenderContext,
+} from '@lawyer-152fz/core';
 
 /**
  * Представление профиля для шаблонов (ADR-0013): все формулировки, которые зависят от данных,
@@ -24,7 +30,21 @@ const joinList = (items: readonly string[]) => items.join('; ');
 const country = (code: string) => `${regionNames.of(code) ?? code} (${code})`;
 const unique = (items: readonly string[]) => [...new Set(items)];
 
+const purposeView = (purpose: ProcessingPurpose, index: number) => ({
+  number: index + 1,
+  title: purpose.title,
+  dataCategories: joinList(purpose.dataCategories),
+  subjectCategories: joinList(purpose.subjectCategories),
+  legalBasis: purpose.legalBasis,
+  actions: joinList(purpose.actions),
+  methods: METHOD_TEXT[purpose.methods],
+  retention: purpose.retention,
+});
+
 export function buildView(profile: OperatorProfile, context: RenderContext) {
+  const processors = profile.thirdParties.filter((party) => party.role === 'processor');
+  const recipients = profile.thirdParties.filter((party) => party.role === 'recipient');
+
   return {
     date: formatDate(context.date),
     operator: {
@@ -36,16 +56,11 @@ export function buildView(profile: OperatorProfile, context: RenderContext) {
       website: profile.website ?? null,
     },
     responsible: profile.responsiblePerson,
-    purposes: profile.purposes.map((purpose, index) => ({
-      number: index + 1,
-      title: purpose.title,
-      dataCategories: joinList(purpose.dataCategories),
-      subjectCategories: joinList(purpose.subjectCategories),
-      legalBasis: purpose.legalBasis,
-      actions: joinList(purpose.actions),
-      methods: METHOD_TEXT[purpose.methods],
-      retention: purpose.retention,
-    })),
+    purposes: profile.purposes.map(purposeView),
+    // Цели по договору или закону не попадают в согласие: иначе они становятся отзывными.
+    consentPurposes: profile.purposes
+      .filter((purpose) => isConsentBasis(purpose.legalBasis))
+      .map(purposeView),
     allDataCategories: joinList(unique(profile.purposes.flatMap((p) => p.dataCategories))),
     allActions: joinList(unique(profile.purposes.flatMap((p) => p.actions))),
     allMethods: joinList(unique(profile.purposes.map((p) => METHOD_TEXT[p.methods]))),
@@ -53,8 +68,10 @@ export function buildView(profile: OperatorProfile, context: RenderContext) {
       country: country(profile.databaseLocation.country),
       address: profile.databaseLocation.address,
     },
-    hasThirdParties: profile.thirdParties.length > 0,
-    thirdParties: profile.thirdParties,
+    hasProcessors: processors.length > 0,
+    processors,
+    hasRecipients: recipients.length > 0,
+    recipients,
     hasCrossBorderTransfers: profile.crossBorderTransfers.length > 0,
     crossBorderTransfers: profile.crossBorderTransfers.map((transfer) => ({
       country: country(transfer.country),

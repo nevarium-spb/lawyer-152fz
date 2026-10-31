@@ -2,6 +2,7 @@ import {
   PROCESSING_METHODS,
   PROFILE_SECTIONS,
   PROTECTION_LEVELS,
+  THIRD_PARTY_ROLES,
   profileSectionFields,
 } from '@lawyer-152fz/core';
 import type { GenerateDocument, TemplateInfo } from '@lawyer-152fz/core';
@@ -65,6 +66,12 @@ const profileShape = z
     thirdParties: z
       .array(
         z.object({
+          role: z
+            .enum(THIRD_PARTY_ROLES)
+            .optional()
+            .describe(
+              'processor — обрабатывает данные по поручению оператора (хостинг, рассылка); recipient — самостоятельный получатель, обрабатывает данные как отдельный оператор',
+            ),
           name: text('Наименование'),
           address: text('Адрес'),
           purpose: text('Зачем передаются данные или поручается обработка'),

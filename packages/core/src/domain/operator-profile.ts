@@ -41,6 +41,20 @@ const purposeSchema = z.object(
   { error: 'Опишите цель обработки' },
 );
 
+/**
+ * Основание цели — согласие субъекта (п. 1 ч. 1 ст. 6). `legalBasis` — свободный текст, поэтому
+ * сначала убираем оговорки вроде «без согласия», иначе цель по договору станет отзывной.
+ */
+export function isConsentBasis(legalBasis: string): boolean {
+  const text = legalBasis
+    .toLowerCase()
+    .replace(/без\s+согласия/gu, '')
+    .replace(/согласие\s+не\s+(?:требуется|нужно)/gu, '');
+  return (
+    /(?<!\p{L})согласи(?:е|я|ю|ем|и)(?!\p{L})/u.test(text) || /п\.\s*1\s+ч\.\s*1\s+ст\.\s*6/u.test(text)
+  );
+}
+
 const responsiblePersonSchema = z.object(
   {
     fullName: requiredText('Укажите ФИО ответственного за организацию обработки ПДн'),
@@ -51,7 +65,14 @@ const responsiblePersonSchema = z.object(
   { error: 'Укажите ответственного за организацию обработки персональных данных' },
 );
 
+/** Обрабатывает данные по поручению оператора (ч. 3 ст. 6) или получает их и обрабатывает сам. */
+export const THIRD_PARTY_ROLES = ['processor', 'recipient'] as const;
+
 const thirdPartySchema = z.object({
+  role: z.enum(THIRD_PARTY_ROLES, {
+    error:
+      'Укажите роль: processor — обрабатывает данные по поручению оператора (хостинг, рассылка; нужен договор по ч. 3 ст. 6), recipient — самостоятельный получатель, обрабатывает данные как отдельный оператор',
+  }),
   name: requiredText('Укажите наименование третьего лица'),
   address: requiredText('Укажите адрес третьего лица'),
   purpose: requiredText('Укажите цель передачи третьему лицу'),
@@ -112,6 +133,16 @@ const sectionShapes = {
   /** Согласие на обработку (ст. 9 ч. 4 п. 8). */
   consent: {
     consentTerm: requiredText('Укажите срок действия согласия, например «5 лет» или «до отзыва»'),
+  },
+  /** Согласие на обработку (ст. 9): в него входят только цели с основанием «согласие». */
+  processingConsent: {
+    purposes: z
+      .array(purposeSchema, { error: 'Укажите хотя бы одну цель обработки' })
+      .min(1, 'Укажите хотя бы одну цель обработки')
+      .refine(
+        (purposes) => purposes.some((purpose) => isConsentBasis(purpose.legalBasis)),
+        'Ни у одной цели основание не согласие субъекта (п. 1 ч. 1 ст. 6): для целей по договору или закону согласие не оформляется. Если обработка действительно ведётся по согласию, укажите это в legalBasis цели',
+      ),
   },
   /** Согласие на распространение (ст. 10.1). */
   publicDistribution: {

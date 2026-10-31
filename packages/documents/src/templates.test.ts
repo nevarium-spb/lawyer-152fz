@@ -59,6 +59,42 @@ describe('шаблоны документов (T6.3)', () => {
     expect(info?.description).toContain('поля паспорта и подписи убирать нельзя');
   });
 
+  it('в согласие попадают только цели с основанием «согласие»: цели по договору не становятся отзывными', () => {
+    const result = generate.render('consent-processing', FULL_REFERENCE_PROFILE);
+    const markdown = result.ok ? result.value.markdown : '';
+    expect(markdown).toContain('1.1. Цель обработки: Обработка заявок');
+    expect(markdown).not.toContain('Заключение и исполнение договоров');
+  });
+
+  it('согласие не собирается, если ни одна цель не основана на согласии', () => {
+    const result = generate.render('consent-processing', {
+      ...FULL_REFERENCE_PROFILE,
+      purposes: FULL_REFERENCE_PROFILE.purposes?.slice(1),
+    });
+    expect(!result.ok && result.error.kind === 'validation' && result.error.issues[0]?.path).toBe(
+      'purposes',
+    );
+  });
+
+  it.each(['consent-processing', 'privacy-policy'])(
+    '%s отделяет поручение от самостоятельных получателей (ч. 3 ст. 6)',
+    (id) => {
+      const result = generate.render(id, {
+        ...FULL_REFERENCE_PROFILE,
+        thirdParties: [
+          { role: 'recipient', name: 'ООО «Получатель»', address: 'Москва', purpose: 'доставка' },
+        ],
+      });
+      const markdown = result.ok ? result.value.markdown : '';
+      const [processorClause = '', recipientClause = ''] = markdown
+        .split('\n')
+        .filter((line) => /^(?:2\.1|2\.2|4\.3|4\.4)\. /.test(line));
+      expect(processorClause).toContain('не поручает');
+      expect(recipientClause).toContain('самостоятельно');
+      expect(markdown).toContain('ООО «Получатель»');
+    },
+  );
+
   it('бланки — знаком ＿, а не подчёркиваниями: «__» в Markdown превращается в курсив', async () => {
     for (const file of await readTemplateFiles()) {
       const body = file.content.slice(file.content.indexOf('\n---\n') + 5);

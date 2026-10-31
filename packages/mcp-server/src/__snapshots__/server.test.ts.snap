@@ -951,6 +951,7 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                 "items": {
                   "enum": [
                     "consent",
+                    "processingConsent",
                     "publicDistribution",
                     "rknNotification",
                     "crossBorder",
@@ -1231,6 +1232,14 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                   },
                   "purpose": {
                     "description": "Зачем передаются данные или поручается обработка",
+                    "type": "string",
+                  },
+                  "role": {
+                    "description": "processor — обрабатывает данные по поручению оператора (хостинг, рассылка); recipient — самостоятельный получатель, обрабатывает данные как отдельный оператор",
+                    "enum": [
+                      "processor",
+                      "recipient",
+                    ],
                     "type": "string",
                   },
                 },

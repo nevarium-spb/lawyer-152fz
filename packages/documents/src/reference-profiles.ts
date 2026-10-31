@@ -68,6 +68,13 @@ export const FULL_REFERENCE_PROFILE: OperatorProfileInput = {
   },
   thirdParties: [
     {
+      role: 'processor',
+      name: 'ООО «Хостинг»',
+      address: '190000, г. Санкт-Петербург, ул. Серверная, д. 5',
+      purpose: 'размещение и хранение данных сайта',
+    },
+    {
+      role: 'recipient',
       name: 'ООО «Доставка»',
       address: '191000, г. Санкт-Петербург, ул. Примерная, д. 2',
       purpose: 'доставка заказов клиентам',
