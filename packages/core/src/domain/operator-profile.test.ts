@@ -120,7 +120,10 @@ describe('профиль оператора', () => {
       ...validProfileInput(),
       databaseLocation: { country: 'DE', address: 'Франкфурт' },
     });
-    expect(!result.ok && result.error.issues[0]?.message).toContain('ст. 18 ч. 5');
+    const message = !result.ok && result.error.issues[0]?.message;
+    expect(message).toContain('ст. 18 ч. 5');
+    expect(message).toContain('пп. 2, 3, 4, 8 ч. 1 ст. 6');
+    expect(message).toContain('не заменяйте его на RU');
   });
 
   it('RU в трансграничной передаче — ошибка', () => {

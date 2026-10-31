@@ -40,7 +40,9 @@ describe('предупреждения к документу', () => {
 
   it('вся обработка без средств автоматизации — уведомление может быть не нужно (п. 8 ч. 2 ст. 22)', () => {
     const [purpose] = validProfileInput().purposes;
-    const manual = warn(['rknNotification'], { purposes: [{ ...purpose, methods: 'non-automated' }] });
+    const manual = warn(['rknNotification'], {
+      purposes: [{ ...purpose, methods: 'non-automated' }],
+    });
     expect(manual.join()).toContain('п. 8 ч. 2 ст. 22');
     const mixed = warn(['rknNotification'], { purposes: [{ ...purpose, methods: 'mixed' }] });
     expect(mixed.join()).not.toContain('п. 8 ч. 2 ст. 22');

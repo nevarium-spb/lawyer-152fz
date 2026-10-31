@@ -20,7 +20,8 @@ const METHOD_TEXT: Record<ProcessingMethod, string> = {
 };
 
 const MEASURE_TEXT: Record<ImplementedMeasure, string> = {
-  'responsible-person': 'назначено лицо, ответственное за организацию обработки персональных данных',
+  'responsible-person':
+    'назначено лицо, ответственное за организацию обработки персональных данных',
   'policy-and-local-acts':
     'изданы документы, определяющие политику в отношении обработки персональных данных, и локальные акты по вопросам обработки',
   'security-measures':
