@@ -3,48 +3,56 @@ import { describe, expect, it } from 'vitest';
 import { validProfileInput } from '../testing/fixtures';
 import { documentWarnings } from './document-warnings';
 import { IMPLEMENTED_MEASURES, operatorProfileSchema } from './operator-profile';
-import type { OperatorProfileInput } from './operator-profile';
+import type { OperatorProfileInput, ProfileSection } from './operator-profile';
 
-const profile = (overrides: Partial<OperatorProfileInput> = {}) =>
-  operatorProfileSchema.parse({ ...validProfileInput(), ...overrides });
+const warn = (sections: readonly ProfileSection[], overrides: Partial<OperatorProfileInput> = {}) =>
+  documentWarnings(
+    sections,
+    operatorProfileSchema.parse({ ...validProfileInput(), ...overrides }),
+    '2026-11-02',
+  );
 
 describe('предупреждения к документу', () => {
   it('все меры подтверждены — предупреждений нет', () => {
-    const warnings = documentWarnings(
-      ['measures'],
-      profile({ implementedMeasures: [...IMPLEMENTED_MEASURES] }),
-    );
-    expect(warnings).toEqual([]);
+    expect(warn(['measures'], { implementedMeasures: [...IMPLEMENTED_MEASURES] })).toEqual([]);
   });
 
   it('называет меры, которые не подтверждены', () => {
-    const [warning] = documentWarnings(
-      ['measures'],
-      profile({ implementedMeasures: ['responsible-person'] }),
-    );
+    const [warning] = warn(['measures'], { implementedMeasures: ['responsible-person'] });
     expect(warning).toContain('оценка вреда');
     expect(warning).not.toContain('ответственный');
   });
 
   it('юридическому лицу без ответственного напоминает об обязанности, ИП — нет', () => {
-    const legalEntity = documentWarnings(['measures'], profile({ implementedMeasures: [] }));
-    expect(legalEntity.join()).toContain('ч. 1 ст. 22.1');
-    const individual = documentWarnings(
-      ['measures'],
-      profile({ inn: '500100732259', ogrn: undefined, implementedMeasures: [] }),
-    );
+    expect(warn(['measures'], { implementedMeasures: [] }).join()).toContain('ч. 1 ст. 22.1');
+    const individual = warn(['measures'], {
+      inn: '500100732259',
+      ogrn: undefined,
+      implementedMeasures: [],
+    });
     expect(individual.join()).not.toContain('ч. 1 ст. 22.1');
   });
 
   it('не определённый уровень защищённости — предупреждение, а не значение из примера', () => {
-    const warnings = documentWarnings(
-      ['rknNotification'],
-      profile({ protectionLevel: 'not-determined' }),
-    );
+    const warnings = warn(['rknNotification'], { protectionLevel: 'not-determined' });
     expect(warnings.join()).toContain('Уровень защищённости не определён');
   });
 
+  it('вся обработка без средств автоматизации — уведомление может быть не нужно (п. 8 ч. 2 ст. 22)', () => {
+    const [purpose] = validProfileInput().purposes;
+    const manual = warn(['rknNotification'], { purposes: [{ ...purpose, methods: 'non-automated' }] });
+    expect(manual.join()).toContain('п. 8 ч. 2 ст. 22');
+    const mixed = warn(['rknNotification'], { purposes: [{ ...purpose, methods: 'mixed' }] });
+    expect(mixed.join()).not.toContain('п. 8 ч. 2 ст. 22');
+  });
+
+  it('дата начала обработки в прошлом — напоминание о ч. 1 ст. 22', () => {
+    const past = warn(['rknNotification'], { processingStartDate: '2026-11-01' });
+    expect(past.join()).toContain('ч. 1 ст. 22');
+    expect(warn(['rknNotification'], { processingStartDate: '2026-11-02' })).toEqual([]);
+  });
+
   it('раздел не нужен документу — и предупреждения по нему не нужны', () => {
-    expect(documentWarnings([], profile())).toEqual([]);
+    expect(warn([])).toEqual([]);
   });
 });
