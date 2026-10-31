@@ -124,6 +124,25 @@ describe('шаблоны документов (T6.3)', () => {
     expect(markdown).not.toContain('not-determined');
   });
 
+  it('трансграничное уведомление: срок, перечень государств и запрет баз за рубежом', () => {
+    const result = generate.render('cross-border-notification', FULL_REFERENCE_PROFILE);
+    const markdown = result.ok ? result.value.markdown : '';
+    expect(markdown).toContain('десяти рабочих дней с даты поступления уведомления');
+    expect(markdown).toContain('(часть 2 статьи 12 Закона)');
+    expect(markdown).toContain('не отменяет часть 5 статьи 18');
+    expect(markdown).toContain('№ 78-26-012345 от 20.10.2026');
+  });
+
+  it('трансграничное уведомление без номера первичного уведомления не собирается молча', () => {
+    const profile = operatorProfileSchema.parse({
+      ...FULL_REFERENCE_PROFILE,
+      rknNotificationRef: undefined,
+    });
+    expect(() =>
+      templates.render('cross-border-notification', profile, { date: '2026-11-02' }),
+    ).toThrow('rknNotificationRef');
+  });
+
   it('бланки — знаком ＿, а не подчёркиваниями: «__» в Markdown превращается в курсив', async () => {
     for (const file of await readTemplateFiles()) {
       const body = file.content.slice(file.content.indexOf('\n---\n') + 5);
