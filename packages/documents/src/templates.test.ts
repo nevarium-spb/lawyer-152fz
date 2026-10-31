@@ -93,6 +93,15 @@ describe('шаблоны документов (T6.3)', () => {
     });
   });
 
+  it('политика называет право требовать прекращения обработки и личное обращение', () => {
+    const result = generate.render('privacy-policy', FULL_REFERENCE_PROFILE);
+    const markdown = result.ok ? result.value.markdown : '';
+    expect(markdown).toContain('требовать прекращения обработки');
+    expect(markdown).toContain('в срок, не превышающий десяти рабочих дней');
+    expect(markdown).toContain('часть 5.1 статьи 21 Закона');
+    expect(markdown).toContain('может обратиться к Оператору лично');
+  });
+
   it('согласие на обработку предупреждает о письменной форме для спецкатегорий и биометрии', () => {
     const info = templates.list().find((template) => template.id === 'consent-processing');
     expect(info?.description).toContain('письменной форме');
