@@ -1094,7 +1094,7 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
               "type": "string",
             },
             "legalAddress": {
-              "description": "Адрес оператора с индексом",
+              "description": "Адрес оператора с индексом; для организации — адрес из ЕГРЮЛ",
               "type": "string",
             },
             "name": {
@@ -1127,6 +1127,13 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
             "publicData": {
               "description": "Раздел publicDistribution: что и где публикуется",
               "properties": {
+                "biometricData": {
+                  "description": "Биометрические данные среди них (ст. 11), если публикуются",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
                 "dataCategories": {
                   "description": "Какие данные публикуются",
                   "items": {
@@ -1139,7 +1146,14 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                   "type": "string",
                 },
                 "resources": {
-                  "description": "URL страниц, где данные публикуются",
+                  "description": "Полные URL страниц, где данные публикуются",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+                "specialCategories": {
+                  "description": "Специальные категории среди них (ст. 10), если публикуются",
                   "items": {
                     "type": "string",
                   },

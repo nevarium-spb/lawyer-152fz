@@ -52,6 +52,17 @@ describe('предупреждения к документу', () => {
     expect(warn(['rknNotification'], { processingStartDate: '2026-11-02' })).toEqual([]);
   });
 
+  it('после истечения приказа РКН № 18 просит проверить действующие требования', () => {
+    const at = (today: string) =>
+      documentWarnings(
+        ['publicDistribution'],
+        operatorProfileSchema.parse(validProfileInput()),
+        today,
+      );
+    expect(at('2027-08-31')).toEqual([]);
+    expect(at('2027-09-01').join()).toContain('№ 18');
+  });
+
   it('раздел не нужен документу — и предупреждения по нему не нужны', () => {
     expect(warn([])).toEqual([]);
   });

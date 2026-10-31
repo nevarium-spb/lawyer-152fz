@@ -27,7 +27,7 @@ const profileShape = z
     ),
     inn: text('ИНН: 10 цифр для организации, 12 — для ИП'),
     ogrn: text('ОГРН (13 цифр) или ОГРНИП (15 цифр), если есть'),
-    legalAddress: text('Адрес оператора с индексом'),
+    legalAddress: text('Адрес оператора с индексом; для организации — адрес из ЕГРЮЛ'),
     contactEmail: text('E-mail для обращений субъектов персональных данных'),
     website: text('Сайт оператора, полный URL'),
     responsiblePerson: z
@@ -103,7 +103,9 @@ const profileShape = z
       .object({
         purpose: text('Цель распространения'),
         dataCategories: list('Какие данные публикуются'),
-        resources: list('URL страниц, где данные публикуются'),
+        specialCategories: list('Специальные категории среди них (ст. 10), если публикуются'),
+        biometricData: list('Биометрические данные среди них (ст. 11), если публикуются'),
+        resources: list('Полные URL страниц, где данные публикуются'),
       })
       .optional()
       .describe('Раздел publicDistribution: что и где публикуется'),

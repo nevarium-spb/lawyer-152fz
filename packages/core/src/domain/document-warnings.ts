@@ -49,6 +49,16 @@ function notificationWarnings(profile: OperatorProfile, today: string): readonly
   return warnings;
 }
 
+/** Приказ Роскомнадзора от 24.02.2021 № 18 действует до этой даты (п. 1.1). */
+const ORDER_18_EXPIRES = '2027-09-01';
+
+const distributionWarnings = (today: string): readonly string[] =>
+  today >= ORDER_18_EXPIRES
+    ? [
+        'Срок действия приказа Роскомнадзора от 24.02.2021 № 18, по которому составлен шаблон, истёк 01.09.2027. Проверьте действующие требования к содержанию согласия (ч. 9 ст. 9 152-ФЗ).',
+      ]
+    : [];
+
 /**
  * Что пользователь должен узнать о собранном документе, но что не должно попасть в его текст.
  * Документ при этом собирается: решение остаётся за оператором.
@@ -61,5 +71,6 @@ export function documentWarnings(
   return [
     ...(sections.includes('measures') ? measureWarnings(profile) : []),
     ...(sections.includes('rknNotification') ? notificationWarnings(profile, today) : []),
+    ...(sections.includes('publicDistribution') ? distributionWarnings(today) : []),
   ];
 }

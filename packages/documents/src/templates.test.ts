@@ -53,6 +53,46 @@ describe('шаблоны документов (T6.3)', () => {
     expect(markdown).not.toContain('вправе обрабатывать эти данные без них');
   });
 
+  describe('согласие на распространение против приказа РКН № 18', () => {
+    const render = (extra: Record<string, unknown> = {}) => {
+      const result = generate.render('consent-distribution', {
+        ...FULL_REFERENCE_PROFILE,
+        publicData: { ...FULL_REFERENCE_PROFILE.publicData, ...extra },
+      });
+      return result.ok ? result.value.markdown : '';
+    };
+
+    it('содержит сведения всех девяти подпунктов Требований', () => {
+      const markdown = render();
+      for (const required of [
+        'отчество (при наличии)', // 1
+        'контактная информация', // 2
+        'ИНН 7707083893', // 3
+        'адрес: 190000', // 3
+        'ОГРН 1027700132195', // 3
+        'https://romashka.example/reviews', // 4
+        'Цель: размещение отзывов', // 5
+        '| Персональные данные | имя |', // 6
+        'Запреты на передачу и условия обработки', // 7
+        'только по его внутренней сети, обеспечивающей доступ к информации лишь для строго определённых сотрудников', // 8
+        'Согласие действует: 1 год', // 9
+      ]) {
+        expect(markdown).toContain(required);
+      }
+    });
+
+    it('разбивает данные по категориям подп. 6', () => {
+      const markdown = render({ specialCategories: ['состояние здоровья'], biometricData: ['голос'] });
+      expect(markdown).toContain('| Специальные категории персональных данных | состояние здоровья |');
+      expect(markdown).toContain('| Биометрические персональные данные | голос |');
+      expect(markdown).not.toContain('не охватываются');
+    });
+
+    it('без специальных и биометрических данных говорит об этом прямо', () => {
+      expect(render()).toContain('биометрические персональные данные настоящим согласием не охватываются');
+    });
+  });
+
   it('согласие на обработку предупреждает о письменной форме для спецкатегорий и биометрии', () => {
     const info = templates.list().find((template) => template.id === 'consent-processing');
     expect(info?.description).toContain('письменной форме');

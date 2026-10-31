@@ -122,6 +122,8 @@ const publicDataSchema = z.object(
     dataCategories: nonEmptyList(
       'Укажите, какие персональные данные субъект разрешает распространять',
     ),
+    specialCategories: z.array(requiredText('Укажите специальную категорию данных')).optional(),
+    biometricData: z.array(requiredText('Укажите биометрические данные')).optional(),
     resources: z
       .array(z.url({ error: 'Укажите адрес сайта или страницы, где данные публикуются' }), {
         error: 'Укажите сайты или страницы, где персональные данные будут опубликованы',

@@ -56,6 +56,19 @@ const purposeView = (purpose: ProcessingPurpose, index: number) => ({
   retention: purpose.retention,
 });
 
+/** Приказ РКН № 18, подп. 6: данные перечисляются по категориям. */
+const publicDataRows = (data: NonNullable<OperatorProfile['publicData']>) => [
+  ...data.dataCategories.map((item) => ({ category: 'Персональные данные', item })),
+  ...(data.specialCategories ?? []).map((item) => ({
+    category: 'Специальные категории персональных данных',
+    item,
+  })),
+  ...(data.biometricData ?? []).map((item) => ({
+    category: 'Биометрические персональные данные',
+    item,
+  })),
+];
+
 export function buildView(profile: OperatorProfile, context: RenderContext) {
   const processors = profile.thirdParties.filter((party) => party.role === 'processor');
   const recipients = profile.thirdParties.filter((party) => party.role === 'recipient');
@@ -102,6 +115,10 @@ export function buildView(profile: OperatorProfile, context: RenderContext) {
     ),
     consentTerm: profile.consentTerm ?? null,
     publicData: profile.publicData ?? null,
+    publicDataRows: profile.publicData ? publicDataRows(profile.publicData) : [],
+    hasSensitivePublicData:
+      (profile.publicData?.specialCategories ?? []).length > 0 ||
+      (profile.publicData?.biometricData ?? []).length > 0,
     processingStartDate: profile.processingStartDate
       ? formatDate(profile.processingStartDate)
       : null,
