@@ -125,7 +125,7 @@ describe('шаблоны документов (T6.3)', () => {
   it('согласие не собирается, если ни одна цель не основана на согласии', () => {
     const result = generate.render('consent-processing', {
       ...FULL_REFERENCE_PROFILE,
-      purposes: FULL_REFERENCE_PROFILE.purposes?.slice(1),
+      purposes: FULL_REFERENCE_PROFILE.purposes.slice(1),
     });
     expect(!result.ok && result.error.kind === 'validation' && result.error.issues[0]?.path).toBe(
       'purposes',

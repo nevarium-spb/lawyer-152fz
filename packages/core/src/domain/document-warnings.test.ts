@@ -3,9 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { validProfileInput } from '../testing/fixtures';
 import { documentWarnings } from './document-warnings';
 import { IMPLEMENTED_MEASURES, operatorProfileSchema } from './operator-profile';
-import type { OperatorProfileInput, ProfileSection } from './operator-profile';
+import type { ProfileSection } from './operator-profile';
 
-const warn = (sections: readonly ProfileSection[], overrides: Partial<OperatorProfileInput> = {}) =>
+const warn = (sections: readonly ProfileSection[], overrides: Record<string, unknown> = {}) =>
   documentWarnings(
     sections,
     operatorProfileSchema.parse({ ...validProfileInput(), ...overrides }),
