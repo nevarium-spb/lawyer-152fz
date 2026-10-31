@@ -17,8 +17,22 @@ const isoDate = (message: string) => z.iso.date({ error: `${message} в форм
 export const PROCESSING_METHODS = ['automated', 'non-automated', 'mixed'] as const;
 export type ProcessingMethod = (typeof PROCESSING_METHODS)[number];
 
-/** Уровень защищённости ПДн по ПП РФ № 1119 (п. 8–12). */
-export const PROTECTION_LEVELS = ['1', '2', '3', '4'] as const;
+/**
+ * Уровень защищённости ПДн по ПП РФ № 1119 (п. 8–12). `not-determined` — оператор его ещё
+ * не определял: честный ответ лучше значения, взятого из примера.
+ */
+export const PROTECTION_LEVELS = ['1', '2', '3', '4', 'not-determined'] as const;
+
+/** Меры из ч. 1 ст. 18.1: в документ попадают только те, что оператор подтвердил как принятые. */
+export const IMPLEMENTED_MEASURES = [
+  'responsible-person',
+  'policy-and-local-acts',
+  'security-measures',
+  'internal-control',
+  'harm-assessment',
+  'staff-training',
+] as const;
+export type ImplementedMeasure = (typeof IMPLEMENTED_MEASURES)[number];
 
 /**
  * Цель обработки со всем, что закон требует указывать для каждой цели отдельно
@@ -41,6 +55,21 @@ const purposeSchema = z.object(
   { error: 'Опишите цель обработки' },
 );
 
+/**
+ * Основание цели — согласие субъекта (п. 1 ч. 1 ст. 6). `legalBasis` — свободный текст, поэтому
+ * сначала убираем оговорки вроде «без согласия», иначе цель по договору станет отзывной.
+ */
+export function isConsentBasis(legalBasis: string): boolean {
+  const text = legalBasis
+    .toLowerCase()
+    .replace(/без\s+согласия/gu, '')
+    .replace(/согласие\s+не\s+(?:требуется|нужно)/gu, '');
+  return (
+    /(?<!\p{L})согласи(?:е|я|ю|ем|и)(?!\p{L})/u.test(text) ||
+    /п\.\s*1\s+ч\.\s*1\s+ст\.\s*6/u.test(text)
+  );
+}
+
 const responsiblePersonSchema = z.object(
   {
     fullName: requiredText('Укажите ФИО ответственного за организацию обработки ПДн'),
@@ -51,7 +80,14 @@ const responsiblePersonSchema = z.object(
   { error: 'Укажите ответственного за организацию обработки персональных данных' },
 );
 
+/** Обрабатывает данные по поручению оператора (ч. 3 ст. 6) или получает их и обрабатывает сам. */
+export const THIRD_PARTY_ROLES = ['processor', 'recipient'] as const;
+
 const thirdPartySchema = z.object({
+  role: z.enum(THIRD_PARTY_ROLES, {
+    error:
+      'Укажите роль: processor — обрабатывает данные по поручению оператора (хостинг, рассылка; нужен договор по ч. 3 ст. 6), recipient — самостоятельный получатель, обрабатывает данные как отдельный оператор',
+  }),
   name: requiredText('Укажите наименование третьего лица'),
   address: requiredText('Укажите адрес третьего лица'),
   purpose: requiredText('Укажите цель передачи третьему лицу'),
@@ -74,7 +110,7 @@ const databaseLocationSchema = z.object(
   {
     country: countryCode.refine(
       (code) => code === 'RU',
-      'Базы данных с ПДн граждан РФ должны находиться в РФ (ст. 18 ч. 5 152-ФЗ)',
+      'База за рубежом: шаблоны рассчитаны только на базы в РФ (ст. 18 ч. 5 152-ФЗ; исключения — пп. 2, 3, 4, 8 ч. 1 ст. 6). Укажите фактическое место и не заменяйте его на RU, чтобы пройти проверку: это не решается документом, сообщите пользователю',
     ),
     address: requiredText('Укажите адрес базы данных: город и центр обработки данных или хостинг'),
   },
@@ -87,6 +123,8 @@ const publicDataSchema = z.object(
     dataCategories: nonEmptyList(
       'Укажите, какие персональные данные субъект разрешает распространять',
     ),
+    specialCategories: z.array(requiredText('Укажите специальную категорию данных')).optional(),
+    biometricData: z.array(requiredText('Укажите биометрические данные')).optional(),
     resources: z
       .array(z.url({ error: 'Укажите адрес сайта или страницы, где данные публикуются' }), {
         error: 'Укажите сайты или страницы, где персональные данные будут опубликованы',
@@ -113,6 +151,16 @@ const sectionShapes = {
   consent: {
     consentTerm: requiredText('Укажите срок действия согласия, например «5 лет» или «до отзыва»'),
   },
+  /** Согласие на обработку (ст. 9): в него входят только цели с основанием «согласие». */
+  processingConsent: {
+    purposes: z
+      .array(purposeSchema, { error: 'Укажите хотя бы одну цель обработки' })
+      .min(1, 'Укажите хотя бы одну цель обработки')
+      .refine(
+        (purposes) => purposes.some((purpose) => isConsentBasis(purpose.legalBasis)),
+        'Ни у одной цели основание не согласие субъекта (п. 1 ч. 1 ст. 6): для целей по договору или закону согласие не оформляется. Если обработка действительно ведётся по согласию, укажите это в legalBasis цели',
+      ),
+  },
   /** Согласие на распространение (ст. 10.1). */
   publicDistribution: {
     publicData: publicDataSchema,
@@ -127,7 +175,15 @@ const sectionShapes = {
       error: 'Перечислите средства криптографической защиты; пустой список — если не используются',
     }),
     protectionLevel: z.enum(PROTECTION_LEVELS, {
-      error: 'Укажите уровень защищённости ПДн по ПП РФ № 1119: 1, 2, 3 или 4',
+      error:
+        'Укажите уровень защищённости ПДн, который оператор определил по ПП РФ № 1119: 1, 2, 3 или 4; если не определял — not-determined. Значение из примера не подставляйте',
+    }),
+  },
+  /** Меры, которые политика и уведомление РКН называют принятыми (ст. 18.1, ст. 19). */
+  measures: {
+    implementedMeasures: z.array(z.enum(IMPLEMENTED_MEASURES), {
+      error:
+        'Спросите у пользователя, какие меры уже приняты: ответственный (responsible-person), политика и локальные акты (policy-and-local-acts), меры безопасности по ст. 19 (security-measures), внутренний контроль (internal-control), оценка вреда (harm-assessment), ознакомление работников (staff-training). Документ назовёт их принятыми, поэтому указывайте только то, что есть на самом деле; [] — если ничего',
     }),
   },
   /** Уведомление о трансграничной передаче (ст. 12 ч. 4). */
@@ -187,6 +243,7 @@ export const operatorProfileSchema = z.object({
   processingEndCondition: sectionShapes.rknNotification.processingEndCondition.optional(),
   cryptoTools: sectionShapes.rknNotification.cryptoTools.optional(),
   protectionLevel: sectionShapes.rknNotification.protectionLevel.optional(),
+  implementedMeasures: sectionShapes.measures.implementedMeasures.optional(),
   rknNotificationRef: rknNotificationRefSchema.optional(),
 });
 

@@ -1,4 +1,5 @@
 import { LEGAL_DISCLAIMER } from '../domain/audit-report';
+import { documentWarnings } from '../domain/document-warnings';
 import type { NormId } from '../domain/norm-id';
 import { operatorProfileSchemaFor } from '../domain/operator-profile';
 import type { Clock, DocumentTemplates, TemplateInfo } from '../ports';
@@ -12,8 +13,12 @@ export interface RenderedDocument {
   readonly templateId: string;
   readonly title: string;
   readonly normRefs: readonly NormId[];
-  /** Markdown документа с дисклеймером в конце. */
+  /** Markdown документа: его публикуют как есть, поэтому служебного текста в нём нет. */
   readonly markdown: string;
+  /** Дисклеймер для ответа пользователю; в текст документа не входит. */
+  readonly disclaimer: string;
+  /** Что показать пользователю при выдаче документа; в текст документа не входит. */
+  readonly warnings: readonly string[];
 }
 
 export interface GenerateDocumentDeps {
@@ -28,6 +33,13 @@ export interface GenerateDocument {
     profile: unknown,
   ): Result<RenderedDocument, ValidationError | NotFoundError>;
 }
+
+const MOSCOW_DATE = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Europe/Moscow',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
 
 export function createGenerateDocument(deps: GenerateDocumentDeps): GenerateDocument {
   return {
@@ -45,7 +57,8 @@ export function createGenerateDocument(deps: GenerateDocumentDeps): GenerateDocu
       );
       if (!profile.ok) return profile;
 
-      const date = deps.clock.now().toISOString().slice(0, 10);
+      // Дата по Москве: с 00:00 до 03:00 МСК дата в UTC была бы вчерашней.
+      const date = MOSCOW_DATE.format(deps.clock.now());
       const body = deps.templates.render(templateId, profile.value, { date });
       if (!body.ok) return body;
 
@@ -53,7 +66,9 @@ export function createGenerateDocument(deps: GenerateDocumentDeps): GenerateDocu
         templateId,
         title: info.title,
         normRefs: info.normRefs,
-        markdown: `${body.value.trimEnd()}\n\n---\n\n_${LEGAL_DISCLAIMER}_\n`,
+        markdown: `${body.value.trimEnd()}\n`,
+        disclaimer: LEGAL_DISCLAIMER,
+        warnings: documentWarnings(info.requires, profile.value, date),
       });
     },
   };

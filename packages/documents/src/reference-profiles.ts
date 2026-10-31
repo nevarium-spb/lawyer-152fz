@@ -68,6 +68,13 @@ export const FULL_REFERENCE_PROFILE: OperatorProfileInput = {
   },
   thirdParties: [
     {
+      role: 'processor',
+      name: 'ООО «Хостинг»',
+      address: '190000, г. Санкт-Петербург, ул. Серверная, д. 5',
+      purpose: 'размещение и хранение данных сайта',
+    },
+    {
+      role: 'recipient',
       name: 'ООО «Доставка»',
       address: '191000, г. Санкт-Петербург, ул. Примерная, д. 2',
       purpose: 'доставка заказов клиентам',
@@ -95,6 +102,14 @@ export const FULL_REFERENCE_PROFILE: OperatorProfileInput = {
   processingEndCondition: 'ликвидация или реорганизация оператора',
   cryptoTools: ['КриптоПро CSP 5.0'],
   protectionLevel: '3',
+  implementedMeasures: [
+    'responsible-person',
+    'policy-and-local-acts',
+    'security-measures',
+    'internal-control',
+    'harm-assessment',
+    'staff-training',
+  ],
   rknNotificationRef: { number: '78-26-012345', date: '2026-10-20' },
 };
 

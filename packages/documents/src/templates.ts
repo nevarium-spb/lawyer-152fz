@@ -45,7 +45,7 @@ const FRONT_MATTER = /^---\n([\s\S]*?)\n---\n\n?/;
 const REFERENCE_CONTEXT: RenderContext = { date: '2026-11-02' };
 
 /** Поля разделов, которые профиль обязан содержать и без раздела: раздел лишь требует непустое значение. */
-const ALWAYS_REQUIRED_FIELDS: ReadonlySet<string> = new Set(['crossBorderTransfers']);
+const ALWAYS_REQUIRED_FIELDS: ReadonlySet<string> = new Set(['crossBorderTransfers', 'purposes']);
 
 interface LoadedTemplate {
   readonly info: TemplateInfo;

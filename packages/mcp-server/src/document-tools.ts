@@ -1,7 +1,9 @@
 import {
+  IMPLEMENTED_MEASURES,
   PROCESSING_METHODS,
   PROFILE_SECTIONS,
   PROTECTION_LEVELS,
+  THIRD_PARTY_ROLES,
   profileSectionFields,
 } from '@lawyer-152fz/core';
 import type { GenerateDocument, TemplateInfo } from '@lawyer-152fz/core';
@@ -25,7 +27,7 @@ const profileShape = z
     ),
     inn: text('ИНН: 10 цифр для организации, 12 — для ИП'),
     ogrn: text('ОГРН (13 цифр) или ОГРНИП (15 цифр), если есть'),
-    legalAddress: text('Адрес оператора с индексом'),
+    legalAddress: text('Адрес оператора с индексом; для организации — адрес из ЕГРЮЛ'),
     contactEmail: text('E-mail для обращений субъектов персональных данных'),
     website: text('Сайт оператора, полный URL'),
     responsiblePerson: z
@@ -57,7 +59,9 @@ const profileShape = z
       .describe('Цели обработки — по каждой отдельно (ст. 18.1, ч. 3.1 ст. 22)'),
     databaseLocation: z
       .object({
-        country: text('Код страны ISO 3166-1; для баз с ПДн граждан РФ — RU (ч. 5 ст. 18)'),
+        country: text(
+          'Код страны ISO 3166-1, где база находится на самом деле. Шаблоны принимают только RU (ч. 5 ст. 18), но не подставляй RU, если пользователь этого не подтвердил',
+        ),
         address: text('Город и ЦОД или хостинг-провайдер'),
       })
       .optional()
@@ -65,6 +69,12 @@ const profileShape = z
     thirdParties: z
       .array(
         z.object({
+          role: z
+            .enum(THIRD_PARTY_ROLES)
+            .optional()
+            .describe(
+              'processor — обрабатывает данные по поручению оператора (хостинг, рассылка); recipient — самостоятельный получатель, обрабатывает данные как отдельный оператор',
+            ),
           name: text('Наименование'),
           address: text('Адрес'),
           purpose: text('Зачем передаются данные или поручается обработка'),
@@ -95,7 +105,9 @@ const profileShape = z
       .object({
         purpose: text('Цель распространения'),
         dataCategories: list('Какие данные публикуются'),
-        resources: list('URL страниц, где данные публикуются'),
+        specialCategories: list('Специальные категории среди них (ст. 10), если публикуются'),
+        biometricData: list('Биометрические данные среди них (ст. 11), если публикуются'),
+        resources: list('Полные URL страниц, где данные публикуются'),
       })
       .optional()
       .describe('Раздел publicDistribution: что и где публикуется'),
@@ -105,7 +117,15 @@ const profileShape = z
     protectionLevel: z
       .enum(PROTECTION_LEVELS)
       .optional()
-      .describe('Раздел rknNotification: уровень защищённости ПДн по ПП № 1119'),
+      .describe(
+        'Раздел rknNotification: уровень защищённости, который оператор определил по ПП № 1119; not-determined — если не определял. Не бери значение из примера',
+      ),
+    implementedMeasures: z
+      .array(z.enum(IMPLEMENTED_MEASURES))
+      .optional()
+      .describe(
+        'Раздел measures: меры, которые уже приняты на самом деле, по ответу пользователя (ч. 1 ст. 18.1); [] — ни одной',
+      ),
     rknNotificationRef: z
       .object({ number: text('Регистрационный номер'), date: text('Дата, ГГГГ-ММ-ДД') })
       .optional()
@@ -156,6 +176,9 @@ function formatTemplates(templates: readonly TemplateInfo[]): string {
 
 const suggestedPath = (templateId: string) => `docs/152-fz/${templateId}.md`;
 
+const DOCUMENT_START = '=== ТЕКСТ ДОКУМЕНТА ===';
+const DOCUMENT_END = '=== КОНЕЦ ДОКУМЕНТА ===';
+
 const READ_ONLY = { readOnlyHint: true, destructiveHint: false, openWorldHint: false } as const;
 
 /** Инструменты документов (T6.4): перечень шаблонов и заполнение шаблона по профилю оператора. */
@@ -191,7 +214,7 @@ export function registerDocumentTools(server: McpServer, documents: GenerateDocu
     {
       title: 'Заполнить документ по 152-ФЗ',
       description:
-        'Заполняет шаблон данными оператора и возвращает Markdown с дисклеймером. Если профиль неполный, ' +
+        'Заполняет шаблон данными оператора и возвращает Markdown документа, предупреждения и дисклеймер отдельно от него. Если профиль неполный, ' +
         'перечисляет все недостающие поля разом — спросите их у пользователя одним сообщением. ' +
         'Сервер ничего не сохраняет: файл в проект пишет клиент с согласия пользователя. ' +
         '/ Renders a template; lists all missing profile fields at once.',
@@ -206,6 +229,8 @@ export function registerDocumentTools(server: McpServer, documents: GenerateDocu
         title: z.string(),
         normRefs: z.array(z.string()),
         markdown: z.string(),
+        disclaimer: z.string(),
+        warnings: z.array(z.string()),
         suggestedPath: z.string(),
       },
       annotations: READ_ONLY,
@@ -219,10 +244,17 @@ export function registerDocumentTools(server: McpServer, documents: GenerateDocu
         };
       }
       const path = suggestedPath(templateId);
+      const warnings = result.value.warnings.map((warning) => `- ${warning}`).join('\n');
+      const header = warnings
+        ? `Предлагаемый путь: ${path}\n\nПредупреждения (покажи пользователю, в документ не вписывай):\n${warnings}`
+        : `Предлагаемый путь: ${path}`;
+      const text = [
+        header,
+        `${DOCUMENT_START}\n${result.value.markdown.trimEnd()}\n${DOCUMENT_END}`,
+        `Дисклеймер для ответа пользователю, в файл не вписывай: ${result.value.disclaimer}`,
+      ].join('\n\n');
       return {
-        content: [
-          { type: 'text' as const, text: `Предлагаемый путь: ${path}\n\n${result.value.markdown}` },
-        ],
+        content: [{ type: 'text' as const, text }],
         structuredContent: { ...result.value, suggestedPath: path },
       };
     },

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { validProfileInput } from '../testing/fixtures';
 import { parseWith } from '../shared/validation';
 import {
+  isConsentBasis,
   operatorProfileSchema,
   operatorProfileSchemaFor,
   PROFILE_SECTIONS,
@@ -62,6 +63,29 @@ describe('профиль оператора', () => {
     ]);
   });
 
+  it('у третьего лица требует роль: поручение и самостоятельный получатель — разные вещи', () => {
+    const thirdParty = { name: 'ООО «Тест»', address: 'Москва', purpose: 'доставка' };
+    expect(paths(parse({ ...validProfileInput(), thirdParties: [thirdParty] }))).toEqual([
+      'thirdParties.0.role',
+    ]);
+    expect(
+      parse({ ...validProfileInput(), thirdParties: [{ ...thirdParty, role: 'recipient' }] }).ok,
+    ).toBe(true);
+  });
+
+  it.each([
+    ['согласие субъекта персональных данных (п. 1 ч. 1 ст. 6 152-ФЗ)', true],
+    ['Согласие', true],
+    ['с согласия субъекта', true],
+    ['п. 1 ч. 1 ст. 6', true],
+    ['исполнение договора (п. 5 ч. 1 ст. 6 152-ФЗ)', false],
+    ['договор, согласованный сторонами', false],
+    ['обработка без согласия: п. 11 ч. 1 ст. 6', false],
+    ['законный интерес, согласие не требуется', false],
+  ])('основание «%s» — согласие: %s', (legalBasis, expected) => {
+    expect(isConsentBasis(legalBasis)).toBe(expected);
+  });
+
   it('у цели обработки перечисляет все недостающие сведения сразу', () => {
     const result = parse({ ...validProfileInput(), purposes: [{ title: 'Заявки' }] });
     expect(paths(result)).toEqual([
@@ -96,7 +120,10 @@ describe('профиль оператора', () => {
       ...validProfileInput(),
       databaseLocation: { country: 'DE', address: 'Франкфурт' },
     });
-    expect(!result.ok && result.error.issues[0]?.message).toContain('ст. 18 ч. 5');
+    const message = !result.ok && result.error.issues[0]?.message;
+    expect(message).toContain('ст. 18 ч. 5');
+    expect(message).toContain('пп. 2, 3, 4, 8 ч. 1 ст. 6');
+    expect(message).toContain('не заменяйте его на RU');
   });
 
   it('RU в трансграничной передаче — ошибка', () => {
@@ -163,12 +190,43 @@ describe('разделы профиля для отдельных докумен
     expect(paths(result)).toEqual(['consentTerm', 'publicData']);
   });
 
+  it('согласие на обработку не собирается, если ни одна цель не основана на согласии', () => {
+    const input = validProfileInput();
+    const result = parseFor(['processingConsent'], {
+      ...input,
+      purposes: [{ ...input.purposes[0], legalBasis: 'исполнение договора (п. 5 ч. 1 ст. 6)' }],
+    });
+    expect(paths(result)).toEqual(['purposes']);
+    expect(parseFor(['processingConsent'], input).ok).toBe(true);
+  });
+
   it('перечень разделов полный', () => {
     expect(PROFILE_SECTIONS).toEqual([
       'consent',
+      'processingConsent',
       'publicDistribution',
       'rknNotification',
+      'measures',
       'crossBorder',
     ]);
+  });
+
+  it('меры нужно перечислить явно, пустой список допустим, неизвестная мера — ошибка', () => {
+    expect(paths(parseFor(['measures'], validProfileInput()))).toEqual(['implementedMeasures']);
+    expect(parseFor(['measures'], { ...validProfileInput(), implementedMeasures: [] }).ok).toBe(
+      true,
+    );
+    expect(
+      parseFor(['measures'], { ...validProfileInput(), implementedMeasures: ['всё сделано'] }).ok,
+    ).toBe(false);
+  });
+
+  it('уровень защищённости можно честно не знать', () => {
+    const result = parseFor(['rknNotification'], {
+      ...validProfileInput(),
+      ...rknFields,
+      protectionLevel: 'not-determined',
+    });
+    expect(result.ok).toBe(true);
   });
 });

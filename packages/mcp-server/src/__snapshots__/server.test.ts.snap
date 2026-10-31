@@ -951,8 +951,10 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                 "items": {
                   "enum": [
                     "consent",
+                    "processingConsent",
                     "publicDistribution",
                     "rknNotification",
+                    "measures",
                     "crossBorder",
                   ],
                   "type": "string",
@@ -990,7 +992,7 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
       "openWorldHint": false,
       "readOnlyHint": true,
     },
-    "description": "Заполняет шаблон данными оператора и возвращает Markdown с дисклеймером. Если профиль неполный, перечисляет все недостающие поля разом — спросите их у пользователя одним сообщением. Сервер ничего не сохраняет: файл в проект пишет клиент с согласия пользователя. / Renders a template; lists all missing profile fields at once.",
+    "description": "Заполняет шаблон данными оператора и возвращает Markdown документа, предупреждения и дисклеймер отдельно от него. Если профиль неполный, перечисляет все недостающие поля разом — спросите их у пользователя одним сообщением. Сервер ничего не сохраняет: файл в проект пишет клиент с согласия пользователя. / Renders a template; lists all missing profile fields at once.",
     "execution": {
       "taskSupport": "forbidden",
     },
@@ -1066,18 +1068,33 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                   "type": "string",
                 },
                 "country": {
-                  "description": "Код страны ISO 3166-1; для баз с ПДн граждан РФ — RU (ч. 5 ст. 18)",
+                  "description": "Код страны ISO 3166-1, где база находится на самом деле. Шаблоны принимают только RU (ч. 5 ст. 18), но не подставляй RU, если пользователь этого не подтвердил",
                   "type": "string",
                 },
               },
               "type": "object",
+            },
+            "implementedMeasures": {
+              "description": "Раздел measures: меры, которые уже приняты на самом деле, по ответу пользователя (ч. 1 ст. 18.1); [] — ни одной",
+              "items": {
+                "enum": [
+                  "responsible-person",
+                  "policy-and-local-acts",
+                  "security-measures",
+                  "internal-control",
+                  "harm-assessment",
+                  "staff-training",
+                ],
+                "type": "string",
+              },
+              "type": "array",
             },
             "inn": {
               "description": "ИНН: 10 цифр для организации, 12 — для ИП",
               "type": "string",
             },
             "legalAddress": {
-              "description": "Адрес оператора с индексом",
+              "description": "Адрес оператора с индексом; для организации — адрес из ЕГРЮЛ",
               "type": "string",
             },
             "name": {
@@ -1097,18 +1114,26 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
               "type": "string",
             },
             "protectionLevel": {
-              "description": "Раздел rknNotification: уровень защищённости ПДн по ПП № 1119",
+              "description": "Раздел rknNotification: уровень защищённости, который оператор определил по ПП № 1119; not-determined — если не определял. Не бери значение из примера",
               "enum": [
                 "1",
                 "2",
                 "3",
                 "4",
+                "not-determined",
               ],
               "type": "string",
             },
             "publicData": {
               "description": "Раздел publicDistribution: что и где публикуется",
               "properties": {
+                "biometricData": {
+                  "description": "Биометрические данные среди них (ст. 11), если публикуются",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
                 "dataCategories": {
                   "description": "Какие данные публикуются",
                   "items": {
@@ -1121,7 +1146,14 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                   "type": "string",
                 },
                 "resources": {
-                  "description": "URL страниц, где данные публикуются",
+                  "description": "Полные URL страниц, где данные публикуются",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+                "specialCategories": {
+                  "description": "Специальные категории среди них (ст. 10), если публикуются",
                   "items": {
                     "type": "string",
                   },
@@ -1233,6 +1265,14 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                     "description": "Зачем передаются данные или поручается обработка",
                     "type": "string",
                   },
+                  "role": {
+                    "description": "processor — обрабатывает данные по поручению оператора (хостинг, рассылка); recipient — самостоятельный получатель, обрабатывает данные как отдельный оператор",
+                    "enum": [
+                      "processor",
+                      "recipient",
+                    ],
+                    "type": "string",
+                  },
                 },
                 "type": "object",
               },
@@ -1261,6 +1301,9 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
       "$schema": "http://json-schema.org/draft-07/schema#",
       "additionalProperties": false,
       "properties": {
+        "disclaimer": {
+          "type": "string",
+        },
         "markdown": {
           "type": "string",
         },
@@ -1279,12 +1322,20 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
         "title": {
           "type": "string",
         },
+        "warnings": {
+          "items": {
+            "type": "string",
+          },
+          "type": "array",
+        },
       },
       "required": [
         "templateId",
         "title",
         "normRefs",
         "markdown",
+        "disclaimer",
+        "warnings",
         "suggestedPath",
       ],
       "type": "object",

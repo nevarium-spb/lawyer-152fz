@@ -89,9 +89,16 @@ export function compileTemplate(source: string): CompiledTemplate {
   return root;
 }
 
-/** Служебные символы Markdown и HTML экранируются: данные профиля не становятся разметкой. */
+/**
+ * Служебные символы Markdown и HTML экранируются: данные профиля не становятся разметкой.
+ * «_» внутри слова и «#» не в начале строки разметкой не бывают, поэтому e-mail и адреса
+ * сайтов (`john_doe@mail.ru`, `https://a.ru/#b`) остаются без обратных косых черт.
+ */
 export function escapeMarkdown(text: string): string {
-  return text.replace(/[\\*_`[\]<>#|]/g, '\\$&');
+  return text
+    .replace(/[\\*`[\]<>|]/g, '\\$&')
+    .replace(/(?<![\p{L}\p{N}])_|_(?![\p{L}\p{N}])/gu, '\\_')
+    .replace(/^([ \t]*)#/gm, '$1\\#');
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
