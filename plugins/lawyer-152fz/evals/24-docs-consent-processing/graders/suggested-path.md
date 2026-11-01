@@ -5,4 +5,4 @@ match: contains
 weight: 1
 ---
 
-docs/152-fz/consent-processing.md
+docs/152-fz/consent-processing-web.md
