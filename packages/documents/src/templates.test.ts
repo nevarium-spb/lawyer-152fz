@@ -19,6 +19,7 @@ describe('шаблоны документов (T6.3)', () => {
   it('загружены все шаблоны из Приложения Б плана', () => {
     expect(templates.list().map((t) => t.id)).toEqual([
       'consent-distribution',
+      'consent-processing-web',
       'consent-processing',
       'cross-border-notification',
       'privacy-policy',
@@ -115,21 +116,113 @@ describe('шаблоны документов (T6.3)', () => {
     expect(info?.description).toContain('поля паспорта и подписи убирать нельзя');
   });
 
-  it('в согласие попадают только цели с основанием «согласие»: цели по договору не становятся отзывными', () => {
-    const result = generate.render('consent-processing', FULL_REFERENCE_PROFILE);
-    const markdown = result.ok ? result.value.markdown : '';
-    expect(markdown).toContain('1.1. Цель обработки: Обработка заявок');
-    expect(markdown).not.toContain('Заключение и исполнение договоров');
+  describe.each(['consent-processing', 'consent-processing-web'])('%s', (id) => {
+    it('в согласие попадают только цели с основанием «согласие»: цели по договору не становятся отзывными', () => {
+      const result = generate.render(id, FULL_REFERENCE_PROFILE);
+      const markdown = result.ok ? result.value.markdown : '';
+      expect(markdown).toContain('1.1. Цель обработки: Обработка заявок');
+      expect(markdown).not.toContain('Заключение и исполнение договоров');
+    });
+
+    it('согласие не собирается, если ни одна цель не основана на согласии', () => {
+      const result = generate.render(id, {
+        ...FULL_REFERENCE_PROFILE,
+        purposes: FULL_REFERENCE_PROFILE.purposes.slice(1),
+      });
+      expect(!result.ok && result.error.kind === 'validation' && result.error.issues[0]?.path).toBe(
+        'purposes',
+      );
+    });
+
+    it('называет срок хранения цели отдельно от срока действия согласия', () => {
+      const [purpose] = FULL_REFERENCE_PROFILE.purposes;
+      if (!purpose) throw new Error('нет цели в эталоне');
+      const result = generate.render(id, {
+        ...FULL_REFERENCE_PROFILE,
+        purposes: [{ ...purpose, retention: '1 год' }],
+        consentTerm: 'до отзыва согласия',
+      });
+      const markdown = result.ok ? result.value.markdown : '';
+      expect(markdown).toContain('Срок обработки и хранения персональных данных: 1 год.');
+      expect(markdown).toContain('3.1. Согласие действует: до отзыва согласия.');
+    });
+
+    it('содержит сведения из пп. 3–8 ч. 4 ст. 9', () => {
+      const result = generate.render(id, FULL_REFERENCE_PROFILE);
+      const markdown = result.ok ? result.value.markdown : '';
+      for (const required of [
+        'ООО «Ромашка»', // 3
+        'адрес: 190000', // 3
+        'Цель обработки:', // 4
+        'Перечень персональных данных:', // 5
+        'ООО «Хостинг»', // 6
+        'Действия с персональными данными:', // 7
+        'Способ обработки:', // 7
+        'Согласие действует:', // 8
+        'Я вправе отозвать согласие', // 8
+      ]) {
+        expect(markdown).toContain(required);
+      }
+    });
   });
 
-  it('согласие не собирается, если ни одна цель не основана на согласии', () => {
-    const result = generate.render('consent-processing', {
-      ...FULL_REFERENCE_PROFILE,
-      purposes: FULL_REFERENCE_PROFILE.purposes.slice(1),
+  describe('варианты согласия: форма на сайте и письменное', () => {
+    const render = (id: string) => {
+      const result = generate.render(id, FULL_REFERENCE_PROFILE);
+      return result.ok ? result.value.markdown : '';
+    };
+    const conditions = (markdown: string) =>
+      markdown.slice(markdown.indexOf('## 1.'), markdown.indexOf('\n', markdown.indexOf('3.3.')));
+
+    it('письменное содержит реквизиты субъекта, представителя и подпись (пп. 1, 2, 9 ч. 4 ст. 9)', () => {
+      const markdown = render('consent-processing');
+      for (const required of ['фамилия, имя, отчество', 'Сведения о представителе', 'Подпись:']) {
+        expect(markdown).toContain(required);
+      }
     });
-    expect(!result.ok && result.error.kind === 'validation' && result.error.issues[0]?.path).toBe(
-      'purposes',
-    );
+
+    it('для сайта — без реквизитов, бланков и подписи (ч. 1 ст. 9)', () => {
+      const markdown = render('consent-processing-web');
+      for (const absent of ['удостоверяющий', 'представител', 'Подпись', 'подчеркнуть', '＿']) {
+        expect(markdown).not.toContain(absent);
+      }
+      expect(markdown).toContain('на сайте https://romashka.example');
+    });
+
+    it('для сайта — без адреса сайта в профиле текст не ломается', () => {
+      const result = generate.render('consent-processing-web', {
+        ...FULL_REFERENCE_PROFILE,
+        website: undefined,
+      });
+      const markdown = result.ok ? result.value.markdown : '';
+      expect(markdown).toContain('в электронной форме, я от своего имени');
+    });
+
+    it('для сайта — называет редакцию текста, она нужна журналу согласий', () => {
+      expect(render('consent-processing-web')).toContain('Редакция текста согласия от 02.11.2026.');
+    });
+
+    it('для сайта — не охватывает данные, для которых нужна письменная форма', () => {
+      expect(render('consent-processing-web')).toContain(
+        'не охватывает специальные категории персональных данных и биометрические персональные данные',
+      );
+      const info = templates.list().find((template) => template.id === 'consent-processing-web');
+      expect(info?.description).toContain('этот вариант не подходит');
+    });
+
+    it('условия обработки в двух вариантах не расходятся', () => {
+      const web = conditions(render('consent-processing-web'));
+      expect(web).toContain('## 1.');
+      expect(web).toContain('3.3.');
+      expect(web).toBe(conditions(render('consent-processing')));
+    });
+
+    it('об обязанности доказать получение согласия говорят оба варианта (ч. 3 ст. 9)', () => {
+      for (const info of templates.list().filter((t) => t.id.startsWith('consent-processing'))) {
+        expect(info.description).toContain('ч. 3 ст. 9');
+        expect(info.normRefs).toContain('152-fz/art-9/part-3');
+      }
+    });
   });
 
   it.each(['consent-processing', 'privacy-policy'])(

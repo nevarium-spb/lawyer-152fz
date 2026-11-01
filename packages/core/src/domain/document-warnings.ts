@@ -1,4 +1,4 @@
-import { IMPLEMENTED_MEASURES } from './operator-profile';
+import { IMPLEMENTED_MEASURES, isConsentBasis } from './operator-profile';
 import type { ImplementedMeasure, OperatorProfile, ProfileSection } from './operator-profile';
 
 const MEASURE_TITLES: Record<ImplementedMeasure, string> = {
@@ -59,6 +59,28 @@ const distributionWarnings = (today: string): readonly string[] =>
       ]
     : [];
 
+const CONSENT_PROOF_WARNING =
+  'Доказать получение согласия обязан оператор (ч. 3 ст. 9 152-ФЗ). Для формы на сайте ведите журнал согласий: кто дал согласие и как запись связана именно с этим человеком, дата и время, адрес формы, редакция текста, отзыв согласия. Состав журнала закон не устанавливает, это практическая рекомендация. Журнал сам содержит персональные данные: храните в нём только нужное и определите срок хранения. Подписанное письменное согласие храните так же.';
+
+/** Цель не размечена в профиле, поэтому распознаётся по названию: важнее заметить, чем не ошибиться. */
+const PROMOTION_PURPOSE = /реклам|маркетинг|рассылк|продвижени|спецпредложени/iu;
+
+function consentWarnings(profile: OperatorProfile): readonly string[] {
+  const consentPurposes = profile.purposes.filter((purpose) => isConsentBasis(purpose.legalBasis));
+  const promotion = consentPurposes.filter((purpose) => PROMOTION_PURPOSE.test(purpose.title));
+  if (promotion.length === 0) return [CONSENT_PROOF_WARNING];
+
+  const titles = promotion.map((purpose) => `«${purpose.title}»`).join(', ');
+  const separate =
+    consentPurposes.length > promotion.length
+      ? `Цель ${titles} похожа на продвижение и вошла в одно согласие с другими целями. Оформите её отдельным согласием с отдельной отметкой: соберите документ заново по профилю только с этой целью. Закон не говорит об этом прямо, это вывод из требований «свободно» и «конкретным» (ч. 1 ст. 9 152-ФЗ). `
+      : `Цель ${titles} похожа на продвижение. Не объединяйте это согласие с согласиями на другие цели (ч. 1 ст. 9 152-ФЗ). `;
+  return [
+    CONSENT_PROOF_WARNING,
+    `${separate}Для продвижения прямыми контактами с помощью средств связи нужно предварительное согласие, его получение доказывает оператор, а по требованию субъекта обработку прекращают немедленно (ст. 15 152-ФЗ). Письменной формы ст. 15 не называет, но устойчивой практики нет: выбор между вариантом для сайта и письменным оставьте оператору. Законодательство о рекламе в базу норм не входит и не проверялось.`,
+  ];
+}
+
 /**
  * Что пользователь должен узнать о собранном документе, но что не должно попасть в его текст.
  * Документ при этом собирается: решение остаётся за оператором.
@@ -72,5 +94,6 @@ export function documentWarnings(
     ...(sections.includes('measures') ? measureWarnings(profile) : []),
     ...(sections.includes('rknNotification') ? notificationWarnings(profile, today) : []),
     ...(sections.includes('publicDistribution') ? distributionWarnings(today) : []),
+    ...(sections.includes('processingConsent') ? consentWarnings(profile) : []),
   ];
 }
