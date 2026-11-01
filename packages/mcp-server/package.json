@@ -1,6 +1,6 @@
 {
   "name": "@lawyer-152fz/mcp-server",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "MCP-сервер Lawyer 152-FZ — точка сборки всех пакетов.",
   "license": "AGPL-3.0-only",
