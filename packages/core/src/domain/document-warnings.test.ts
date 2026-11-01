@@ -65,6 +65,49 @@ describe('предупреждения к документу', () => {
     expect(at('2027-09-01').join()).toContain('№ 18');
   });
 
+  describe('согласие на обработку', () => {
+    const [base] = validProfileInput().purposes;
+    const purpose = (title: string, legalBasis = 'согласие субъекта') => ({
+      ...base,
+      title,
+      legalBasis,
+    });
+
+    it('напоминает, что получение согласия доказывает оператор (ч. 3 ст. 9), и про журнал', () => {
+      const warnings = warn(['processingConsent'], { purposes: [purpose('Обработка заявок')] });
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0]).toContain('ч. 3 ст. 9');
+      expect(warnings[0]).toContain('журнал согласий');
+      expect(warnings[0]).toContain('практическая рекомендация');
+    });
+
+    it('реклама вместе с другими целями — просит оформить отдельным согласием', () => {
+      const warnings = warn(['processingConsent'], {
+        purposes: [purpose('Обработка заявок'), purpose('Рекламная рассылка')],
+      });
+      expect(warnings[1]).toContain('Цель «Рекламная рассылка» похожа на продвижение');
+      expect(warnings[1]).toContain('отдельным согласием');
+      expect(warnings[1]).toContain('ст. 15');
+      expect(warnings[1]).not.toContain('Обработка заявок');
+    });
+
+    it('согласие только на рекламу — не просит разделять, но напоминает про ст. 15', () => {
+      const warnings = warn(['processingConsent'], {
+        purposes: [purpose('Рассылка спецпредложений')],
+      });
+      expect(warnings[1]).toContain('Не объединяйте');
+      expect(warnings[1]).not.toContain('соберите документ заново');
+      expect(warnings[1]).toContain('ст. 15');
+    });
+
+    it('реклама не по согласию в документ не входит — про неё не предупреждает', () => {
+      const warnings = warn(['processingConsent'], {
+        purposes: [purpose('Обработка заявок'), purpose('Реклама', 'договор')],
+      });
+      expect(warnings).toHaveLength(1);
+    });
+  });
+
   it('раздел не нужен документу — и предупреждения по нему не нужны', () => {
     expect(warn([])).toEqual([]);
   });

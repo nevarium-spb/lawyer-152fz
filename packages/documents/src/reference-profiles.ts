@@ -92,7 +92,7 @@ export const FULL_REFERENCE_PROFILE: OperatorProfileInput = {
       assessmentDate: '2026-10-15',
     },
   ],
-  consentTerm: '1 год с даты подписания или до отзыва согласия',
+  consentTerm: '1 год с даты получения согласия или до его отзыва',
   publicData: {
     purpose: 'размещение отзывов клиентов на сайте',
     dataCategories: ['имя', 'фотография', 'текст отзыва'],
