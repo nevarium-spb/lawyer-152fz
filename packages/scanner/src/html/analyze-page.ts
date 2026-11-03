@@ -11,7 +11,7 @@ import type {
 import { load } from 'cheerio';
 
 import { parseSetCookie } from './cookies';
-import { personalDataKind } from './personal-data';
+import { personalDataKind, specialCategoryKind } from './personal-data';
 import { vendorByUrl, vendorsInInlineScript } from './vendors';
 
 /** Подпись чекбокса, похожая на согласие на обработку ПДн или с политикой. */
@@ -120,23 +120,26 @@ export function analyzePage(input: PageInput): PageAnalysis {
       if (NOT_DATA_FIELDS.has(type)) return [];
       const label = labelOf(field);
       const name = field.attr('name') ?? field.attr('id') ?? '';
+      const hints = [
+        name,
+        field.attr('id') ?? '',
+        field.attr('placeholder') ?? '',
+        field.attr('aria-label') ?? '',
+        label,
+      ];
       const personalData = personalDataKind({
         type,
         autocomplete: field.attr('autocomplete'),
-        hints: [
-          name,
-          field.attr('id') ?? '',
-          field.attr('placeholder') ?? '',
-          field.attr('aria-label') ?? '',
-          label,
-        ],
+        hints,
       });
+      const specialCategory = specialCategoryKind({ type, hints });
       return [
         {
           name: name || '(без имени)',
           type,
           ...(label ? { label: toExcerpt(label, 120) } : {}),
           ...(personalData ? { personalData } : {}),
+          ...(specialCategory ? { specialCategory } : {}),
         },
       ];
     });

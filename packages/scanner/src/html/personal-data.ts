@@ -1,4 +1,4 @@
-import type { PersonalDataKind } from '@lawyer-152fz/core';
+import type { PersonalDataKind, SpecialCategoryKind } from '@lawyer-152fz/core';
 
 /** Типы полей, которые не собирают ПДн сами по себе. */
 const NOT_INPUT_TYPES = new Set([
@@ -77,4 +77,32 @@ export function personalDataKind(field: FieldDescription): PersonalDataKind | un
   const text = normalizeHints(field.hints);
   if (NOT_PERSONAL.test(text)) return undefined;
   return BY_TEXT.find(([pattern]) => pattern.test(text))?.[1];
+}
+
+/**
+ * Слова, по которым подпись поля указывает на специальные категории (ч. 1 ст. 10) и биометрию (ч. 1 ст. 11).
+ * Слов намеренно немного: «жалоба», «национальность» в значении гражданства и подобные дают ложные срабатывания,
+ * а правило всё равно помечает находку как требующую проверки.
+ */
+const SPECIAL_BY_TEXT: readonly (readonly [RegExp, SpecialCategoryKind])[] = [
+  [
+    new RegExp(
+      `здоровь|диагноз|заболеван|болезн|симптом|беременн|инвалид|аллерг|анамнез|\\b(?:health|diagnos\\w*|symptoms?|disease|illness|pregnan\\w*|disabilit\\w*|allerg\\w*)\\b`,
+    ),
+    'health',
+  ],
+  [
+    new RegExp(`${ru('национальность')}|этническ|${ru('раса')}|расов|\\b(?:ethnicity|race)\\b`),
+    'race-nationality',
+  ],
+  [/политическ|\bpolitical\b/, 'political'],
+  [/вероисповед|религи|мировоззрен|\breligio\w*/, 'religion-philosophy'],
+  [/интимн|сексуальн|ориентаци|\bsexual\b/, 'intimate'],
+  [/биометр|отпечат|\bbiometric\w*|\bfingerprint\b|\bface[\s-]?id\b/, 'biometric'],
+];
+
+/** Специальная категория или биометрия, на которую указывает подпись поля, либо `undefined`. */
+export function specialCategoryKind(field: FieldDescription): SpecialCategoryKind | undefined {
+  const text = normalizeHints(field.hints);
+  return SPECIAL_BY_TEXT.find(([pattern]) => pattern.test(text))?.[1];
 }

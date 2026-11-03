@@ -11,6 +11,7 @@ import { foreignServicesRule } from './site/foreign-services';
 import { formConsentRule } from './site/form-consent';
 import { httpsRule } from './site/https';
 import { policyPublishedRule } from './site/policy-published';
+import { specialCategoriesRule } from './site/special-categories';
 
 /** Реестр правил аудита сайтов (ADR-0004): явный список, без сканирования папок. */
 export const SITE_RULES: readonly SiteRule[] = [
@@ -19,6 +20,7 @@ export const SITE_RULES: readonly SiteRule[] = [
   httpsRule,
   foreignServicesRule,
   countersNoticeRule,
+  specialCategoriesRule,
 ];
 
 /** Реестр правил аудита исходников. */

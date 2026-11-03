@@ -9,6 +9,7 @@ import { foreignServicesRule } from './foreign-services';
 import { formConsentRule } from './form-consent';
 import { httpsRule } from './https';
 import { policyPublishedRule } from './policy-published';
+import { specialCategoriesRule } from './special-categories';
 import { describePersonalData, groupBy } from './shared';
 
 const POLICY = 'https://site.ru/privacy';
@@ -388,6 +389,104 @@ describe('PD-COUNTERS-NOTICE', () => {
       ),
     );
     expect(finding?.title).toBe('Счётчики работают без уведомления об использовании cookie');
+  });
+});
+
+describe('PD-SPECIAL-CATEGORIES', () => {
+  const healthForm = (overrides: Partial<FormSnapshot> = {}) =>
+    makeForm({
+      selector: 'form#anketa',
+      fields: [
+        { name: 'name', type: 'text', label: 'Ваше имя', personalData: 'name' },
+        {
+          name: 'symptoms',
+          type: 'textarea',
+          label: 'Опишите симптомы',
+          specialCategory: 'health',
+        },
+      ],
+      ...overrides,
+    });
+
+  it('форма без таких полей — без находок', () => {
+    expect(check(specialCategoriesRule, site(page()))).toEqual([]);
+  });
+
+  it('поле о здоровье — риск «нужна проверка», а не установленное нарушение', () => {
+    const [finding] = check(specialCategoriesRule, site(page({ forms: [healthForm()] })));
+
+    expect(finding).toMatchObject({
+      ruleId: 'PD-SPECIAL-CATEGORIES',
+      kind: 'risk',
+      severity: 'high',
+      confidence: 'needs-review',
+      title: 'Форма, судя по подписям полей, просит сведения о состоянии здоровья',
+      normRefs: [
+        '152-fz/art-10/part-1',
+        '152-fz/art-10/part-2',
+        '152-fz/art-9/part-4',
+        'koap/art-13.11/part-2',
+      ],
+    });
+    expect(finding?.evidence).toEqual([
+      {
+        type: 'page',
+        url: 'https://site.ru/',
+        selector: 'form#anketa',
+        untrustedExcerpt: 'Опишите симптомы (symptoms)',
+      },
+    ]);
+    expect(finding?.remediation).toContain('обычная галочка согласия не подходит');
+  });
+
+  it('галочка согласия не снимает находку: нужна письменная форма', () => {
+    const findings = check(
+      specialCategoriesRule,
+      site(page({ forms: [healthForm({ consent: 'checkbox' })] })),
+    );
+    expect(findings).toHaveLength(1);
+  });
+
+  it('биометрия добавляет нормы ст. 11 и напоминание, что предоставление не обязательно', () => {
+    const [finding] = check(
+      specialCategoriesRule,
+      site(
+        page({
+          forms: [
+            healthForm({
+              fields: [
+                {
+                  name: 'fp',
+                  type: 'text',
+                  label: 'Отпечаток пальца',
+                  specialCategory: 'biometric',
+                },
+              ],
+            }),
+          ],
+        }),
+      ),
+    );
+    expect(finding?.normRefs).toEqual([
+      '152-fz/art-11/part-1',
+      '152-fz/art-11/part-3',
+      '152-fz/art-9/part-4',
+      'koap/art-13.11/part-2',
+    ]);
+    expect(finding?.title).toContain('биометрических данных');
+    expect(finding?.remediation).toContain('не может быть обязательным');
+  });
+
+  it('одна форма на нескольких страницах — одна находка', () => {
+    const findings = check(
+      specialCategoriesRule,
+      site(
+        page({ forms: [healthForm()] }),
+        page({ url: 'https://site.ru/contacts', forms: [healthForm()] }),
+      ),
+    );
+    expect(findings).toHaveLength(1);
+    expect(findings[0]?.title).toContain('на 2 страницах');
   });
 });
 

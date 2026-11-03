@@ -17,6 +17,20 @@ export const PERSONAL_DATA_KINDS = [
 ] as const;
 export type PersonalDataKind = (typeof PERSONAL_DATA_KINDS)[number];
 
+/**
+ * Специальные категории (ч. 1 ст. 10) и биометрические данные (ч. 1 ст. 11), которые, судя по подписи,
+ * просит поле формы. Определяется по словам в подписи: это признак, а не установленный факт.
+ */
+export const SPECIAL_CATEGORY_KINDS = [
+  'health',
+  'race-nationality',
+  'political',
+  'religion-philosophy',
+  'intimate',
+  'biometric',
+] as const;
+export type SpecialCategoryKind = (typeof SPECIAL_CATEGORY_KINDS)[number];
+
 export interface FormField {
   /** Атрибут `name`, иначе `id`. */
   readonly name: string;
@@ -24,6 +38,8 @@ export interface FormField {
   readonly label?: string;
   /** Вид ПДн, если поле их собирает. */
   readonly personalData?: PersonalDataKind;
+  /** Специальная категория или биометрия, если подпись поля на неё указывает. */
+  readonly specialCategory?: SpecialCategoryKind;
 }
 
 /**
