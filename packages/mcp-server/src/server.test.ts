@@ -67,6 +67,9 @@ describe('инструкции сервера', () => {
     expect(instructions).toContain('только после его согласия');
     expect(instructions).toContain('check_norm_freshness');
     expect(instructions).toContain('GDPR');
+    for (const label of ['[в норме]', '[вывод]', '[спорно]', '[вне базы]']) {
+      expect(instructions).toContain(label);
+    }
   });
 });
 
