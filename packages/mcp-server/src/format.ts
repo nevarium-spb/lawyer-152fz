@@ -4,6 +4,8 @@ import type {
   FreshnessStatus,
   Norm,
   NormSearchHit,
+  VerificationIssue,
+  VerificationReport,
 } from '@lawyer-152fz/core';
 
 /**
@@ -64,6 +66,28 @@ export function formatFreshness(reports: readonly FreshnessReport[]): string {
     `Сверка с официальным порталом actual.pravo.gov.ru, норм: ${String(reports.length)}.`,
     ...lines,
     ...unknownNote,
+  ].join('\n');
+}
+
+export function formatVerification(report: VerificationReport): string {
+  const errors = report.issues.filter((issue) => issue.severity === 'error');
+  const warnings = report.issues.filter((issue) => issue.severity === 'warning');
+  const line = (issue: VerificationIssue): string =>
+    `- [${issue.code}] ${issue.message}${issue.excerpt ? `\n  «${issue.excerpt}»` : ''}`;
+  const { checked } = report;
+  return [
+    report.ok
+      ? 'Сверка пройдена: ошибок нет.'
+      : `Сверка не пройдена: ошибок ${String(errors.length)}. Исправьте их и вызовите verify_answer снова.`,
+    `Проверено: идентификаторов норм ${String(checked.normIds)}, цитат ${String(checked.quotes)}, ` +
+      `утверждений с меткой ${String(checked.labeledStatements)}, без метки ${String(checked.unlabeledStatements)}.`,
+    ...(errors.length > 0 ? ['', 'Ошибки:', ...errors.map(line)] : []),
+    ...(warnings.length > 0
+      ? ['', 'Предупреждения (проверьте вручную, не обязательно ошибки):', ...warnings.map(line)]
+      : []),
+    '',
+    'Не проверяется:',
+    ...report.notChecked.map((item) => `- ${item}`),
   ].join('\n');
 }
 

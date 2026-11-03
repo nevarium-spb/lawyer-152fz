@@ -51,6 +51,7 @@ describe('контракт MCP-инструментов (T3.3)', () => {
       'audit_codebase',
       'list_document_templates',
       'render_document',
+      'verify_answer',
     ]);
     expect(tools).toMatchSnapshot();
   });
@@ -67,6 +68,7 @@ describe('инструкции сервера', () => {
     expect(instructions).toContain('только после его согласия');
     expect(instructions).toContain('check_norm_freshness');
     expect(instructions).toContain('GDPR');
+    expect(instructions).toContain('verify_answer');
     for (const label of ['[в норме]', '[вывод]', '[спорно]', '[вне базы]']) {
       expect(instructions).toContain(label);
     }
@@ -112,6 +114,54 @@ describe('get_norm', () => {
     const result = await call('get_norm', { id });
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain(fragment);
+  });
+});
+
+describe('verify_answer на реальной базе', () => {
+  const answer = (...lines: string[]): string => [...lines, '', LEGAL_DISCLAIMER].join('\n');
+
+  const verify = async (text: string) => {
+    const result = await call('verify_answer', { answer: text });
+    return {
+      text: textOf(result),
+      report: result.structuredContent as {
+        ok: boolean;
+        issues: { code: string; severity: string }[];
+      },
+    };
+  };
+
+  it('точная цитата и верные идентификаторы проходят сверку', async () => {
+    const { report, text } = await verify(
+      answer(
+        'Хранение баз данных граждан РФ за рубежом ограничено: ч. 5 ст. 18 152-ФЗ (`152-fz/art-18/part-5`): «с использованием баз данных, находящихся за пределами территории Российской Федерации, не допускаются». **[в норме]**',
+        'Уведомить об изменении сведений нужно не позднее 15-го числа месяца: ч. 7 ст. 22 152-ФЗ (`152-fz/art-22/part-7`). **[в норме]**',
+      ),
+    );
+    expect(report.issues.filter((issue) => issue.severity === 'error')).toEqual([]);
+    expect(report.ok).toBe(true);
+    expect(text).toContain('Сверка пройдена');
+  });
+
+  it('искажённая цитата, выдуманная часть и неверное число ловятся', async () => {
+    const { report, text } = await verify(
+      answer(
+        'Хранение за рубежом разрешено: ч. 5 ст. 18 152-ФЗ (`152-fz/art-18/part-5`): «с использованием баз данных, находящихся за пределами территории Российской Федерации, допускаются». **[в норме]**',
+        'Срок — 30 дней: ч. 98 ст. 22 152-ФЗ (`152-fz/art-22/part-99`). **[в норме]**',
+      ),
+    );
+    const codes = report.issues.map((issue) => issue.code);
+    expect(report.ok).toBe(false);
+    expect(codes).toContain('quote-not-in-norm');
+    expect(codes).toContain('unknown-norm-id');
+    expect(codes).toContain('unknown-prose-ref');
+    expect(text).toContain('Сверка не пройдена');
+  });
+
+  it('пустой ответ — ошибка валидации на русском', async () => {
+    const result = await call('verify_answer', { answer: '   ' });
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('Текст ответа пуст');
   });
 });
 
