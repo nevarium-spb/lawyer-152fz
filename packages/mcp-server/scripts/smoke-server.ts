@@ -88,8 +88,18 @@ try {
   const { tools } = await client.listTools();
   const names = tools.map((tool) => tool.name).join(', ');
   const expected =
-    'search_norms, get_norm, check_norm_freshness, audit_site, audit_html, audit_codebase, list_document_templates, render_document';
+    'search_norms, get_norm, check_norm_freshness, audit_site, audit_html, audit_codebase, list_document_templates, render_document, verify_answer';
   if (names !== expected) fail(`неожиданный набор инструментов: ${names}`);
+
+  // Сверка ответа работает на вшитой в бандл базе: выдуманная норма — ошибка, а не падение.
+  const verification = await client.callTool({
+    name: 'verify_answer',
+    arguments: { answer: 'Есть норма (`152-fz/art-99/part-1`). [в норме]' },
+  });
+  const verificationText = (verification.content as { text?: string }[])[0]?.text ?? '';
+  if (!verificationText.includes('unknown-norm-id')) {
+    fail('verify_answer не нашёл выдуманный идентификатор нормы');
+  }
 
   const search = await client.callTool({
     name: 'search_norms',

@@ -16,7 +16,7 @@ const npmDir = fileURLToPath(new URL('../../../dist/npm', import.meta.url));
 const PACKAGE_DIR = ['node_modules', '@lawyer-152fz', 'mcp-server'];
 const EXPECTED_FILES = ['LICENSE', 'README.md', 'index.mjs', 'package.json'];
 const EXPECTED_TOOLS =
-  'search_norms, get_norm, check_norm_freshness, audit_site, audit_html, audit_codebase, list_document_templates, render_document';
+  'search_norms, get_norm, check_norm_freshness, audit_site, audit_html, audit_codebase, list_document_templates, render_document, verify_answer';
 
 const say = (line: string) => process.stdout.write(`${line}\n`);
 function fail(message: string): never {

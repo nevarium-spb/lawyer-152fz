@@ -21,6 +21,9 @@ export type * from './ports';
 
 export * from './use-cases/run-rules';
 export * from './use-cases/lookup-norms';
+export * from './use-cases/verify-answer';
+export { ANSWER_LABELS } from './domain/answer-text';
+export type { AnswerLabel } from './domain/answer-text';
 export * from './use-cases/audit-site';
 export * from './use-cases/audit-codebase';
 export * from './use-cases/audit-html';

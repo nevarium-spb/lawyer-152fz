@@ -1342,5 +1342,108 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
     },
     "title": "Заполнить документ по 152-ФЗ",
   },
+  {
+    "_meta": undefined,
+    "annotations": {
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+    },
+    "description": "Проверяет черновик ответа юриста кодом по базе: каждый идентификатор нормы и ссылка «ч. N ст. M» существуют, цитаты в «ёлочках» дословно есть в тексте норм, дата редакции совпадает, у [в норме] есть существующая норма, у утверждений по существу есть метки, в конце дисклеймер. Вызывай на готовом ответе перед отправкой пользователю; исправь все error и повтори. Не проверяет верность толкования. / Verifies a draft answer against the norm base: ids, quotes, labels, disclaimer.",
+    "execution": {
+      "taskSupport": "forbidden",
+    },
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "properties": {
+        "answer": {
+          "description": "Полный текст ответа пользователю в Markdown, как он будет отправлен",
+          "type": "string",
+        },
+      },
+      "required": [
+        "answer",
+      ],
+      "type": "object",
+    },
+    "name": "verify_answer",
+    "outputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "additionalProperties": false,
+      "properties": {
+        "checked": {
+          "additionalProperties": false,
+          "properties": {
+            "labeledStatements": {
+              "type": "number",
+            },
+            "normIds": {
+              "type": "number",
+            },
+            "quotes": {
+              "type": "number",
+            },
+            "unlabeledStatements": {
+              "type": "number",
+            },
+          },
+          "required": [
+            "normIds",
+            "quotes",
+            "labeledStatements",
+            "unlabeledStatements",
+          ],
+          "type": "object",
+        },
+        "issues": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string",
+              },
+              "excerpt": {
+                "type": "string",
+              },
+              "message": {
+                "type": "string",
+              },
+              "severity": {
+                "enum": [
+                  "error",
+                  "warning",
+                ],
+                "type": "string",
+              },
+            },
+            "required": [
+              "code",
+              "severity",
+              "message",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "notChecked": {
+          "items": {
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "ok": {
+          "type": "boolean",
+        },
+      },
+      "required": [
+        "ok",
+        "issues",
+        "checked",
+        "notChecked",
+      ],
+      "type": "object",
+    },
+    "title": "Сверка ответа с базой норм",
+  },
 ]
 `;

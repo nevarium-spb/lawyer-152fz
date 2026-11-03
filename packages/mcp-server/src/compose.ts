@@ -4,6 +4,7 @@ import {
   createAuditSite,
   createGenerateDocument,
   createLookupNorms,
+  createVerifyAnswer,
   err,
   ok,
 } from '@lawyer-152fz/core';
@@ -33,6 +34,7 @@ import { describeKnowledgeBase, registerKbInfo } from './kb-info';
 import type { KbInfo } from './kb-info';
 import { SERVER_INSTRUCTIONS } from './instructions';
 import { registerNormTools } from './tools';
+import { registerVerifyTools } from './verify-tools';
 import { SERVER_NAME, SERVER_VERSION } from './version';
 
 const systemClock: Clock = { now: () => new Date() };
@@ -103,6 +105,7 @@ export function composeServer(
     }),
   });
   registerDocumentTools(server, createGenerateDocument({ templates: templates.value, clock }));
+  registerVerifyTools(server, createVerifyAnswer({ norms }));
 
   return ok({ server, kbInfo });
 }
