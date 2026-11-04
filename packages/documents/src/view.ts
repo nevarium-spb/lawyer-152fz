@@ -80,6 +80,8 @@ export function buildView(profile: OperatorProfile, context: RenderContext) {
       name: profile.name,
       inn: profile.inn,
       ogrn: profile.ogrn ?? null,
+      // ИНН юридического лица — десять цифр, у предпринимателя и физического лица — двенадцать.
+      isLegalEntity: profile.inn.length === 10,
       address: profile.legalAddress,
       email: profile.contactEmail,
       website: profile.website ?? null,
@@ -129,6 +131,13 @@ export function buildView(profile: OperatorProfile, context: RenderContext) {
       profile.protectionLevel === 'not-determined' ? null : (profile.protectionLevel ?? null),
     hasMeasures: (profile.implementedMeasures ?? []).length > 0,
     measures: (profile.implementedMeasures ?? []).map((measure) => MEASURE_TEXT[measure]),
+    responsibleOrder: profile.responsibleOrder
+      ? {
+          number: profile.responsibleOrder.number,
+          date: formatDate(profile.responsibleOrder.date),
+          signatory: profile.responsibleOrder.signatory,
+        }
+      : null,
     incident: profile.incident
       ? {
           discoveredAt: profile.incident.discoveredAt,

@@ -130,6 +130,22 @@ const profileShape = z
       .object({ number: text('Регистрационный номер'), date: text('Дата, ГГГГ-ММ-ДД') })
       .optional()
       .describe('Раздел crossBorder: ранее поданное уведомление об обработке ПДн'),
+    responsibleOrder: z
+      .object({
+        number: text('Номер приказа'),
+        date: text('Дата приказа, ГГГГ-ММ-ДД'),
+        signatory: z
+          .object({
+            fullName: text('ФИО лица, подписывающего приказ'),
+            position: text('Должность (исполнительный орган организации)'),
+          })
+          .optional()
+          .describe('Кто подписывает приказ'),
+      })
+      .optional()
+      .describe(
+        'Раздел responsibleOrder: реквизиты приказа о назначении ответственного (ответственного берём из responsiblePerson)',
+      ),
     incident: z
       .object({
         discoveredAt: text('Дата и время выявления инцидента, например «2026-11-02 10:30»'),
