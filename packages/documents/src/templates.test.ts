@@ -22,6 +22,7 @@ const generate = createGenerateDocument({
 describe('шаблоны документов (T6.3)', () => {
   it('загружены все шаблоны из Приложения Б плана', () => {
     expect(templates.list().map((t) => t.id)).toEqual([
+      'access-list',
       'consent-distribution',
       'consent-processing-web',
       'consent-processing',
@@ -29,6 +30,7 @@ describe('шаблоны документов (T6.3)', () => {
       'incident-notification',
       'media-register',
       'privacy-policy',
+      'protection-level-act',
       'responsible-person-order',
       'rkn-notification',
     ]);
@@ -395,6 +397,83 @@ describe('шаблоны документов (T6.3)', () => {
       });
       expect(markdown).toContain('# Реестр не составлен');
       expect(markdown).not.toContain('## Носители');
+    });
+  });
+
+  describe('акт определения уровня защищённости (пп. 5–12 ПП 1119)', () => {
+    const system = FULL_REFERENCE_PROFILE.protectionAssessment?.systems[0];
+    const render = (systems: unknown[]) => {
+      const result = generate.render('protection-level-act', {
+        ...FULL_REFERENCE_PROFILE,
+        protectionAssessment: { date: '2026-11-03', systems },
+      });
+      return result.ok ? result.value.markdown : '';
+    };
+
+    it('считает уровень и перечисляет требования этого уровня', () => {
+      const markdown = render([system]);
+      expect(markdown).toContain('### 1. CRM');
+      expect(markdown).toContain('**Уровень защищённости: 4-й** (п. 12 «б» Требований)');
+      expect(markdown).toContain('(пп. «в» п. 13)');
+      expect(markdown).not.toContain('(п. 14)');
+      expect(markdown).not.toContain('не определён');
+    });
+
+    it('для 3-го уровня добавляет ответственного за безопасность (п. 14)', () => {
+      const markdown = render([{ ...system, subjectsCount: 150_000 }]);
+      expect(markdown).toContain('**Уровень защищённости: 3-й** (п. 11 «д» Требований)');
+      expect(markdown).toContain('(п. 14)');
+      expect(markdown).not.toContain('(п. 15)');
+    });
+
+    it('для 1-го уровня включает требования пп. 13–16', () => {
+      const markdown = render([{ ...system, threatType: '1' }]);
+      expect(markdown).toContain('**Уровень защищённости: 1-й** (п. 9 «а» Требований)');
+      expect(markdown).toContain('(пп. «б» п. 16)');
+    });
+
+    it('ровно 100 000 субъектов там, где норма молчит, — уровень не определён, а не угадан', () => {
+      const markdown = render([{ ...system, threatType: '2', subjectsCount: 100_000 }]);
+      expect(markdown).toContain('Уровень защищённости не определён.');
+      expect(markdown).toContain('акт не устанавливает требований');
+      expect(markdown).not.toContain('Для этого уровня необходимо');
+    });
+
+    it('тип угроз берётся у пользователя и так и записан', () => {
+      expect(render([system])).toContain('Тип актуальных угроз (п. 6): 3-й (указан оператором).');
+    });
+  });
+
+  describe('перечень допущенных к данным (пп. «в» п. 13 ПП 1119)', () => {
+    const entry = FULL_REFERENCE_PROFILE.accessList?.entries[0];
+    const render = (entries: unknown[]) => {
+      const result = generate.render('access-list', {
+        ...FULL_REFERENCE_PROFILE,
+        accessList: { ...FULL_REFERENCE_PROFILE.accessList, entries },
+      });
+      return result.ok ? result.value.markdown : '';
+    };
+
+    it('перечисляет должности, обязанности и категории данных по системам', () => {
+      const markdown = render([
+        entry,
+        { ...entry, system: '1С', position: 'бухгалтер', duties: 'расчёт заработной платы' },
+      ]);
+      expect(markdown).toContain('## Информационная система: CRM');
+      expect(markdown).toContain('## Информационная система: 1С');
+      expect(markdown).toContain('1. менеджер по работе с клиентами.');
+      expect(markdown).toContain('расчёт заработной платы');
+      expect(markdown).toContain(
+        'генеральный директор ＿＿＿＿＿＿＿＿＿＿ / Орлов Сергей Викторович /',
+      );
+    });
+
+    it('без должностей перечень не собирается молча', () => {
+      const result = generate.render('access-list', {
+        ...FULL_REFERENCE_PROFILE,
+        accessList: { ...FULL_REFERENCE_PROFILE.accessList, entries: [] },
+      });
+      expect(result.ok).toBe(false);
     });
   });
 

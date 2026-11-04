@@ -209,6 +209,8 @@ describe('разделы профиля для отдельных докумен
       'measures',
       'responsibleOrder',
       'mediaRegister',
+      'protectionAssessment',
+      'accessList',
       'incident',
       'crossBorder',
     ]);

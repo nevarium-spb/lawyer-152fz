@@ -147,6 +147,31 @@ export const FULL_REFERENCE_PROFILE: OperatorProfileInput = {
       responsible: 'руководитель юридического отдела',
     },
   ],
+  protectionAssessment: {
+    date: '2026-11-03',
+    systems: [
+      {
+        name: 'CRM',
+        dataKind: 'other',
+        employeesOnly: false,
+        subjectsCount: 5000,
+        threatType: '3',
+      },
+    ],
+  },
+  accessList: {
+    number: '13-ПД',
+    date: '2026-11-03',
+    signatory: { fullName: 'Орлов Сергей Викторович', position: 'генеральный директор' },
+    entries: [
+      {
+        system: 'CRM',
+        position: 'менеджер по работе с клиентами',
+        duties: 'ведение карточек клиентов и сопровождение договоров',
+        dataCategories: ['фамилия, имя, отчество', 'номер телефона'],
+      },
+    ],
+  },
 };
 
 /** Только обязательное, без необязательных полей и разделов: ловит метки без защитной секции. */
