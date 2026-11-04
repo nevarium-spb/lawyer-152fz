@@ -36,7 +36,7 @@ describe('инструменты документов (T6.4)', () => {
     const { templates } = result.structuredContent as {
       templates: { id: string; requiredFields: string[] }[];
     };
-    expect(templates.map((t) => t.id)).toHaveLength(8);
+    expect(templates.map((t) => t.id)).toHaveLength(9);
     expect(templates.find((t) => t.id === 'rkn-notification')?.requiredFields).toContain(
       'processingStartDate',
     );

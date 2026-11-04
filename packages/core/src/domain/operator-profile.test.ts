@@ -208,6 +208,7 @@ describe('разделы профиля для отдельных докумен
       'rknNotification',
       'measures',
       'responsibleOrder',
+      'mediaRegister',
       'incident',
       'crossBorder',
     ]);
