@@ -70,6 +70,43 @@ const publicDataRows = (data: NonNullable<OperatorProfile['publicData']>) => [
   })),
 ];
 
+/** Записи реестра носителей; одинаковое место хранения у разных целей помечается (п. 14). */
+function mediaRegisterView(profile: OperatorProfile) {
+  const entries = profile.mediaRegister ?? [];
+  const placeKey = (location: string) => location.trim().toLowerCase();
+  const covered = new Set(entries.map((entry) => entry.purpose.trim()));
+  const uncovered = profile.purposes
+    .filter((purpose) => purpose.methods !== 'automated' && !covered.has(purpose.title.trim()))
+    .map((purpose) => purpose.title);
+  return {
+    entries: entries.map((entry, index) => {
+      const sharing = unique(
+        entries
+          .filter(
+            (other) =>
+              other.purpose !== entry.purpose &&
+              placeKey(other.location) === placeKey(entry.location),
+          )
+          .map((other) => `«${other.purpose}»`),
+      );
+      return {
+        number: index + 1,
+        purpose: entry.purpose,
+        dataCategories: joinList(entry.dataCategories),
+        medium: entry.medium,
+        location: entry.location,
+        accessPersons: joinList(entry.accessPersons),
+        safeguards: joinList(entry.safeguards),
+        responsible: entry.responsible,
+        sharedWith: sharing.length > 0 ? sharing.join(', ') : null,
+      };
+    }),
+    // Цели с бумажной обработкой, для которых в реестре нет ни одной записи (п. 13).
+    uncovered,
+    hasUncovered: uncovered.length > 0,
+  };
+}
+
 export function buildView(profile: OperatorProfile, context: RenderContext) {
   const processors = profile.thirdParties.filter((party) => party.role === 'processor');
   const recipients = profile.thirdParties.filter((party) => party.role === 'recipient');
@@ -131,6 +168,8 @@ export function buildView(profile: OperatorProfile, context: RenderContext) {
       profile.protectionLevel === 'not-determined' ? null : (profile.protectionLevel ?? null),
     hasMeasures: (profile.implementedMeasures ?? []).length > 0,
     measures: (profile.implementedMeasures ?? []).map((measure) => MEASURE_TEXT[measure]),
+    hasNonAutomated: profile.purposes.some((purpose) => purpose.methods !== 'automated'),
+    mediaRegister: mediaRegisterView(profile),
     responsibleOrder: profile.responsibleOrder
       ? {
           number: profile.responsibleOrder.number,

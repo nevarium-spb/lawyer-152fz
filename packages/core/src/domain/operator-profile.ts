@@ -201,6 +201,38 @@ const responsibleOrderSchema = z.object(
   { error: 'Укажите номер, дату приказа и кто его подписывает' },
 );
 
+/**
+ * Реестр мест хранения материальных носителей (пп. 13–15 Положения, ПП РФ № 687): одна запись —
+ * один носитель одной цели. Места, лиц и меры называет только пользователь: оператор «устанавливает»
+ * их сам (п. 15), закон их не задаёт.
+ */
+const mediaRegisterEntrySchema = z.object(
+  {
+    purpose: requiredText(
+      'Укажите цель обработки, для которой хранится носитель: носители разных целей хранятся раздельно (п. 14)',
+    ),
+    dataCategories: nonEmptyList(
+      'Укажите категории персональных данных, которые содержит носитель (п. 13)',
+    ),
+    medium: requiredText(
+      'Опишите материальный носитель, например «личные дела работников в папках» или «журнал посетителей»',
+    ),
+    location: requiredText(
+      'Укажите место хранения носителя: помещение и шкаф, сейф или архив (п. 13)',
+    ),
+    accessPersons: nonEmptyList(
+      'Перечислите должности лиц, осуществляющих обработку либо имеющих доступ к носителю (п. 13)',
+    ),
+    safeguards: nonEmptyList(
+      'Перечислите меры, обеспечивающие сохранность носителя и исключающие несанкционированный доступ, например запираемый шкаф или охраняемое помещение (п. 15)',
+    ),
+    responsible: requiredText(
+      'Укажите должность или ФИО лица, ответственного за реализацию этих мер (п. 15)',
+    ),
+  },
+  { error: 'Опишите материальный носитель персональных данных' },
+);
+
 /** Сведения, которые нужны не каждому документу, — шаблон перечисляет нужные в `requires`. */
 const sectionShapes = {
   /** Согласие на обработку (ст. 9 ч. 4 п. 8). */
@@ -245,6 +277,14 @@ const sectionShapes = {
   /** Приказ о назначении ответственного (ч. 1 ст. 22.1). */
   responsibleOrder: {
     responsibleOrder: responsibleOrderSchema,
+  },
+  /** Реестр мест хранения материальных носителей (пп. 13–15 ПП РФ № 687). */
+  mediaRegister: {
+    mediaRegister: z
+      .array(mediaRegisterEntrySchema, {
+        error: 'Опишите материальные носители персональных данных и места их хранения',
+      })
+      .min(1, 'Опишите хотя бы один материальный носитель персональных данных'),
   },
   /** Уведомления об инциденте в Роскомнадзор (ч. 3.1 ст. 21). */
   incident: {
@@ -311,6 +351,7 @@ export const operatorProfileSchema = z.object({
   rknNotificationRef: rknNotificationRefSchema.optional(),
   incident: incidentSchema.optional(),
   responsibleOrder: responsibleOrderSchema.optional(),
+  mediaRegister: sectionShapes.mediaRegister.mediaRegister.optional(),
 });
 
 export type OperatorProfile = z.output<typeof operatorProfileSchema>;

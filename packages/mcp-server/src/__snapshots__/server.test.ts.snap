@@ -956,6 +956,7 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                     "rknNotification",
                     "measures",
                     "responsibleOrder",
+                    "mediaRegister",
                     "incident",
                     "crossBorder",
                   ],
@@ -1160,6 +1161,52 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
             "legalAddress": {
               "description": "Адрес оператора с индексом; для организации — адрес из ЕГРЮЛ",
               "type": "string",
+            },
+            "mediaRegister": {
+              "description": "Раздел mediaRegister: бумажные и иные материальные носители, по одной записи на носитель одной цели. Всё называет пользователь: места, лиц и меры не придумывай",
+              "items": {
+                "properties": {
+                  "accessPersons": {
+                    "description": "Должности лиц, обрабатывающих данные или имеющих доступ",
+                    "items": {
+                      "type": "string",
+                    },
+                    "type": "array",
+                  },
+                  "dataCategories": {
+                    "description": "Категории персональных данных на носителе",
+                    "items": {
+                      "type": "string",
+                    },
+                    "type": "array",
+                  },
+                  "location": {
+                    "description": "Место хранения: помещение, шкаф, сейф, архив",
+                    "type": "string",
+                  },
+                  "medium": {
+                    "description": "Какой носитель: папки, журнал, картотека…",
+                    "type": "string",
+                  },
+                  "purpose": {
+                    "description": "Цель обработки (как в purposes[].title)",
+                    "type": "string",
+                  },
+                  "responsible": {
+                    "description": "Должность или ФИО ответственного за эти меры",
+                    "type": "string",
+                  },
+                  "safeguards": {
+                    "description": "Меры сохранности и защиты от несанкционированного доступа",
+                    "items": {
+                      "type": "string",
+                    },
+                    "type": "array",
+                  },
+                },
+                "type": "object",
+              },
+              "type": "array",
             },
             "name": {
               "description": "Наименование оператора; для ИП — «Индивидуальный предприниматель Фамилия Имя Отчество»",

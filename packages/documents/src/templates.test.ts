@@ -27,6 +27,7 @@ describe('шаблоны документов (T6.3)', () => {
       'consent-processing',
       'cross-border-notification',
       'incident-notification',
+      'media-register',
       'privacy-policy',
       'responsible-person-order',
       'rkn-notification',
@@ -338,6 +339,63 @@ describe('шаблоны документов (T6.3)', () => {
     const markdown = result.ok ? result.value.markdown : '';
     expect(markdown).toContain('# Приказ не составлен');
     expect(markdown).not.toContain('ПРИКАЗЫВАЮ');
+  });
+
+  describe('реестр носителей (пп. 13–15 ПП 687)', () => {
+    const render = (extra: Record<string, unknown> = {}) => {
+      const result = generate.render('media-register', { ...FULL_REFERENCE_PROFILE, ...extra });
+      return result.ok ? result.value.markdown : '';
+    };
+    const entry = FULL_REFERENCE_PROFILE.mediaRegister?.[0];
+
+    it('перечисляет носитель, место, лиц с доступом, меры и ответственного', () => {
+      const markdown = render();
+      expect(markdown).toContain('### 1. договоры и анкеты клиентов в бумажных папках');
+      expect(markdown).toContain('Место хранения: кабинет 204, запираемый шкаф № 1.');
+      expect(markdown).toContain(
+        'менеджер по работе с клиентами; руководитель юридического отдела',
+      );
+      expect(markdown).toContain('шкаф запирается на ключ');
+      expect(markdown).toContain(
+        'Ответственный за реализацию мер: руководитель юридического отдела.',
+      );
+      expect(markdown).not.toContain('Реестр не составлен');
+      expect(markdown).not.toContain('Внимание:');
+    });
+
+    it('предупреждает, если у разных целей одно место хранения (п. 14)', () => {
+      const markdown = render({
+        mediaRegister: [
+          entry,
+          { ...entry, purpose: 'Кадровый учёт', medium: 'личные дела работников' },
+        ],
+      });
+      expect(markdown).toContain('совпадает с местом хранения носителей для цели «Кадровый учёт»');
+      expect(markdown).toContain('для цели «Заключение и исполнение договоров с клиентами»');
+    });
+
+    it('называет цели с неавтоматизированной обработкой, для которых носителей в реестре нет', () => {
+      const markdown = render({
+        purposes: [
+          ...FULL_REFERENCE_PROFILE.purposes,
+          {
+            ...FULL_REFERENCE_PROFILE.purposes[0],
+            title: 'Кадровый учёт',
+            methods: 'non-automated',
+          },
+        ],
+      });
+      expect(markdown).toContain('нет ни одного носителя');
+      expect(markdown).toContain('- Кадровый учёт;');
+    });
+
+    it('если все цели автоматизированные, реестр не составляется (п. 1 Положения)', () => {
+      const markdown = render({
+        purposes: [{ ...FULL_REFERENCE_PROFILE.purposes[0], methods: 'automated' }],
+      });
+      expect(markdown).toContain('# Реестр не составлен');
+      expect(markdown).not.toContain('## Носители');
+    });
   });
 
   it('трансграничное уведомление без номера первичного уведомления не собирается молча', () => {
