@@ -28,6 +28,7 @@ describe('шаблоны документов (T6.3)', () => {
       'cross-border-notification',
       'incident-notification',
       'privacy-policy',
+      'responsible-person-order',
       'rkn-notification',
     ]);
   });
@@ -310,6 +311,33 @@ describe('шаблоны документов (T6.3)', () => {
     expect(markdown).toContain('Расследование не завершено');
     expect(markdown).toContain('Сведений о таких лицах нет или они не установлены');
     expect(markdown).not.toContain('открытое хранилище');
+  });
+
+  it('приказ об ответственном: назначение, подотчётность и три обязанности ч. 4 ст. 22.1', () => {
+    const result = generate.render('responsible-person-order', FULL_REFERENCE_PROFILE);
+    const markdown = result.ok ? result.value.markdown : '';
+    expect(markdown).toContain('# Приказ № 12-ПД');
+    expect(markdown).toContain(
+      'в ООО «Ромашка»: Петрова Анна Сергеевна, руководитель юридического отдела.',
+    );
+    expect(markdown).toContain('получает указания непосредственно от исполнительного органа');
+    expect(markdown).toContain('1) осуществлять внутренний контроль');
+    expect(markdown).toContain('2) доводить до сведения работников');
+    expect(markdown).toContain('3) организовывать приём и обработку обращений');
+    expect(markdown).toContain(
+      'генеральный директор ＿＿＿＿＿＿＿＿＿＿ / Орлов Сергей Викторович /',
+    );
+    expect(markdown).not.toContain('Приказ не составлен');
+  });
+
+  it('приказ об ответственном для предпринимателя не составляется: ч. 1 ст. 22.1 о юридических лицах', () => {
+    const result = generate.render('responsible-person-order', {
+      ...FULL_REFERENCE_PROFILE,
+      inn: '500100732259',
+    });
+    const markdown = result.ok ? result.value.markdown : '';
+    expect(markdown).toContain('# Приказ не составлен');
+    expect(markdown).not.toContain('ПРИКАЗЫВАЮ');
   });
 
   it('трансграничное уведомление без номера первичного уведомления не собирается молча', () => {

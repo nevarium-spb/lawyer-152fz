@@ -131,6 +131,11 @@ export const FULL_REFERENCE_PROFILE: OperatorProfileInput = {
   ],
   rknNotificationRef: { number: '78-26-012345', date: '2026-10-20' },
   incident: REFERENCE_INCIDENT,
+  responsibleOrder: {
+    number: '12-ПД',
+    date: '2026-11-02',
+    signatory: { fullName: 'Орлов Сергей Викторович', position: 'генеральный директор' },
+  },
 };
 
 /** Только обязательное, без необязательных полей и разделов: ловит метки без защитной секции. */

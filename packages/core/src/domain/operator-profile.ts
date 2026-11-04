@@ -180,6 +180,27 @@ const incidentSchema = z.object(
   { error: 'Опишите инцидент с персональными данными' },
 );
 
+/**
+ * Приказ о назначении ответственного за организацию обработки ПДн (ч. 1 ст. 22.1, п. 1 ч. 1 ст. 18.1).
+ * Ответственного берём из общих сведений профиля; здесь только то, что нужно приказу как документу.
+ */
+const responsibleOrderSchema = z.object(
+  {
+    number: requiredText('Укажите номер приказа'),
+    date: isoDate('Укажите дату приказа'),
+    signatory: z.object(
+      {
+        fullName: requiredText('Укажите ФИО лица, подписывающего приказ'),
+        position: requiredText(
+          'Укажите должность лица, подписывающего приказ (исполнительный орган организации)',
+        ),
+      },
+      { error: 'Укажите, кто подписывает приказ: руководитель — исполнительный орган организации' },
+    ),
+  },
+  { error: 'Укажите номер, дату приказа и кто его подписывает' },
+);
+
 /** Сведения, которые нужны не каждому документу, — шаблон перечисляет нужные в `requires`. */
 const sectionShapes = {
   /** Согласие на обработку (ст. 9 ч. 4 п. 8). */
@@ -220,6 +241,10 @@ const sectionShapes = {
       error:
         'Спросите у пользователя, какие меры уже приняты: ответственный (responsible-person), политика и локальные акты (policy-and-local-acts), меры безопасности по ст. 19 (security-measures), внутренний контроль (internal-control), оценка вреда (harm-assessment), ознакомление работников (staff-training). Документ назовёт их принятыми, поэтому указывайте только то, что есть на самом деле; [] — если ничего',
     }),
+  },
+  /** Приказ о назначении ответственного (ч. 1 ст. 22.1). */
+  responsibleOrder: {
+    responsibleOrder: responsibleOrderSchema,
   },
   /** Уведомления об инциденте в Роскомнадзор (ч. 3.1 ст. 21). */
   incident: {
@@ -285,6 +310,7 @@ export const operatorProfileSchema = z.object({
   implementedMeasures: sectionShapes.measures.implementedMeasures.optional(),
   rknNotificationRef: rknNotificationRefSchema.optional(),
   incident: incidentSchema.optional(),
+  responsibleOrder: responsibleOrderSchema.optional(),
 });
 
 export type OperatorProfile = z.output<typeof operatorProfileSchema>;

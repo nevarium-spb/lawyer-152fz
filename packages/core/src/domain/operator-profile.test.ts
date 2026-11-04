@@ -207,6 +207,7 @@ describe('разделы профиля для отдельных докумен
       'publicDistribution',
       'rknNotification',
       'measures',
+      'responsibleOrder',
       'incident',
       'crossBorder',
     ]);
