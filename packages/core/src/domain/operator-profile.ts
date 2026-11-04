@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { isValidInn, isValidOgrn } from './identifiers';
+import { SYSTEM_DATA_KINDS, THREAT_TYPES } from './protection-level';
 
 const requiredText = (message: string) => z.string({ error: message }).trim().min(1, message);
 
@@ -233,6 +234,69 @@ const mediaRegisterEntrySchema = z.object(
   { error: 'Опишите материальный носитель персональных данных' },
 );
 
+/**
+ * Определение уровня защищённости ПДн в информационных системах (пп. 5–12 ПП РФ № 1119). Тип угроз
+ * оператор определяет сам (п. 7): акты ФСТЭК/ФСБ и оценки вреда в базе нет, поэтому его называет
+ * пользователь, а уровень считает код по таблице норм.
+ */
+const protectionSystemSchema = z.object(
+  {
+    name: requiredText('Укажите название информационной системы, например «CRM» или «сайт»'),
+    dataKind: z.enum(SYSTEM_DATA_KINDS, {
+      error:
+        'Укажите категорию данных системы по п. 5: special (здоровье, расовая и национальная принадлежность, взгляды и убеждения, интимная жизнь), biometric, public (только из общедоступных источников) или other. Если обрабатываются разные, берите самую строгую в этом порядке',
+    }),
+    employeesOnly: z.boolean({
+      error: 'Укажите, обрабатываются ли в системе данные только сотрудников оператора (п. 5)',
+    }),
+    subjectsCount: z
+      .number({ error: 'Укажите число субъектов, не являющихся сотрудниками оператора' })
+      .int('Число субъектов — целое число')
+      .nonnegative('Число субъектов не может быть отрицательным'),
+    threatType: z.enum(THREAT_TYPES, {
+      error:
+        'Укажите тип актуальных угроз по п. 6: 1, 2 или 3. Его определяет оператор по п. 7; не подставляйте значение из примера',
+    }),
+  },
+  { error: 'Опишите информационную систему персональных данных' },
+);
+
+/**
+ * Перечень лиц, доступ которых к ПДн в информационной системе необходим для служебных обязанностей
+ * (пп. «в» п. 13 ПП РФ № 1119): утверждает руководитель оператора. Должности и обязанности называет
+ * только пользователь.
+ */
+const accessListSchema = z.object(
+  {
+    number: requiredText('Укажите номер перечня (приказа), которым он утверждается'),
+    date: isoDate('Укажите дату утверждения перечня'),
+    signatory: z.object(
+      {
+        fullName: requiredText('Укажите ФИО руководителя оператора, утверждающего перечень'),
+        position: requiredText('Укажите должность руководителя оператора'),
+      },
+      { error: 'Укажите, кто утверждает перечень: руководитель оператора' },
+    ),
+    entries: z
+      .array(
+        z.object(
+          {
+            system: requiredText('Укажите информационную систему, к данным которой нужен доступ'),
+            position: requiredText('Укажите должность работника, которому нужен доступ'),
+            duties: requiredText(
+              'Укажите служебные (трудовые) обязанности, для которых нужен доступ к данным',
+            ),
+            dataCategories: nonEmptyList('Укажите категории данных, к которым нужен доступ'),
+          },
+          { error: 'Опишите, кому и зачем нужен доступ к данным информационной системы' },
+        ),
+        { error: 'Опишите, кому и зачем нужен доступ к данным' },
+      )
+      .min(1, 'Укажите хотя бы одну должность с доступом к данным'),
+  },
+  { error: 'Опишите перечень лиц, допущенных к персональным данным' },
+);
+
 /** Сведения, которые нужны не каждому документу, — шаблон перечисляет нужные в `requires`. */
 const sectionShapes = {
   /** Согласие на обработку (ст. 9 ч. 4 п. 8). */
@@ -285,6 +349,22 @@ const sectionShapes = {
         error: 'Опишите материальные носители персональных данных и места их хранения',
       })
       .min(1, 'Опишите хотя бы один материальный носитель персональных данных'),
+  },
+  /** Определение уровня защищённости ПДн в информационных системах (пп. 5–12 ПП РФ № 1119). */
+  protectionAssessment: {
+    protectionAssessment: z.object(
+      {
+        date: isoDate('Укажите дату определения уровня защищённости'),
+        systems: z
+          .array(protectionSystemSchema, { error: 'Опишите информационные системы' })
+          .min(1, 'Опишите хотя бы одну информационную систему персональных данных'),
+      },
+      { error: 'Опишите информационные системы и дату определения уровня защищённости' },
+    ),
+  },
+  /** Перечень лиц, допущенных к ПДн в информационных системах (пп. «в» п. 13 ПП РФ № 1119). */
+  accessList: {
+    accessList: accessListSchema,
   },
   /** Уведомления об инциденте в Роскомнадзор (ч. 3.1 ст. 21). */
   incident: {
@@ -352,6 +432,8 @@ export const operatorProfileSchema = z.object({
   incident: incidentSchema.optional(),
   responsibleOrder: responsibleOrderSchema.optional(),
   mediaRegister: sectionShapes.mediaRegister.mediaRegister.optional(),
+  protectionAssessment: sectionShapes.protectionAssessment.protectionAssessment.optional(),
+  accessList: accessListSchema.optional(),
 });
 
 export type OperatorProfile = z.output<typeof operatorProfileSchema>;

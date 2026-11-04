@@ -13,6 +13,7 @@ export * from './domain/norm';
 export * from './domain/finding';
 export * from './domain/identifiers';
 export * from './domain/operator-profile';
+export * from './domain/protection-level';
 export * from './domain/audit-report';
 export * from './domain/snapshots';
 export type * from './domain/audit-rule';

@@ -1,10 +1,11 @@
-import { isConsentBasis } from '@lawyer-152fz/core';
+import { determineProtectionLevel, isConsentBasis } from '@lawyer-152fz/core';
 import type {
   ImplementedMeasure,
   OperatorProfile,
   ProcessingMethod,
   ProcessingPurpose,
   RenderContext,
+  SystemDataKind,
 } from '@lawyer-152fz/core';
 
 /**
@@ -107,6 +108,91 @@ function mediaRegisterView(profile: OperatorProfile) {
   };
 }
 
+const DATA_KIND_TEXT: Record<SystemDataKind, string> = {
+  special:
+    'специальные категории (раса, национальность, политические взгляды, религиозные или философские убеждения, состояние здоровья, интимная жизнь)',
+  biometric: 'биометрические персональные данные',
+  public: 'общедоступные персональные данные (только из общедоступных источников, ст. 8 Закона)',
+  other: 'иные категории персональных данных',
+};
+
+/** Требования пп. 13–16 Требований (ПП РФ № 1119); каждый следующий уровень включает предыдущий. */
+const REQUIREMENTS_L4 = [
+  'организовать режим обеспечения безопасности помещений, в которых размещена информационная система, исключающий неконтролируемое проникновение или пребывание в них лиц без права доступа (пп. «а» п. 13)',
+  'обеспечить сохранность носителей персональных данных (пп. «б» п. 13)',
+  'утвердить руководителем оператора документ с перечнем лиц, доступ которых к персональным данным в системе необходим для служебных (трудовых) обязанностей (пп. «в» п. 13)',
+  'использовать средства защиты информации, прошедшие оценку соответствия, когда они нужны для нейтрализации актуальных угроз (пп. «г» п. 13)',
+];
+const REQUIREMENTS_L3 = [
+  ...REQUIREMENTS_L4,
+  'назначить должностное лицо (работника), ответственное за обеспечение безопасности персональных данных в системе (п. 14)',
+];
+const REQUIREMENTS_L2 = [
+  ...REQUIREMENTS_L3,
+  'допустить к содержанию электронного журнала сообщений только должностных лиц (работников) оператора или уполномоченного лица, которым эти сведения нужны для служебных (трудовых) обязанностей (п. 15)',
+];
+const REQUIREMENTS_L1 = [
+  ...REQUIREMENTS_L2,
+  'автоматически регистрировать в электронном журнале безопасности изменение полномочий сотрудника оператора по доступу к персональным данным в системе (пп. «а» п. 16)',
+  'создать структурное подразделение, ответственное за обеспечение безопасности персональных данных в системе, либо возложить эти функции на одно из подразделений (пп. «б» п. 16)',
+];
+const REQUIREMENTS: Record<1 | 2 | 3 | 4, readonly string[]> = {
+  1: REQUIREMENTS_L1,
+  2: REQUIREMENTS_L2,
+  3: REQUIREMENTS_L3,
+  4: REQUIREMENTS_L4,
+};
+
+/** Уровень защищённости каждой системы считает код по пп. 9–12; тип угроз называет пользователь (п. 7). */
+function protectionAssessmentView(profile: OperatorProfile) {
+  const assessment = profile.protectionAssessment;
+  const systems = (assessment?.systems ?? []).map((system, index) => {
+    const result = determineProtectionLevel(system);
+    return {
+      number: index + 1,
+      name: system.name,
+      dataKind: DATA_KIND_TEXT[system.dataKind],
+      subjects: system.employeesOnly
+        ? 'только сотрудники оператора'
+        : `${system.subjectsCount.toLocaleString('ru-RU')} (не сотрудники оператора)`,
+      threatType: system.threatType,
+      hasLevel: result.kind === 'level',
+      level: result.kind === 'level' ? result.level : null,
+      basis: result.kind === 'level' ? result.basis : null,
+      reason: result.kind === 'undetermined' ? result.reason : null,
+      requirements: result.kind === 'level' ? REQUIREMENTS[result.level] : [],
+    };
+  });
+  return {
+    date: assessment ? formatDate(assessment.date) : null,
+    systems,
+    hasUndetermined: systems.some((system) => !system.hasLevel),
+  };
+}
+
+/** Перечень допущенных по информационным системам (пп. «в» п. 13 ПП № 1119). */
+function accessListView(profile: OperatorProfile) {
+  const list = profile.accessList;
+  if (!list) return null;
+  const names = unique(list.entries.map((entry) => entry.system));
+  return {
+    number: list.number,
+    date: formatDate(list.date),
+    signatory: list.signatory,
+    systems: names.map((name) => ({
+      name,
+      rows: list.entries
+        .filter((entry) => entry.system === name)
+        .map((entry, index) => ({
+          number: index + 1,
+          position: entry.position,
+          duties: entry.duties,
+          dataCategories: joinList(entry.dataCategories),
+        })),
+    })),
+  };
+}
+
 export function buildView(profile: OperatorProfile, context: RenderContext) {
   const processors = profile.thirdParties.filter((party) => party.role === 'processor');
   const recipients = profile.thirdParties.filter((party) => party.role === 'recipient');
@@ -170,6 +256,8 @@ export function buildView(profile: OperatorProfile, context: RenderContext) {
     measures: (profile.implementedMeasures ?? []).map((measure) => MEASURE_TEXT[measure]),
     hasNonAutomated: profile.purposes.some((purpose) => purpose.methods !== 'automated'),
     mediaRegister: mediaRegisterView(profile),
+    protectionAssessment: protectionAssessmentView(profile),
+    accessList: accessListView(profile),
     responsibleOrder: profile.responsibleOrder
       ? {
           number: profile.responsibleOrder.number,
