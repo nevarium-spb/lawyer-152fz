@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { analyzePage } from './analyze-page';
 import { parseSetCookie } from './cookies';
-import { personalDataKind } from './personal-data';
+import { personalDataKind, specialCategoryKind } from './personal-data';
 import { vendorByUrl, vendorsInInlineScript } from './vendors';
 
 const PAGE_URL = 'https://site.ru/page';
@@ -314,6 +314,26 @@ describe('классификация полей', () => {
     [{ type: 'text', autocomplete: 'off', hints: ['comment'] }, undefined],
   ])('%o → %s', (field, expected) => {
     expect(personalDataKind(field)).toBe(expected);
+  });
+});
+
+describe('specialCategoryKind', () => {
+  it.each([
+    [{ type: 'textarea', hints: ['Опишите симптомы'] }, 'health'],
+    [{ type: 'text', hints: ['diagnosis'] }, 'health'],
+    [{ type: 'text', hints: ['Состояние здоровья'] }, 'health'],
+    [{ type: 'text', hints: ['Национальность'] }, 'race-nationality'],
+    [{ type: 'text', hints: ['Вероисповедание'] }, 'religion-philosophy'],
+    [{ type: 'text', hints: ['political_views'] }, 'political'],
+    [{ type: 'text', hints: ['sexual orientation'] }, 'intimate'],
+    [{ type: 'text', hints: ['Отпечаток пальца'] }, 'biometric'],
+    [{ type: 'text', hints: ['Face ID'] }, 'biometric'],
+    [{ type: 'text', hints: ['Имя'] }, undefined],
+    [{ type: 'text', hints: ['Политика конфиденциальности'] }, undefined],
+    [{ type: 'textarea', hints: ['Ваше сообщение'] }, undefined],
+    [{ type: 'text', hints: ['Жалоба на сервис'] }, undefined],
+  ])('%o → %s', (field, expected) => {
+    expect(specialCategoryKind(field)).toBe(expected);
   });
 });
 
