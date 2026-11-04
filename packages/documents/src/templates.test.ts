@@ -2,7 +2,11 @@ import { createGenerateDocument, operatorProfileSchema } from '@lawyer-152fz/cor
 import { describe, expect, it } from 'vitest';
 
 import { readTemplateFiles } from './load-from-dir';
-import { FULL_REFERENCE_PROFILE, MINIMAL_REFERENCE_PROFILE } from './reference-profiles';
+import {
+  FULL_REFERENCE_PROFILE,
+  MINIMAL_REFERENCE_PROFILE,
+  REFERENCE_INCIDENT,
+} from './reference-profiles';
 import { createDocumentTemplates, referenceProfileFor } from './templates';
 import type { TemplateFile } from './templates';
 
@@ -22,6 +26,7 @@ describe('шаблоны документов (T6.3)', () => {
       'consent-processing-web',
       'consent-processing',
       'cross-border-notification',
+      'incident-notification',
       'privacy-policy',
       'rkn-notification',
     ]);
@@ -280,6 +285,31 @@ describe('шаблоны документов (T6.3)', () => {
     expect(markdown).toContain('(часть 2 статьи 12 Закона)');
     expect(markdown).toContain('не отменяет часть 5 статьи 18');
     expect(markdown).toContain('№ 78-26-012345 от 20.10.2026');
+  });
+
+  it('уведомление об инциденте: два срока, лицо для связи и расследование', () => {
+    const result = generate.render('incident-notification', FULL_REFERENCE_PROFILE);
+    const markdown = result.ok ? result.value.markdown : '';
+    expect(markdown).toContain('двадцати четырёх часов');
+    expect(markdown).toContain('семидесяти двух часов');
+    expect(markdown).toContain('Лицо, уполномоченное оператором на взаимодействие');
+    expect(markdown).toContain('открытое хранилище резервных копий');
+    expect(markdown).toContain('системный администратор, настроивший хранилище');
+  });
+
+  it('уведомление об инциденте без итогов расследования оставляет бланк, а не выдумывает итоги', () => {
+    const result = generate.render('incident-notification', {
+      ...FULL_REFERENCE_PROFILE,
+      incident: {
+        ...REFERENCE_INCIDENT,
+        investigationResults: undefined,
+        responsiblePersons: undefined,
+      },
+    });
+    const markdown = result.ok ? result.value.markdown : '';
+    expect(markdown).toContain('Расследование не завершено');
+    expect(markdown).toContain('Сведений о таких лицах нет или они не установлены');
+    expect(markdown).not.toContain('открытое хранилище');
   });
 
   it('трансграничное уведомление без номера первичного уведомления не собирается молча', () => {

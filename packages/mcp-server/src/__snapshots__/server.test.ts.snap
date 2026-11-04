@@ -955,6 +955,7 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                     "publicDistribution",
                     "rknNotification",
                     "measures",
+                    "incident",
                     "crossBorder",
                   ],
                   "type": "string",
@@ -1088,6 +1089,68 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                 "type": "string",
               },
               "type": "array",
+            },
+            "incident": {
+              "description": "Раздел incident: сведения об инциденте для уведомлений за 24 и 72 часа",
+              "properties": {
+                "contact": {
+                  "description": "Лицо, уполномоченное оператором на взаимодействие по этому инциденту",
+                  "properties": {
+                    "email": {
+                      "description": "E-mail",
+                      "type": "string",
+                    },
+                    "fullName": {
+                      "description": "ФИО лица, уполномоченного на взаимодействие с Роскомнадзором",
+                      "type": "string",
+                    },
+                    "phone": {
+                      "description": "Телефон",
+                      "type": "string",
+                    },
+                    "position": {
+                      "description": "Должность",
+                      "type": "string",
+                    },
+                  },
+                  "type": "object",
+                },
+                "description": {
+                  "description": "Что произошло и какие данные затронуты",
+                  "type": "string",
+                },
+                "discoveredAt": {
+                  "description": "Дата и время выявления инцидента, например «2026-11-02 10:30»",
+                  "type": "string",
+                },
+                "investigationResults": {
+                  "description": "Результаты внутреннего расследования, только если они уже известны; иначе не передавай",
+                  "type": "string",
+                },
+                "measuresTaken": {
+                  "description": "Принятые меры по устранению последствий",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+                "responsiblePersons": {
+                  "description": "Лица, действия которых стали причиной инцидента, только если установлены",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+                "suspectedCauses": {
+                  "description": "Предполагаемые причины инцидента",
+                  "type": "string",
+                },
+                "suspectedHarm": {
+                  "description": "Предполагаемый вред правам субъектов",
+                  "type": "string",
+                },
+              },
+              "type": "object",
             },
             "inn": {
               "description": "ИНН: 10 цифр для организации, 12 — для ИП",

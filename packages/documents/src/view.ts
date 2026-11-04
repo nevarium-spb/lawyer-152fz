@@ -129,6 +129,20 @@ export function buildView(profile: OperatorProfile, context: RenderContext) {
       profile.protectionLevel === 'not-determined' ? null : (profile.protectionLevel ?? null),
     hasMeasures: (profile.implementedMeasures ?? []).length > 0,
     measures: (profile.implementedMeasures ?? []).map((measure) => MEASURE_TEXT[measure]),
+    incident: profile.incident
+      ? {
+          discoveredAt: profile.incident.discoveredAt,
+          description: profile.incident.description,
+          suspectedCauses: profile.incident.suspectedCauses,
+          suspectedHarm: profile.incident.suspectedHarm,
+          measuresTaken: profile.incident.measuresTaken,
+          contact: profile.incident.contact,
+          hasInvestigation: profile.incident.investigationResults !== undefined,
+          investigationResults: profile.incident.investigationResults ?? '',
+          hasResponsiblePersons: (profile.incident.responsiblePersons ?? []).length > 0,
+          responsiblePersons: profile.incident.responsiblePersons ?? [],
+        }
+      : null,
     rknNotificationRef: profile.rknNotificationRef
       ? {
           number: profile.rknNotificationRef.number,

@@ -145,6 +145,41 @@ const rknNotificationRefSchema = z.object(
   },
 );
 
+/**
+ * Инцидент с персональными данными (ч. 3.1 ст. 21): сведения для уведомлений в Роскомнадзор
+ * в течение 24 и 72 часов. Описание инцидента даёт только пользователь — модель его не придумывает.
+ */
+const incidentSchema = z.object(
+  {
+    discoveredAt: requiredText(
+      'Укажите дату и время выявления инцидента: с этого момента идут 24 и 72 часа',
+    ),
+    description: requiredText(
+      'Опишите инцидент: какая неправомерная или случайная передача (предоставление, распространение, доступ) персональных данных произошла и какие данные затронуты',
+    ),
+    suspectedCauses: requiredText('Укажите предполагаемые причины инцидента'),
+    suspectedHarm: requiredText('Укажите предполагаемый вред, нанесённый правам субъектов'),
+    measuresTaken: nonEmptyList('Перечислите принятые меры по устранению последствий инцидента'),
+    contact: z.object(
+      {
+        fullName: requiredText(
+          'Укажите ФИО лица, уполномоченного оператором на взаимодействие с Роскомнадзором по этому инциденту',
+        ),
+        position: requiredText('Укажите должность уполномоченного лица'),
+        phone: requiredText('Укажите телефон уполномоченного лица'),
+        email: z.email({ error: 'Укажите e-mail уполномоченного лица' }),
+      },
+      { error: 'Укажите лицо, уполномоченное на взаимодействие с Роскомнадзором по инциденту' },
+    ),
+    // Сведения для уведомления в течение 72 часов: до окончания расследования их может не быть.
+    investigationResults: requiredText('Укажите результаты внутреннего расследования').optional(),
+    responsiblePersons: z
+      .array(requiredText('Укажите лицо, действия которого стали причиной инцидента'))
+      .optional(),
+  },
+  { error: 'Опишите инцидент с персональными данными' },
+);
+
 /** Сведения, которые нужны не каждому документу, — шаблон перечисляет нужные в `requires`. */
 const sectionShapes = {
   /** Согласие на обработку (ст. 9 ч. 4 п. 8). */
@@ -185,6 +220,10 @@ const sectionShapes = {
       error:
         'Спросите у пользователя, какие меры уже приняты: ответственный (responsible-person), политика и локальные акты (policy-and-local-acts), меры безопасности по ст. 19 (security-measures), внутренний контроль (internal-control), оценка вреда (harm-assessment), ознакомление работников (staff-training). Документ назовёт их принятыми, поэтому указывайте только то, что есть на самом деле; [] — если ничего',
     }),
+  },
+  /** Уведомления об инциденте в Роскомнадзор (ч. 3.1 ст. 21). */
+  incident: {
+    incident: incidentSchema,
   },
   /** Уведомление о трансграничной передаче (ст. 12 ч. 4). */
   crossBorder: {
@@ -245,6 +284,7 @@ export const operatorProfileSchema = z.object({
   protectionLevel: sectionShapes.rknNotification.protectionLevel.optional(),
   implementedMeasures: sectionShapes.measures.implementedMeasures.optional(),
   rknNotificationRef: rknNotificationRefSchema.optional(),
+  incident: incidentSchema.optional(),
 });
 
 export type OperatorProfile = z.output<typeof operatorProfileSchema>;

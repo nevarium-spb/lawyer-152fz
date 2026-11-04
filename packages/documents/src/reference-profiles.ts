@@ -5,6 +5,25 @@ import type { OperatorProfileInput } from '@lawyer-152fz/core';
  * Реквизиты синтетические — валидные по контрольной сумме, но вымышленные.
  */
 
+/** Инцидент для шаблона уведомлений ч. 3.1 ст. 21: отдельной константой, чтобы тесты могли его менять. */
+export const REFERENCE_INCIDENT = {
+  discoveredAt: '2026-11-02 10:30',
+  description:
+    'неправомерный доступ третьего лица к базе заявок сайта: затронуты фамилия, имя, номер телефона и адрес электронной почты посетителей',
+  suspectedCauses: 'ошибка в настройке прав доступа к резервной копии базы',
+  suspectedHarm: 'возможное получение посторонними лицами контактных данных посетителей сайта',
+  measuresTaken: ['доступ к резервной копии закрыт', 'изменены ключи доступа к хранилищу'],
+  contact: {
+    fullName: 'Петрова Анна Сергеевна',
+    position: 'руководитель юридического отдела',
+    phone: '+7 812 000-00-01',
+    email: 'dpo@romashka.example',
+  },
+  investigationResults:
+    'причиной стало открытое хранилище резервных копий; доступ к нему получили неустановленные лица',
+  responsiblePersons: ['системный администратор, настроивший хранилище'],
+} satisfies NonNullable<OperatorProfileInput['incident']>;
+
 /** Заполнено всё, включая необязательное и все разделы: проходятся все секции шаблонов. */
 export const FULL_REFERENCE_PROFILE: OperatorProfileInput = {
   name: 'ООО «Ромашка»',
@@ -111,6 +130,7 @@ export const FULL_REFERENCE_PROFILE: OperatorProfileInput = {
     'staff-training',
   ],
   rknNotificationRef: { number: '78-26-012345', date: '2026-10-20' },
+  incident: REFERENCE_INCIDENT,
 };
 
 /** Только обязательное, без необязательных полей и разделов: ловит метки без защитной секции. */

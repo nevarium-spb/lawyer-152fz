@@ -36,11 +36,19 @@ describe('инструменты документов (T6.4)', () => {
     const { templates } = result.structuredContent as {
       templates: { id: string; requiredFields: string[] }[];
     };
-    expect(templates.map((t) => t.id)).toHaveLength(6);
+    expect(templates.map((t) => t.id)).toHaveLength(7);
     expect(templates.find((t) => t.id === 'rkn-notification')?.requiredFields).toContain(
       'processingStartDate',
     );
     expect(textOf(result)).toContain('ч. 2 ст. 18.1 152-ФЗ');
+  });
+
+  it('render_document принимает поля каждого раздела: схема входа не режет их молча', async () => {
+    const result = await render('incident-notification', FULL_REFERENCE_PROFILE);
+    expect(result.isError).toBeFalsy();
+    const { markdown } = result.structuredContent as { markdown: string };
+    expect(markdown).toContain('открытое хранилище резервных копий');
+    expect(markdown).toContain('Петрова Анна Сергеевна');
   });
 
   it('render_document заполняет шаблон и предлагает путь в проекте', async () => {
