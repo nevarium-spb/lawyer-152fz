@@ -4,3 +4,4 @@ dist/
 plugins/*/server/
 packages/documents/templates/
 packages/documents/test/golden/
+.claude/worktrees/
