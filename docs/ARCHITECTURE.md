@@ -287,20 +287,21 @@ sequenceDiagram
 
 ## 13. Реестр решений (ADR)
 
-| №                                                              | Решение                                                                             |
-| -------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| [0001](adr/0001-deterministic-core-llm-in-host.md)             | Ядро детерминировано, рассуждает LLM-хост                                           |
-| [0002](adr/0002-monorepo-hexagonal-typescript.md)              | Монорепозиторий pnpm, TypeScript strict, гексагональная архитектура                 |
-| [0003](adr/0003-knowledge-base-as-versioned-files.md)          | База норм — файлы в git + полнотекстовый поиск, без векторной БД                    |
-| [0004](adr/0004-audit-rules-registry.md)                       | Правила аудита — реестр независимых модулей                                         |
-| [0005](adr/0005-distribution-bundled-plugin-and-npm.md)        | Поставка: бандл в плагине + npm-пакет                                               |
-| [0006](adr/0006-security-untrusted-content-no-pd-retention.md) | Безопасность: недоверенный контент, SSRF, без хранения ПДн                          |
-| [0007](adr/0007-license-agpl-and-legal-content-policy.md)      | AGPL-3.0 и политика правового контента                                              |
-| [0008](adr/0008-internal-packages-as-ts-source.md)             | Внутренние пакеты подключаются как исходники TypeScript                             |
-| [0009](adr/0009-latest-versions-policy.md)                     | Политика версий: всегда последние (Node 26, TS 7)                                   |
-| [0010](adr/0010-spa-rendering-audit-html.md)                   | SPA: DOM от браузера хоста (`audit_html`), без браузера в плагине                   |
-| [0011](adr/0011-official-source-actual-pravo.md)               | Источник норм — API актуальных редакций официального портала                        |
-| [0012](adr/0012-secondary-source-consultant.md)                | КонсультантПлюс — вторичный источник для актов без официального электронного текста |
-| [0013](adr/0013-document-templates-strict-mustache.md)         | Шаблоны документов: подмножество Mustache, свой строгий рендерер                    |
-| [0014](adr/0014-official-source-government-ru.md)              | Официальный сайт Правительства РФ — источник ПП № 1119 вместо КонсультантПлюс       |
-| [0015](adr/0015-official-publication-scan-rkn-order-18.md)     | Приказ РКН № 18: текст по скану официального опубликования, акт со сроком действия  |
+| №                                                                      | Решение                                                                             |
+| ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| [0001](adr/0001-deterministic-core-llm-in-host.md)                     | Ядро детерминировано, рассуждает LLM-хост                                           |
+| [0002](adr/0002-monorepo-hexagonal-typescript.md)                      | Монорепозиторий pnpm, TypeScript strict, гексагональная архитектура                 |
+| [0003](adr/0003-knowledge-base-as-versioned-files.md)                  | База норм — файлы в git + полнотекстовый поиск, без векторной БД                    |
+| [0004](adr/0004-audit-rules-registry.md)                               | Правила аудита — реестр независимых модулей                                         |
+| [0005](adr/0005-distribution-bundled-plugin-and-npm.md)                | Поставка: бандл в плагине + npm-пакет                                               |
+| [0006](adr/0006-security-untrusted-content-no-pd-retention.md)         | Безопасность: недоверенный контент, SSRF, без хранения ПДн                          |
+| [0007](adr/0007-license-agpl-and-legal-content-policy.md)              | AGPL-3.0 и политика правового контента                                              |
+| [0008](adr/0008-internal-packages-as-ts-source.md)                     | Внутренние пакеты подключаются как исходники TypeScript                             |
+| [0009](adr/0009-latest-versions-policy.md)                             | Политика версий: всегда последние (Node 26, TS 7)                                   |
+| [0010](adr/0010-spa-rendering-audit-html.md)                           | SPA: DOM от браузера хоста (`audit_html`), без браузера в плагине                   |
+| [0011](adr/0011-official-source-actual-pravo.md)                       | Источник норм — API актуальных редакций официального портала                        |
+| [0012](adr/0012-secondary-source-consultant.md)                        | КонсультантПлюс — вторичный источник для актов без официального электронного текста |
+| [0013](adr/0013-document-templates-strict-mustache.md)                 | Шаблоны документов: подмножество Mustache, свой строгий рендерер                    |
+| [0014](adr/0014-official-source-government-ru.md)                      | Официальный сайт Правительства РФ — источник ПП № 1119 вместо КонсультантПлюс       |
+| [0015](adr/0015-official-publication-scan-rkn-order-18.md)             | Приказ РКН № 18: текст по скану официального опубликования, акт со сроком действия  |
+| [0016](adr/0016-rkn-orders-178-179-harm-assessment-and-destruction.md) | Приказы РКН № 178 и № 179: оценка вреда и подтверждение уничтожения ПДн             |
