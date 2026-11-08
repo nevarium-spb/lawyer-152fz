@@ -79,6 +79,11 @@ export function buildKnowledgeBase(
       continue;
     }
 
+    if (article.validUntil !== act.validUntil) {
+      addIssue(file.path, 'срок действия (validUntil) нормы не совпадает с act.json');
+      continue;
+    }
+
     addNorm(file.path, article);
     if (act.kind === 'decree') continue;
 

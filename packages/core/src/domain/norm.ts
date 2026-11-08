@@ -69,6 +69,8 @@ export const normSchema = z
     sourceUrl: z.url({ protocol: /^https?$/, error: 'Источник — ссылка http(s)' }),
     /** Реквизиты официальной публикации; обязательны для вторичного источника. */
     officialPublication: z.string().trim().min(1).optional(),
+    /** До какой даты (не включая) действует акт, если срок в нём ограничен (приказ РКН № 18 — до 2027-09-01). */
+    validUntil: isoDate('Срок действия').optional(),
     verifiedAt: isoDate('Дата сверки'),
     sha256: z
       .string()

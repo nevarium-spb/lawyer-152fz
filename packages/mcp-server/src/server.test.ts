@@ -108,6 +108,23 @@ describe('get_norm', () => {
     expect(text).not.toContain('КонсультантПлюс');
   });
 
+  it('приказ РКН № 18: источник — скан на портале опубликования, срок действия назван (ADR-0015)', async () => {
+    const result = await call('get_norm', { id: 'rkn-order-18/item-6' });
+    const { norm } = result.structuredContent as {
+      norm: { sourceType: string; validUntil?: string; text: string };
+    };
+    expect(norm.sourceType).toBe('official');
+    expect(norm.validUntil).toBe('2027-09-01');
+    expect(norm.text).toContain('специальные категории персональных данных <1>');
+
+    const text = textOf(result);
+    expect(text).toContain('Источник: официальный портал опубликования');
+    expect(text).toContain('на портале только скан');
+    expect(text).toContain('номер опубликования 0001202104210039');
+    expect(text).toContain('Акт действует до 01.09.2027');
+    expect(text).not.toContain('Правительства РФ');
+  });
+
   it.each([
     ['ст. 18', 'например 152-fz/art-18/part-5'],
     ['152-fz/art-99', 'не найдена в базе'],
@@ -175,7 +192,13 @@ describe('ресурс lawyer://kb/info', () => {
       acts: { id: string; sourceType: string }[];
     };
     expect(info.kbVersion).toMatch(/^kb-\d{4}\.\d{2}\.\d{2}$/);
-    expect(info.acts.map((act) => act.id).sort()).toEqual(['152-fz', 'koap', 'pp-1119', 'pp-687']);
+    expect(info.acts.map((act) => act.id).sort()).toEqual([
+      '152-fz',
+      'koap',
+      'pp-1119',
+      'pp-687',
+      'rkn-order-18',
+    ]);
     expect(info.acts.find((act) => act.id === 'pp-1119')?.sourceType).toBe('official');
     expect(info.normCount).toBeGreaterThan(250);
   });

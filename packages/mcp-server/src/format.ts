@@ -38,16 +38,28 @@ export function formatNorm(norm: Norm): string {
         ]
       : norm.officialPublication === undefined
         ? [`Источник: официальный портал правовой информации — ${norm.sourceUrl}`]
-        : [
-            `Источник: официальный сайт Правительства РФ — ${norm.sourceUrl} (текст на сайте, не официальное опубликование)`,
-            `Официальная публикация: ${norm.officialPublication}`,
-          ];
+        : /(^|\.)government\.ru$/.test(new URL(norm.sourceUrl).hostname)
+          ? [
+              `Источник: официальный сайт Правительства РФ — ${norm.sourceUrl} (текст на сайте, не официальное опубликование)`,
+              `Официальная публикация: ${norm.officialPublication}`,
+            ]
+          : [
+              `Источник: официальный портал опубликования — ${norm.sourceUrl} (на портале только скан; текст в базе набран по скану и сверен с копиями)`,
+              `Официальная публикация: ${norm.officialPublication}`,
+            ];
+  const validity =
+    norm.validUntil === undefined
+      ? []
+      : [
+          `Акт действует до ${norm.validUntil.split('-').reverse().join('.')}: после этой даты применять его нельзя без проверки замены.`,
+        ];
 
   return [
     norm.heading,
     `Идентификатор: ${norm.id}`,
     `Редакция от: ${norm.editionDate} · сверено с источником: ${norm.verifiedAt}`,
     ...source,
+    ...validity,
     '',
     norm.text,
   ].join('\n');
