@@ -7,8 +7,9 @@ name: Release
 # Публикация в npm (T8.1) включается переменной репозитория NPM_PUBLISH=true. Токена нет: доверенная
 # публикация (trusted publishing, OIDC) настроена на пакете @lawyer-152fz/mcp-server для этого файла
 # с правом только `npm stage publish`: версия попадает в очередь, владелец подтверждает её на
-# npmjs.com с 2FA. Provenance из приватного репозитория не подписывается (T8.4). Пока переменной
-# нет, npm-шаги пропускаются.
+# npmjs.com с 2FA. Provenance из приватного репозитория npm отклоняет (E422 на v0.6.0), поэтому в
+# шаге публикации стоит --provenance=false; после перехода в публичный (T8.4) флаг убрать. Пока
+# переменной нет, npm-шаги пропускаются.
 # Порядок: всё необратимое — в конце. Ветку release можно перезаписать, версию в npm — нет.
 # Откат описан в docs/RELEASING.md.
 
@@ -75,7 +76,7 @@ jobs:
 
       - name: Постановка в очередь публикации в npm (доверенная публикация, без токена)
         if: vars.NPM_PUBLISH == 'true'
-        run: npm stage publish ./dist/npm
+        run: npm stage publish ./dist/npm --provenance=false
 
       - name: GitHub Release
         env:
