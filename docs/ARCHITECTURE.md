@@ -302,3 +302,4 @@ sequenceDiagram
 | [0011](adr/0011-official-source-actual-pravo.md)               | Источник норм — API актуальных редакций официального портала                        |
 | [0012](adr/0012-secondary-source-consultant.md)                | КонсультантПлюс — вторичный источник для актов без официального электронного текста |
 | [0013](adr/0013-document-templates-strict-mustache.md)         | Шаблоны документов: подмножество Mustache, свой строгий рендерер                    |
+| [0014](adr/0014-official-source-government-ru.md)              | Официальный сайт Правительства РФ — источник ПП № 1119 вместо КонсультантПлюс       |

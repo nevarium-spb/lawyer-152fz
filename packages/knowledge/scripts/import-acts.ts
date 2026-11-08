@@ -5,7 +5,9 @@
  *   pnpm kb:import 152-fz     — один акт
  *
  * Источники: официальный портал actual.pravo.gov.ru (ADR-0011); для актов, которых там нет, —
- * КонсультантПлюс как вторичный источник (ADR-0012). Скрипт перезаписывает файлы акта целиком:
+ * официальный сайт Правительства government.ru (ADR-0014); КонсультантПлюс как вторичный источник
+ * (ADR-0012) — запасной путь, сейчас ни одним актом не используется.
+ * Скрипт перезаписывает файлы акта целиком:
  * изменения закона видны в git diff и проходят ревью в PR, как изменения кода (ADR-0003).
  */
 import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
@@ -13,6 +15,8 @@ import { join } from 'node:path';
 
 import { createConsultantClient, consultantDocumentUrl } from '../src/consultant/consultant-client';
 import { parseConsultantHtml } from '../src/consultant/consultant-html';
+import { createGovernmentClient, governmentDocumentUrl } from '../src/government/government-client';
+import { parseGovernmentHtml } from '../src/government/government-html';
 import {
   DATA_DIR,
   NORM_FILE_EXTENSION,
@@ -52,6 +56,17 @@ interface OfficialAct extends ActBase {
   readonly onlyArticles?: readonly string[];
 }
 
+interface GovernmentAct extends ActBase {
+  readonly provider: 'government.ru';
+  /** Число из ссылки government.ru/docs/all/<id>/. */
+  readonly documentId: string;
+  /** Дата редакции: у сайта нет API редакций, берётся дата акта (акт не менялся). */
+  readonly editionDate: string;
+  /** Реквизиты печатной публикации — текст на сайте не заменяет официальное опубликование. */
+  readonly officialPublication: string;
+  readonly decree: DecreeLayout;
+}
+
 interface SecondaryAct extends ActBase {
   readonly provider: 'consultant.ru';
   readonly documentId: string;
@@ -63,7 +78,7 @@ interface SecondaryAct extends ActBase {
   readonly decree: DecreeLayout;
 }
 
-const ACTS: readonly (OfficialAct | SecondaryAct)[] = [
+const ACTS: readonly (OfficialAct | GovernmentAct | SecondaryAct)[] = [
   {
     provider: 'actual.pravo.gov.ru',
     id: '152-fz',
@@ -93,15 +108,15 @@ const ACTS: readonly (OfficialAct | SecondaryAct)[] = [
     },
   },
   {
-    // Нет в официальных электронных источниках: не менялось после 2022 г. (actual.pravo.gov.ru),
-    // а в 2012 г. постановления Правительства на publication.pravo.gov.ru не публиковались.
-    provider: 'consultant.ru',
+    // Нет на pravo.gov.ru: не менялось после 2022 г. (actual.pravo.gov.ru), а в 2012 г. постановления
+    // Правительства на publication.pravo.gov.ru не публиковались. Текст — с официального сайта
+    // Правительства (ADR-0014), реквизиты печатной публикации — ниже.
+    provider: 'government.ru',
     id: 'pp-1119',
     kind: 'decree',
     title:
       'Требования к защите персональных данных при их обработке в информационных системах персональных данных (утв. постановлением Правительства РФ от 01.11.2012 № 1119)',
-    documentId: 'LAW_137356',
-    section: '8c86cf6357879e861790a8a7ca8bea4227d56c72',
+    documentId: '84743',
     editionDate: '2012-11-01',
     officialPublication:
       '«Российская газета», 07.11.2012, № 256; Собрание законодательства РФ, 05.11.2012, № 45, ст. 6257',
@@ -114,6 +129,7 @@ const ACTS: readonly (OfficialAct | SecondaryAct)[] = [
 
 const actualPravo = createActualPravoClient();
 const consultant = createConsultantClient();
+const government = createGovernmentClient();
 const today = new Date().toISOString().slice(0, 10);
 const say = (line: string) => process.stdout.write(`${line}\n`);
 
@@ -148,6 +164,24 @@ async function loadOfficial(act: OfficialAct): Promise<Loaded> {
   };
 }
 
+async function loadGovernment(act: GovernmentAct): Promise<Loaded> {
+  const html = await government.documentHtml(act.documentId);
+  if (!html.ok) throw new Error(html.error.message);
+
+  return {
+    paragraphs: parseGovernmentHtml(html.value),
+    editionDate: act.editionDate,
+    caption: `официальный сайт Правительства РФ, редакция от ${act.editionDate}`,
+    source: {
+      type: 'official',
+      provider: 'government.ru',
+      documentId: act.documentId,
+      url: governmentDocumentUrl(act.documentId),
+      officialPublication: act.officialPublication,
+    },
+  };
+}
+
 async function loadSecondary(act: SecondaryAct): Promise<Loaded> {
   const html = await consultant.documentHtml(act.documentId, act.section);
   if (!html.ok) throw new Error(html.error.message);
@@ -166,9 +200,13 @@ async function loadSecondary(act: SecondaryAct): Promise<Loaded> {
   };
 }
 
-async function importAct(act: OfficialAct | SecondaryAct): Promise<void> {
+async function importAct(act: OfficialAct | GovernmentAct | SecondaryAct): Promise<void> {
   const loaded =
-    act.provider === 'consultant.ru' ? await loadSecondary(act) : await loadOfficial(act);
+    act.provider === 'consultant.ru'
+      ? await loadSecondary(act)
+      : act.provider === 'government.ru'
+        ? await loadGovernment(act)
+        : await loadOfficial(act);
 
   const units: ExtractedUnit[] = act.decree
     ? extractDecreeItems(loaded.paragraphs, act.decree.start)
@@ -204,7 +242,7 @@ async function importAct(act: OfficialAct | SecondaryAct): Promise<void> {
       editionDate: loaded.editionDate,
       sourceType: loaded.source.type,
       sourceUrl: loaded.source.url,
-      ...(loaded.source.type === 'secondary' && {
+      ...('officialPublication' in loaded.source && {
         officialPublication: loaded.source.officialPublication,
       }),
       verifiedAt: today,

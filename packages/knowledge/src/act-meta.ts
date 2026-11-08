@@ -18,6 +18,21 @@ const officialSourceSchema = z.object({
   url: officialSourceUrlSchema,
 });
 
+/**
+ * Официальный сайт Правительства РФ — для постановлений, которых нет на pravo.gov.ru (ADR-0014).
+ * Это текст на сайте органа, принявшего акт, а не официальное опубликование: реквизиты печатной
+ * публикации хранятся рядом и обязательны.
+ */
+const governmentSourceSchema = z.object({
+  type: z.literal('official'),
+  provider: z.literal('government.ru'),
+  documentId: z
+    .string()
+    .regex(/^\d+$/, 'documentId — число из ссылки government.ru/docs/all/<id>/'),
+  url: officialSourceUrlSchema,
+  officialPublication: z.string().trim().min(1, 'Укажите реквизиты официальной публикации'),
+});
+
 /** Вторичный источник — для актов, которых нет в официальных электронных источниках (ADR-0012). */
 const secondarySourceSchema = z.object({
   type: z.literal('secondary'),
@@ -34,7 +49,11 @@ export const actMetaSchema = z.object({
   kind: z.enum(ACT_KINDS),
   editionDate: z.iso.date({ error: 'Дата редакции — ГГГГ-ММ-ДД' }),
   retrievedAt: z.iso.date({ error: 'Дата загрузки — ГГГГ-ММ-ДД' }),
-  source: z.discriminatedUnion('type', [officialSourceSchema, secondarySourceSchema]),
+  source: z.discriminatedUnion('provider', [
+    officialSourceSchema,
+    governmentSourceSchema,
+    secondarySourceSchema,
+  ]),
 });
 
 export type ActMeta = z.output<typeof actMetaSchema>;

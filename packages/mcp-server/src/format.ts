@@ -36,7 +36,12 @@ export function formatNorm(norm: Norm): string {
           `Официальная публикация: ${norm.officialPublication ?? '—'}`,
           'При цитировании сообщите пользователю, что текст взят из вторичного источника (ADR-0012).',
         ]
-      : [`Источник: официальный портал правовой информации — ${norm.sourceUrl}`];
+      : norm.officialPublication === undefined
+        ? [`Источник: официальный портал правовой информации — ${norm.sourceUrl}`]
+        : [
+            `Источник: официальный сайт Правительства РФ — ${norm.sourceUrl} (текст на сайте, не официальное опубликование)`,
+            `Официальная публикация: ${norm.officialPublication}`,
+          ];
 
   return [
     norm.heading,

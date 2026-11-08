@@ -100,11 +100,12 @@ describe('get_norm', () => {
     expect(textOf(result)).toContain('Источник: официальный портал правовой информации');
   });
 
-  it('вторичный источник раскрывается прямо в ответе (ADR-0012)', async () => {
+  it('источник с официального сайта Правительства раскрывается прямо в ответе (ADR-0014)', async () => {
     const text = textOf(await call('get_norm', { id: 'pp-1119/item-13' }));
-    expect(text).toContain('⚠ Вторичный источник (КонсультантПлюс)');
-    expect(text).toContain('«Российская газета», 07.11.2012, № 256');
-    expect(text).toContain('сообщите пользователю');
+    expect(text).toContain('Источник: официальный сайт Правительства РФ — https://government.ru/');
+    expect(text).toContain('не официальное опубликование');
+    expect(text).toContain('Официальная публикация: «Российская газета», 07.11.2012, № 256');
+    expect(text).not.toContain('КонсультантПлюс');
   });
 
   it.each([
@@ -175,7 +176,7 @@ describe('ресурс lawyer://kb/info', () => {
     };
     expect(info.kbVersion).toMatch(/^kb-\d{4}\.\d{2}\.\d{2}$/);
     expect(info.acts.map((act) => act.id).sort()).toEqual(['152-fz', 'koap', 'pp-1119', 'pp-687']);
-    expect(info.acts.find((act) => act.id === 'pp-1119')?.sourceType).toBe('secondary');
+    expect(info.acts.find((act) => act.id === 'pp-1119')?.sourceType).toBe('official');
     expect(info.normCount).toBeGreaterThan(250);
   });
 });
