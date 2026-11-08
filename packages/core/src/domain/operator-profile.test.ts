@@ -211,6 +211,9 @@ describe('разделы профиля для отдельных докумен
       'mediaRegister',
       'protectionAssessment',
       'accessList',
+      'harmAssessment',
+      'destructionAct',
+      'destructionProcedure',
       'incident',
       'crossBorder',
     ]);

@@ -962,6 +962,9 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                     "mediaRegister",
                     "protectionAssessment",
                     "accessList",
+                    "harmAssessment",
+                    "destructionAct",
+                    "destructionProcedure",
                     "incident",
                     "crossBorder",
                   ],
@@ -1138,6 +1141,220 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                   "type": "string",
                 },
               },
+              "type": "object",
+            },
+            "destructionAct": {
+              "description": "Раздел destructionAct: акт об уничтожении ПДн (приказ РКН № 179). Нужен хотя бы один носитель или одна система. Всё называет пользователь: не придумывай",
+              "properties": {
+                "dataCategories": {
+                  "description": "Категории уничтоженных персональных данных",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+                "destroyers": {
+                  "items": {
+                    "properties": {
+                      "fullName": {
+                        "description": "ФИО лица, уничтожившего данные",
+                        "type": "string",
+                      },
+                      "position": {
+                        "description": "Должность",
+                        "type": "string",
+                      },
+                    },
+                    "type": "object",
+                  },
+                  "type": "array",
+                },
+                "destructionDate": {
+                  "description": "Дата уничтожения персональных данных, ГГГГ-ММ-ДД",
+                  "type": "string",
+                },
+                "media": {
+                  "description": "Носители при обработке без средств автоматизации",
+                  "items": {
+                    "properties": {
+                      "name": {
+                        "description": "Наименование уничтоженного материального носителя",
+                        "type": "string",
+                      },
+                      "sheets": {
+                        "description": "Количество листов",
+                        "type": "number",
+                      },
+                    },
+                    "required": [
+                      "sheets",
+                    ],
+                    "type": "object",
+                  },
+                  "type": "array",
+                },
+                "method": {
+                  "description": "Способ уничтожения",
+                  "type": "string",
+                },
+                "processors": {
+                  "description": "Лица, обрабатывавшие эти данные по поручению оператора; не передавай, если обработка не поручалась (подтверди у пользователя)",
+                  "items": {
+                    "properties": {
+                      "address": {
+                        "description": "Адрес",
+                        "type": "string",
+                      },
+                      "name": {
+                        "description": "Наименование или ФИО",
+                        "type": "string",
+                      },
+                    },
+                    "type": "object",
+                  },
+                  "type": "array",
+                },
+                "reason": {
+                  "description": "Причина уничтожения",
+                  "type": "string",
+                },
+                "subjects": {
+                  "description": "ФИО субъектов или иная информация, относящаяся к определённым лицам, чьи данные уничтожены",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+                "systems": {
+                  "description": "Информационные системы, из которых уничтожены данные (с автоматизацией)",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+              },
+              "required": [
+                "destroyers",
+              ],
+              "type": "object",
+            },
+            "destructionProcedure": {
+              "description": "Раздел destructionProcedure: порядок уничтожения ПДн (ст. 21 Закона, приказ РКН № 179). Исполнителей и способы называет пользователь: не придумывай",
+              "properties": {
+                "date": {
+                  "description": "Дата утверждения, ГГГГ-ММ-ДД",
+                  "type": "string",
+                },
+                "executors": {
+                  "description": "Должности работников, которые уничтожают данные и подписывают акт",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+                "methods": {
+                  "items": {
+                    "properties": {
+                      "medium": {
+                        "description": "Носитель или информационная система",
+                        "type": "string",
+                      },
+                      "method": {
+                        "description": "Способ уничтожения",
+                        "type": "string",
+                      },
+                    },
+                    "type": "object",
+                  },
+                  "type": "array",
+                },
+                "number": {
+                  "description": "Номер документа, которым утверждается порядок",
+                  "type": "string",
+                },
+                "signatory": {
+                  "properties": {
+                    "fullName": {
+                      "description": "ФИО руководителя оператора",
+                      "type": "string",
+                    },
+                    "position": {
+                      "description": "Должность",
+                      "type": "string",
+                    },
+                  },
+                  "type": "object",
+                },
+              },
+              "required": [
+                "signatory",
+                "methods",
+              ],
+              "type": "object",
+            },
+            "harmAssessment": {
+              "description": "Раздел harmAssessment: акт оценки вреда субъектам ПДн (приказ РКН № 178). Случаи и лиц называет пользователь: не придумывай",
+              "properties": {
+                "assessmentDate": {
+                  "description": "Дата проведения оценки вреда, ГГГГ-ММ-ДД",
+                  "type": "string",
+                },
+                "assessors": {
+                  "items": {
+                    "properties": {
+                      "fullName": {
+                        "description": "ФИО лица, проводившего оценку",
+                        "type": "string",
+                      },
+                      "position": {
+                        "description": "Должность",
+                        "type": "string",
+                      },
+                    },
+                    "type": "object",
+                  },
+                  "type": "array",
+                },
+                "cases": {
+                  "description": "Случаи пп. 2.1–2.3 п. 2 приказа № 178, которые есть у оператора, по ответам пользователя; [] — ни одного. Степень вреда считает шаблон, не называй её сам. Случаи: biometric — обработка биометрических персональных данных, которые используются оператором для установления личности субъекта (кроме случаев, установленных федеральными законами); special-categories — обработка специальных категорий персональных данных (расовая и национальная принадлежность, политические взгляды, религиозные или философские убеждения, состояние здоровья, интимная жизнь, сведения о судимости), кроме случаев, установленных федеральными законами; minors-contract — обработка персональных данных несовершеннолетних для исполнения договора с их участием или для заключения такого договора по их инициативе в случаях, не предусмотренных законодательством Российской Федерации; depersonalization — обезличивание персональных данных, в том числе для оценочных (скоринговых) исследований, прогнозирования поведения потребителей и иных исследований, не предусмотренных пунктом 9 части 1 статьи 6 Закона; foreign-processor — поручение иностранному лицу (иностранным лицам) обработки персональных данных граждан Российской Федерации; foreign-database — сбор персональных данных с использованием баз данных, находящихся за пределами Российской Федерации; public-distribution — распространение персональных данных на официальном сайте оператора в сети «Интернет» либо предоставление их неограниченному кругу лиц, кроме случаев, установленных федеральными законами; additional-purposes — обработка персональных данных в дополнительных целях, отличных от первоначальной цели сбора; direct-marketing — продвижение товаров, работ, услуг прямыми контактами с потенциальным потребителем с использованием баз персональных данных, владельцем которых является иной оператор; anonymous-site-consent — получение согласия на обработку персональных данных через функционал официального сайта, не предполагающий дальнейшей идентификации и (или) аутентификации субъекта; incompatible-purposes-consent — получение согласия, содержащего положения о праве обрабатывать персональные данные определённому и (или) неопределённому кругу лиц в целях, несовместимых между собой; public-sources — ведение общедоступных источников персональных данных, сформированных в соответствии со статьёй 8 Закона; non-staff-responsible — назначение ответственным за обработку персональных данных лица, не являющегося штатным сотрудником оператора",
+                  "items": {
+                    "enum": [
+                      "biometric",
+                      "special-categories",
+                      "minors-contract",
+                      "depersonalization",
+                      "foreign-processor",
+                      "foreign-database",
+                      "public-distribution",
+                      "additional-purposes",
+                      "direct-marketing",
+                      "anonymous-site-consent",
+                      "incompatible-purposes-consent",
+                      "public-sources",
+                      "non-staff-responsible",
+                    ],
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+                "conductedBy": {
+                  "description": "Кто проводил оценку (п. 1 приказа № 178): ответственный за организацию обработки или комиссия оператора",
+                  "enum": [
+                    "responsible-person",
+                    "commission",
+                  ],
+                  "type": "string",
+                },
+                "date": {
+                  "description": "Дата издания акта оценки вреда, ГГГГ-ММ-ДД",
+                  "type": "string",
+                },
+              },
+              "required": [
+                "conductedBy",
+                "assessors",
+                "cases",
+              ],
               "type": "object",
             },
             "implementedMeasures": {

@@ -27,6 +27,9 @@ describe('шаблоны документов (T6.3)', () => {
       'consent-processing-web',
       'consent-processing',
       'cross-border-notification',
+      'destruction-act',
+      'destruction-procedure',
+      'harm-assessment',
       'incident-notification',
       'media-register',
       'privacy-policy',
@@ -474,6 +477,166 @@ describe('шаблоны документов (T6.3)', () => {
         accessList: { ...FULL_REFERENCE_PROFILE.accessList, entries: [] },
       });
       expect(result.ok).toBe(false);
+    });
+  });
+
+  describe('акт оценки вреда (приказ РКН № 178)', () => {
+    const base = FULL_REFERENCE_PROFILE.harmAssessment;
+    const render = (override: Record<string, unknown>) => {
+      const result = generate.render('harm-assessment', {
+        ...FULL_REFERENCE_PROFILE,
+        harmAssessment: { ...base, ...override },
+      });
+      return result.ok ? result.value.markdown : '';
+    };
+
+    it('при разных степенях применяет более высокую и говорит об этом (п. 6)', () => {
+      const markdown = render({ cases: ['public-sources', 'additional-purposes'] });
+      expect(markdown).toContain('применяется более высокая степень вреда (п. 6 Требований)');
+      expect(markdown).toContain('в случае нарушения Закона: средняя**');
+      expect(markdown).not.toContain('Степень вреда не определена');
+    });
+
+    it('высокая степень — по подпункту 2.1, низкая — по 2.3, без оговорки о разных степенях', () => {
+      const high = render({ cases: ['foreign-database'] });
+      expect(high).toContain('Закона: высокая** (подпункт 2.1 пункта 2 Требований)');
+      expect(high).not.toContain('применяется более высокая степень вреда (п. 6 Требований)');
+      const low = render({ cases: ['non-staff-responsible'] });
+      expect(low).toContain('Закона: низкая** (подпункт 2.3 пункта 2 Требований)');
+    });
+
+    it('без отмеченных случаев степень не определена, а не выбрана', () => {
+      const markdown = render({ cases: [] });
+      expect(markdown).toContain('**Степень вреда не определена.**');
+      expect(markdown).not.toContain('Закона: высокая');
+      expect(markdown).not.toContain('Закона: средняя');
+      expect(markdown).not.toContain('Закона: низкая');
+    });
+
+    it('называет, кто проводил оценку, и оставляет подпись каждого (п. 4 «г»)', () => {
+      expect(render({ conductedBy: 'commission' })).toContain('провела комиссия');
+      const markdown = render({ conductedBy: 'responsible-person' });
+      expect(markdown).toContain('провёл ответственный за организацию обработки');
+      expect(markdown).toContain('＿＿＿＿＿＿＿＿＿＿ / Петрова Анна Сергеевна /');
+      expect(markdown).toContain('＿＿＿＿＿＿＿＿＿＿ / Громов Илья Андреевич /');
+    });
+
+    it('без лиц, проводивших оценку, акт не собирается молча', () => {
+      const result = generate.render('harm-assessment', {
+        ...FULL_REFERENCE_PROFILE,
+        harmAssessment: { ...base, assessors: [] },
+      });
+      expect(result.ok).toBe(false);
+    });
+  });
+
+  describe('акт об уничтожении (приказ РКН № 179)', () => {
+    const base = FULL_REFERENCE_PROFILE.destructionAct;
+    const render = (override: Record<string, unknown>) => {
+      const result = generate.render('destruction-act', {
+        ...FULL_REFERENCE_PROFILE,
+        destructionAct: { ...base, ...override },
+      });
+      return result.ok ? result.value.markdown : '';
+    };
+
+    it('содержит все десять сведений п. 3 и подпись уничтожившего', () => {
+      const markdown = render({});
+      for (const required of [
+        'ООО «Ромашка», ИНН 7707083893', // а
+        'ООО «Хостинг», адрес: 190000', // б
+        '- Иванов Иван Иванович', // в
+        '＿＿＿＿＿＿＿＿＿＿ / Громов Илья Андреевич /', // г
+        'фамилия, имя, отчество; номер телефона', // д
+        '1. анкета клиента, листов: 3.', // е
+        '- CRM', // ж
+        'Способ уничтожения: измельчение', // з
+        'Причина уничтожения: достижение цели обработки', // и
+        'Дата уничтожения персональных данных: 05.11.2026', // к
+      ]) {
+        expect(markdown).toContain(required);
+      }
+    });
+
+    it('если данные были в системах, требует выгрузку из журнала (пп. 2, 5, 6)', () => {
+      const markdown = render({});
+      expect(markdown).toContain('## Выгрузка из журнала регистрации событий');
+      expect(markdown).toContain('(пп. 2 и 7 Требований)');
+      expect(markdown).toContain('недостающие сведения вносятся в акт (п. 6 Требований)');
+    });
+
+    it('только бумажные носители — один акт, без выгрузки (п. 1)', () => {
+      const markdown = render({ systems: undefined });
+      expect(markdown).not.toContain('## Выгрузка из журнала');
+      expect(markdown).not.toContain('## Информационные системы');
+      expect(markdown).toContain(
+        'документ, подтверждающий уничтожение, — один акт (п. 1 Требований)',
+      );
+    });
+
+    it('без поручения обработки говорит об этом прямо, а срок хранения — 3 года (п. 8)', () => {
+      const markdown = render({ processors: undefined });
+      expect(markdown).toContain('не поручалась');
+      expect(markdown).toContain('в течение 3 лет с момента уничтожения персональных данных');
+    });
+
+    it('если не названо ни носителей, ни систем, акт не собирается молча', () => {
+      const result = generate.render('destruction-act', {
+        ...FULL_REFERENCE_PROFILE,
+        destructionAct: { ...base, media: undefined, systems: undefined },
+      });
+      expect(result.ok).toBe(false);
+    });
+  });
+
+  describe('порядок уничтожения (ст. 21 Закона, приказ РКН № 179)', () => {
+    const render = (methods: 'automated' | 'non-automated' | 'mixed') => {
+      const result = generate.render('destruction-procedure', {
+        ...FULL_REFERENCE_PROFILE,
+        purposes: [{ ...FULL_REFERENCE_PROFILE.purposes[0], methods }],
+      });
+      return result.ok ? result.value.markdown : '';
+    };
+
+    it('называет сроки из частей 3–6 статьи 21', () => {
+      const markdown = render('automated');
+      for (const fragment of [
+        'не превышающий тридцати дней с даты достижения цели',
+        'не превышающий тридцати дней с даты поступления отзыва',
+        'не превышающий десяти рабочих дней с даты выявления неправомерной обработки',
+        'не превышающий трёх рабочих дней',
+        'не более чем на пять рабочих дней',
+        'в срок не более чем шесть месяцев',
+      ]) {
+        expect(markdown).toContain(fragment);
+      }
+    });
+
+    it('без средств автоматизации — только акт (п. 1), выгрузки нет', () => {
+      const markdown = render('non-automated');
+      expect(markdown).toContain(
+        'уничтожение подтверждает акт об уничтожении персональных данных (п. 1 Требований)',
+      );
+      expect(markdown).not.toContain('выгрузка из журнала');
+      expect(markdown).not.toContain('5.4. Выгрузка');
+    });
+
+    it('с автоматизацией — акт и выгрузка (п. 2), содержание выгрузки по п. 5', () => {
+      const markdown = render('automated');
+      expect(markdown).toContain('(п. 2 Требований)');
+      expect(markdown).toContain('5.4. Выгрузка из журнала содержит (п. 5 Требований)');
+    });
+
+    it('смешанная обработка — акт и выгрузка по п. 7', () => {
+      const markdown = render('mixed');
+      expect(markdown).toContain('(п. 7 Требований)');
+      expect(markdown).toContain('5.4. Выгрузка');
+    });
+
+    it('исполнители и способы — только те, что назвал оператор', () => {
+      const markdown = render('mixed');
+      expect(markdown).toContain('- начальник отдела информационных технологий.');
+      expect(markdown).toContain('| бумажные носители | измельчение в шредере |');
     });
   });
 

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { HARM_CASE_IDS } from './harm-assessment';
 import { isValidInn, isValidOgrn } from './identifiers';
 import { SYSTEM_DATA_KINDS, THREAT_TYPES } from './protection-level';
 
@@ -236,8 +237,8 @@ const mediaRegisterEntrySchema = z.object(
 
 /**
  * Определение уровня защищённости ПДн в информационных системах (пп. 5–12 ПП РФ № 1119). Тип угроз
- * оператор определяет сам (п. 7): акты ФСТЭК/ФСБ и оценки вреда в базе нет, поэтому его называет
- * пользователь, а уровень считает код по таблице норм.
+ * оператор определяет сам (п. 7): актов ФСТЭК/ФСБ в базе нет, поэтому его называет пользователь,
+ * а уровень считает код по таблице норм.
  */
 const protectionSystemSchema = z.object(
   {
@@ -295,6 +296,122 @@ const accessListSchema = z.object(
       .min(1, 'Укажите хотя бы одну должность с доступом к данным'),
   },
   { error: 'Опишите перечень лиц, допущенных к персональным данным' },
+);
+
+/** Работник, который подписывает документ или выполняет действие: ФИО и должность. */
+const staffMemberSchema = (who: string) =>
+  z.object(
+    {
+      fullName: requiredText(`Укажите ФИО: ${who}`),
+      position: requiredText(`Укажите должность: ${who}`),
+    },
+    { error: `Укажите ФИО и должность: ${who}` },
+  );
+
+/**
+ * Акт оценки вреда субъектам ПДн (пп. 1–6 Требований, приказ Роскомнадзора № 178). Какие случаи
+ * из пп. 2.1–2.3 имеют место у оператора, называет только пользователь; степень вреда считает код.
+ */
+const harmAssessmentSchema = z.object(
+  {
+    date: isoDate('Укажите дату издания акта оценки вреда (п. 4 «б»)'),
+    assessmentDate: isoDate('Укажите дату проведения оценки вреда (п. 4 «в»)'),
+    conductedBy: z.enum(['responsible-person', 'commission'], {
+      error:
+        'Укажите, кто проводил оценку (п. 1): responsible-person — ответственный за организацию обработки ПДн, commission — комиссия, образованная оператором',
+    }),
+    assessors: z
+      .array(staffMemberSchema('проводившего оценку вреда (п. 4 «г»)'), {
+        error: 'Укажите лиц, проводивших оценку вреда',
+      })
+      .min(1, 'Укажите хотя бы одно лицо, проводившее оценку вреда (п. 4 «г»)'),
+    cases: z.array(z.enum(HARM_CASE_IDS), {
+      error:
+        'Укажите случаи из пп. 2.1–2.3 п. 2 Требований, которые есть у оператора, по ответам пользователя; [] — если ни один не подходит. Не отмечайте случай, которого пользователь не подтвердил: от него зависит степень вреда',
+    }),
+  },
+  { error: 'Опишите оценку вреда: даты, лиц, проводивших оценку, и случаи по пп. 2.1–2.3' },
+);
+
+/**
+ * Акт об уничтожении ПДн (пп. 1–8 Требований, приказ Роскомнадзора № 179). Субъектов, носители,
+ * системы, способ и причину называет только пользователь — шаблон их не придумывает.
+ */
+const destructionActSchema = z
+  .object(
+    {
+      destructionDate: isoDate('Укажите дату уничтожения персональных данных (п. 3 «к»)'),
+      processors: z
+        .array(
+          z.object({
+            name: requiredText(
+              'Укажите наименование или ФИО лица, обрабатывавшего данные по поручению (п. 3 «б»)',
+            ),
+            address: requiredText('Укажите адрес этого лица (п. 3 «б»)'),
+          }),
+        )
+        .optional(),
+      subjects: nonEmptyList(
+        'Укажите ФИО субъектов или иную информацию, относящуюся к определённым лицам, чьи данные уничтожены (п. 3 «в»)',
+      ),
+      destroyers: z
+        .array(staffMemberSchema('лица, уничтожившего персональные данные (п. 3 «г»)'), {
+          error: 'Укажите лиц, уничтоживших персональные данные',
+        })
+        .min(1, 'Укажите хотя бы одно лицо, уничтожившее данные (п. 3 «г»)'),
+      dataCategories: nonEmptyList('Укажите категории уничтоженных персональных данных (п. 3 «д»)'),
+      media: z
+        .array(
+          z.object({
+            name: requiredText('Укажите наименование уничтоженного материального носителя'),
+            sheets: z
+              .number({ error: 'Укажите количество листов носителя' })
+              .int('Количество листов — целое число')
+              .positive('Количество листов должно быть больше нуля'),
+          }),
+        )
+        .optional(),
+      systems: z.array(requiredText('Укажите наименование информационной системы')).optional(),
+      method: requiredText('Укажите способ уничтожения персональных данных (п. 3 «з»)'),
+      reason: requiredText('Укажите причину уничтожения персональных данных (п. 3 «и»)'),
+    },
+    { error: 'Опишите уничтожение персональных данных' },
+  )
+  .refine(
+    (act) => (act.media?.length ?? 0) + (act.systems?.length ?? 0) > 0,
+    'Укажите, что уничтожено: носители с числом листов (обработка без средств автоматизации, п. 3 «е») и (или) информационные системы (обработка с их использованием, п. 3 «ж»)',
+  );
+
+/**
+ * Порядок уничтожения ПДн — локальный акт оператора. Сроки и состав подтверждающих документов
+ * берутся из ст. 21 Закона и приказа № 179; способы уничтожения и исполнителей называет оператор.
+ */
+const destructionProcedureSchema = z.object(
+  {
+    number: requiredText('Укажите номер документа, которым утверждается порядок'),
+    date: isoDate('Укажите дату утверждения порядка'),
+    signatory: staffMemberSchema('руководителя оператора, утверждающего порядок'),
+    executors: nonEmptyList(
+      'Укажите должности работников, которые уничтожают персональные данные и подписывают акт',
+    ),
+    methods: z
+      .array(
+        z.object(
+          {
+            medium: requiredText(
+              'Укажите, что уничтожается: вид материального носителя или информационная система',
+            ),
+            method: requiredText(
+              'Укажите способ уничтожения, например измельчение, сжигание, удаление средствами системы с последующей перезаписью',
+            ),
+          },
+          { error: 'Опишите способ уничтожения для носителя или системы' },
+        ),
+        { error: 'Опишите способы уничтожения' },
+      )
+      .min(1, 'Опишите хотя бы один способ уничтожения'),
+  },
+  { error: 'Опишите порядок уничтожения персональных данных' },
 );
 
 /** Сведения, которые нужны не каждому документу, — шаблон перечисляет нужные в `requires`. */
@@ -366,6 +483,18 @@ const sectionShapes = {
   accessList: {
     accessList: accessListSchema,
   },
+  /** Акт оценки вреда субъектам ПДн (приказ Роскомнадзора № 178). */
+  harmAssessment: {
+    harmAssessment: harmAssessmentSchema,
+  },
+  /** Акт об уничтожении ПДн (приказ Роскомнадзора № 179). */
+  destructionAct: {
+    destructionAct: destructionActSchema,
+  },
+  /** Порядок уничтожения ПДн (ст. 21 Закона, приказ Роскомнадзора № 179). */
+  destructionProcedure: {
+    destructionProcedure: destructionProcedureSchema,
+  },
   /** Уведомления об инциденте в Роскомнадзор (ч. 3.1 ст. 21). */
   incident: {
     incident: incidentSchema,
@@ -434,6 +563,9 @@ export const operatorProfileSchema = z.object({
   mediaRegister: sectionShapes.mediaRegister.mediaRegister.optional(),
   protectionAssessment: sectionShapes.protectionAssessment.protectionAssessment.optional(),
   accessList: accessListSchema.optional(),
+  harmAssessment: harmAssessmentSchema.optional(),
+  destructionAct: destructionActSchema.optional(),
+  destructionProcedure: destructionProcedureSchema.optional(),
 });
 
 export type OperatorProfile = z.output<typeof operatorProfileSchema>;
