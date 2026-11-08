@@ -3,10 +3,10 @@ id: pp-1119/item-7
 act: pp-1119
 heading: Требования к защите ПДн в ИСПДн (ПП РФ № 1119), пункт 7
 editionDate: 2012-11-01
-sourceType: secondary
-sourceUrl: https://www.consultant.ru/document/cons_doc_LAW_137356/8c86cf6357879e861790a8a7ca8bea4227d56c72/
+sourceType: official
+sourceUrl: https://government.ru/docs/all/84743/
 officialPublication: «Российская газета», 07.11.2012, № 256; Собрание законодательства РФ, 05.11.2012, № 45, ст. 6257
-verifiedAt: 2026-10-29
+verifiedAt: 2026-11-08
 sha256: fa7465516d75d15b19b683c5d1c4eba021ff3c867f48c57bc69cfd633609c06c
 ---
 

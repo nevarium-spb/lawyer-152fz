@@ -85,6 +85,14 @@ export function createSourceFreshnessChecker(
       );
     }
 
+    if (norm.officialPublication !== undefined) {
+      return report(
+        'unknown',
+        `Текст с официального сайта Правительства РФ (government.ru): у него нет API редакций, автоматически проверить нельзя. ` +
+          `Текст сверен ${ruDate(norm.verifiedAt)}; официальная публикация — ${norm.officialPublication}.`,
+      );
+    }
+
     const docHash = docHashOf(norm.sourceUrl);
     if (!docHash) {
       return report(
