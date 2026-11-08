@@ -4,9 +4,11 @@ name: Release
 # публикуется в ветку `release`, откуда его ставит маркетплейс (source: git-subdir, ref: release).
 # В main собранный бандл не коммитится.
 #
-# Публикация в npm (T8.1) включается переменной репозитория NPM_PUBLISH=true и секретом NPM_TOKEN —
-# их создаёт владелец после T8.2 (организация @lawyer-152fz) и T8.4 (публичный репозиторий:
-# provenance не подписывается из приватного). Пока переменной нет, npm-шаги пропускаются.
+# Публикация в npm (T8.1) включается переменной репозитория NPM_PUBLISH=true. Токена нет: доверенная
+# публикация (trusted publishing, OIDC) настроена на пакете @lawyer-152fz/mcp-server для этого файла
+# с правом только `npm stage publish`: версия попадает в очередь, владелец подтверждает её на
+# npmjs.com с 2FA. Provenance из приватного репозитория не подписывается (T8.4). Пока переменной
+# нет, npm-шаги пропускаются.
 # Порядок: всё необратимое — в конце. Ветку release можно перезаписать, версию в npm — нет.
 # Откат описан в docs/RELEASING.md.
 
@@ -71,11 +73,9 @@ jobs:
           git tag --force "plugin-${GITHUB_REF_NAME}"
           git push --force origin "plugin-${GITHUB_REF_NAME}"
 
-      - name: Публикация в npm (с provenance)
+      - name: Постановка в очередь публикации в npm (доверенная публикация, без токена)
         if: vars.NPM_PUBLISH == 'true'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish ./dist/npm
+        run: npm stage publish ./dist/npm
 
       - name: GitHub Release
         env:
