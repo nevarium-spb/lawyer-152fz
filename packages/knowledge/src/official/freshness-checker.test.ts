@@ -152,6 +152,43 @@ describe('проверка актуальности по actual.pravo.gov.ru (T6
     expect(report.detail).toContain('«Российская газета», 07.11.2012, № 256');
   });
 
+  describe('акт со сроком действия — приказ Роскомнадзора № 18 (ADR-0015)', () => {
+    const orderNorm = () =>
+      makeNorm({
+        id: 'rkn-order-18/item-6',
+        act: 'rkn-order-18',
+        editionDate: '2021-02-24',
+        validUntil: '2027-09-01',
+        sourceUrl: 'http://publication.pravo.gov.ru/Document/View/0001202104210039',
+        officialPublication: 'publication.pravo.gov.ru, номер опубликования 0001202104210039',
+      });
+
+    it('срок не истёк → unknown без запроса к порталу, срок и скан названы', async () => {
+      const { client, calls } = stubClient(() => Promise.resolve(ok(PORTAL)));
+      const report = await createSourceFreshnessChecker({
+        client,
+        clock: movableClock('2027-08-31T10:00:00Z').clock,
+      }).check(orderNorm());
+
+      expect(calls).toEqual([]);
+      expect(report.status).toBe('unknown');
+      expect(report.detail).toContain('только сканом');
+      expect(report.detail).toContain('Акт действует до 01.09.2027');
+    });
+
+    it('срок истёк (01.09.2027) → stale: норму нельзя применять без проверки замены', async () => {
+      const { client, calls } = stubClient(() => Promise.resolve(ok(PORTAL)));
+      const report = await createSourceFreshnessChecker({
+        client,
+        clock: movableClock('2027-09-01T10:00:00Z').clock,
+      }).check(orderNorm());
+
+      expect(calls).toEqual([]);
+      expect(report.status).toBe('stale');
+      expect(report.detail).toContain('Срок действия акта истёк 01.09.2027');
+    });
+  });
+
   it('ссылка без идентификатора документа → unknown без запроса к порталу', async () => {
     const { client, calls } = stubClient(() => Promise.resolve(ok(PORTAL)));
     const report = await createSourceFreshnessChecker({

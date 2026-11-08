@@ -31,6 +31,9 @@ const docHashOf = (sourceUrl: string): string | undefined => DOC_HASH_PATTERN.ex
 
 const ruDate = (iso: string): string => iso.split('-').reverse().join('.');
 
+const isGovernmentSite = (url: string): boolean =>
+  /(^|\.)government\.ru$/.test(new URL(url).hostname);
+
 /**
  * Сверка редакции нормы с API актуальных редакций официального портала (T6.6, ADR-0011).
  * Сравнивается редакция акта целиком: портал не сообщает, какие статьи изменились.
@@ -85,11 +88,27 @@ export function createSourceFreshnessChecker(
       );
     }
 
+    if (
+      norm.validUntil !== undefined &&
+      deps.clock.now().toISOString().slice(0, 10) >= norm.validUntil
+    ) {
+      return report(
+        'stale',
+        `Срок действия акта истёк ${ruDate(norm.validUntil)}: нормы из него применять нельзя без проверки. ` +
+          `Проверьте, не принят ли новый акт взамен: ${norm.sourceUrl}`,
+      );
+    }
+
     if (norm.officialPublication !== undefined) {
+      const origin = isGovernmentSite(norm.sourceUrl)
+        ? 'Текст с официального сайта Правительства РФ (government.ru): у него нет API редакций'
+        : 'Акт опубликован на publication.pravo.gov.ru только сканом, текст в базе набран по скану: API редакций нет';
+      const validity =
+        norm.validUntil === undefined ? '' : ` Акт действует до ${ruDate(norm.validUntil)}.`;
       return report(
         'unknown',
-        `Текст с официального сайта Правительства РФ (government.ru): у него нет API редакций, автоматически проверить нельзя. ` +
-          `Текст сверен ${ruDate(norm.verifiedAt)}; официальная публикация — ${norm.officialPublication}.`,
+        `${origin}, автоматически проверить нельзя. ` +
+          `Текст сверен ${ruDate(norm.verifiedAt)}; официальная публикация — ${norm.officialPublication}.${validity}`,
       );
     }
 

@@ -25,6 +25,8 @@ const normShape = z.object({
   sourceType: z.enum(['official', 'secondary']),
   sourceUrl: z.string(),
   officialPublication: z.string().optional(),
+  /** Срок действия акта (ГГГГ-ММ-ДД), если он ограничен: с этой даты акт не действует. */
+  validUntil: z.string().optional(),
   verifiedAt: z.string(),
   /** Хеш текста: позволяет убедиться, что цитата совпадает с базой. */
   sha256: z.string(),
@@ -63,7 +65,7 @@ export function registerNormTools(server: McpServer, lookup: LookupNorms, kbVers
         acts: z
           .array(z.string())
           .optional()
-          .describe('Ограничить актами: 152-fz, koap, pp-687, pp-1119'),
+          .describe('Ограничить актами: 152-fz, koap, pp-687, pp-1119, rkn-order-18'),
         limit: z.number().optional().describe('Сколько результатов вернуть: 1–20, по умолчанию 5'),
       },
       outputSchema: { kbVersion: z.string(), hits: z.array(searchHitShape) },

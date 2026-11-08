@@ -17,7 +17,7 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
       "$schema": "http://json-schema.org/draft-07/schema#",
       "properties": {
         "acts": {
-          "description": "Ограничить актами: 152-fz, koap, pp-687, pp-1119",
+          "description": "Ограничить актами: 152-fz, koap, pp-687, pp-1119, rkn-order-18",
           "items": {
             "type": "string",
           },
@@ -146,6 +146,9 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
               "type": "string",
             },
             "text": {
+              "type": "string",
+            },
+            "validUntil": {
               "type": "string",
             },
             "verifiedAt": {

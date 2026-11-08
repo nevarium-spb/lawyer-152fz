@@ -71,6 +71,24 @@ describe('buildKnowledgeBase', () => {
     expect(result.value.kbVersion).toBe('kb-2026.10.25');
   });
 
+  it('срок действия нормы обязан совпадать со сроком в act.json', () => {
+    const act = actFile('pp-1', 'decree');
+    const limited = {
+      path: act.path,
+      content: JSON.stringify({ ...JSON.parse(act.content), validUntil: '2027-09-01' }),
+    };
+
+    const same = buildKnowledgeBase([
+      limited,
+      normFile('pp-1', 'item-7', '7. Пункт.', { validUntil: '2027-09-01' }),
+    ]);
+    expect(same.ok && same.value.norms[0]?.validUntil).toBe('2027-09-01');
+
+    const missing = buildKnowledgeBase([limited, normFile('pp-1', 'item-7', '7. Пункт.')]);
+    expect(missing.ok).toBe(false);
+    expect(!missing.ok && missing.error.issues[0]?.message).toContain('validUntil');
+  });
+
   it('пункты постановления на части не делятся', () => {
     const result = buildKnowledgeBase([
       actFile('pp-1', 'decree'),

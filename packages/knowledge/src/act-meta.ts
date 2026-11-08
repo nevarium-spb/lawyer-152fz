@@ -33,6 +33,19 @@ const governmentSourceSchema = z.object({
   officialPublication: z.string().trim().min(1, 'Укажите реквизиты официальной публикации'),
 });
 
+/**
+ * Официальное опубликование на publication.pravo.gov.ru — для актов, опубликованных там только
+ * сканом без текстового слоя (приказ Роскомнадзора № 18). Текст набран по скану и сверен с двумя
+ * независимыми копиями; импортёра у такого акта нет (ADR-0015).
+ */
+const publicationSourceSchema = z.object({
+  type: z.literal('official'),
+  provider: z.literal('publication.pravo.gov.ru'),
+  documentId: z.string().regex(/^\d{16}$/, 'documentId — номер опубликования из 16 цифр'),
+  url: officialSourceUrlSchema,
+  officialPublication: z.string().trim().min(1, 'Укажите реквизиты официальной публикации'),
+});
+
 /** Вторичный источник — для актов, которых нет в официальных электронных источниках (ADR-0012). */
 const secondarySourceSchema = z.object({
   type: z.literal('secondary'),
@@ -48,10 +61,13 @@ export const actMetaSchema = z.object({
   title: z.string().trim().min(1, 'Укажите полное название акта'),
   kind: z.enum(ACT_KINDS),
   editionDate: z.iso.date({ error: 'Дата редакции — ГГГГ-ММ-ДД' }),
+  /** Срок действия акта, если он ограничен: с этой даты акт уже не действует. */
+  validUntil: z.iso.date({ error: 'Срок действия — ГГГГ-ММ-ДД' }).optional(),
   retrievedAt: z.iso.date({ error: 'Дата загрузки — ГГГГ-ММ-ДД' }),
   source: z.discriminatedUnion('provider', [
     officialSourceSchema,
     governmentSourceSchema,
+    publicationSourceSchema,
     secondarySourceSchema,
   ]),
 });
