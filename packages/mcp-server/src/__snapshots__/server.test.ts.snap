@@ -966,6 +966,7 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                     "destructionAct",
                     "destructionProcedure",
                     "processingAgreement",
+                    "processingRegulation",
                     "incident",
                     "crossBorder",
                   ],
@@ -1596,6 +1597,60 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
             "processingEndCondition": {
               "description": "Раздел rknNotification: срок или условие прекращения обработки",
               "type": "string",
+            },
+            "processingRegulation": {
+              "description": "Раздел processingRegulation: положение об обработке ПДн (п. 2 ч. 1 ст. 18.1). Цели и их сведения берутся из purposes; категории данных по целям называет пользователь",
+              "properties": {
+                "dataKinds": {
+                  "description": "Категории персональных данных по каждой цели профиля",
+                  "items": {
+                    "properties": {
+                      "kinds": {
+                        "description": "Категории данных цели: special — специальные (ст. 10), biometric — биометрические (ст. 11), public — общедоступные (ст. 8), other — иные. Спроси у пользователя, не выбирай сам",
+                        "items": {
+                          "enum": [
+                            "special",
+                            "biometric",
+                            "public",
+                            "other",
+                          ],
+                          "type": "string",
+                        },
+                        "type": "array",
+                      },
+                      "purpose": {
+                        "description": "Цель обработки — точно как в purposes[].title",
+                        "type": "string",
+                      },
+                    },
+                    "type": "object",
+                  },
+                  "type": "array",
+                },
+                "date": {
+                  "description": "Дата утверждения, ГГГГ-ММ-ДД",
+                  "type": "string",
+                },
+                "number": {
+                  "description": "Номер приказа, которым утверждается положение",
+                  "type": "string",
+                },
+                "signatory": {
+                  "description": "Кто утверждает положение",
+                  "properties": {
+                    "fullName": {
+                      "description": "ФИО руководителя оператора",
+                      "type": "string",
+                    },
+                    "position": {
+                      "description": "Должность",
+                      "type": "string",
+                    },
+                  },
+                  "type": "object",
+                },
+              },
+              "type": "object",
             },
             "processingStartDate": {
               "description": "Раздел rknNotification: дата начала обработки, ГГГГ-ММ-ДД",

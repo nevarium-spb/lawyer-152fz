@@ -171,6 +171,35 @@ describe('предупреждения к документу', () => {
     });
   });
 
+  describe('положение об обработке', () => {
+    const regulation = (dataKinds: unknown[]) => ({
+      processingRegulation: {
+        number: '1-ПД',
+        date: '2026-11-02',
+        signatory: { fullName: 'Иванов И. И.', position: 'директор' },
+        dataKinds,
+      },
+    });
+    const title = validProfileInput().purposes[0]?.title ?? '';
+
+    it('категории названы для всех целей профиля — предупреждений нет', () => {
+      expect(
+        warn(['processingRegulation'], regulation([{ purpose: title, kinds: ['other'] }])),
+      ).toEqual([]);
+    });
+
+    it('называет цели без категорий и категории для целей не из профиля', () => {
+      const warnings = warn(
+        ['processingRegulation'],
+        regulation([{ purpose: 'Рассылка новостей', kinds: ['other'] }]),
+      );
+      expect(warnings).toHaveLength(2);
+      expect(warnings[0]).toContain(`«${title}»`);
+      expect(warnings[0]).toContain('п. 2 ч. 1 ст. 18.1');
+      expect(warnings[1]).toContain('«Рассылка новостей»');
+    });
+  });
+
   it('раздел не нужен документу — и предупреждения по нему не нужны', () => {
     expect(warn([])).toEqual([]);
   });

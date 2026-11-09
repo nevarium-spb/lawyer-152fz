@@ -224,6 +224,15 @@ export const FULL_REFERENCE_PROFILE: OperatorProfileInput = {
     term: 'на срок действия договора хостинга от 01.10.2026 № 7',
     extraSecurityRequirements: ['резервные копии хранятся в зашифрованном виде'],
   },
+  processingRegulation: {
+    number: '16-ПД',
+    date: '2026-11-06',
+    signatory: { fullName: 'Орлов Сергей Викторович', position: 'генеральный директор' },
+    dataKinds: [
+      { purpose: 'Обработка заявок и обращений, поступивших через сайт', kinds: ['other'] },
+      { purpose: 'Заключение и исполнение договоров с клиентами', kinds: ['other'] },
+    ],
+  },
 };
 
 /** Только обязательное, без необязательных полей и разделов: ловит метки без защитной секции. */
