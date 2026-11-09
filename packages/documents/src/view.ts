@@ -294,6 +294,43 @@ function processingAgreementView(profile: OperatorProfile) {
   };
 }
 
+const PURPOSE_DATA_KIND_TEXT: Record<SystemDataKind, string> = {
+  special: 'специальные категории персональных данных (ст. 10 Закона)',
+  biometric: 'биометрические персональные данные (ст. 11 Закона)',
+  public: 'общедоступные персональные данные (ст. 8 Закона)',
+  other: 'иные персональные данные',
+};
+
+/** Положение (п. 2 ч. 1 ст. 18.1): цели из профиля, категории данных по каждой — со слов оператора. */
+function processingRegulationView(profile: OperatorProfile) {
+  const regulation = profile.processingRegulation;
+  if (!regulation) return null;
+  const key = (text: string) => text.trim().toLowerCase();
+  const kindsOf = (title: string): SystemDataKind[] => [
+    ...new Set(
+      regulation.dataKinds
+        .filter((entry) => key(entry.purpose) === key(title))
+        .flatMap((entry) => entry.kinds),
+    ),
+  ];
+  const purposes = profile.purposes.map((purpose, index) => {
+    const kinds = kindsOf(purpose.title);
+    return {
+      ...purposeView(purpose, index),
+      hasKinds: kinds.length > 0,
+      kinds: joinList(kinds.map((kind) => PURPOSE_DATA_KIND_TEXT[kind])),
+    };
+  });
+  const allKinds = profile.purposes.flatMap((purpose) => kindsOf(purpose.title));
+  return {
+    number: regulation.number,
+    date: formatDate(regulation.date),
+    signatory: regulation.signatory,
+    purposes,
+    hasSensitive: allKinds.includes('special') || allKinds.includes('biometric'),
+  };
+}
+
 export function buildView(profile: OperatorProfile, context: RenderContext) {
   const processors = profile.thirdParties.filter((party) => party.role === 'processor');
   const recipients = profile.thirdParties.filter((party) => party.role === 'recipient');
@@ -363,6 +400,7 @@ export function buildView(profile: OperatorProfile, context: RenderContext) {
     destructionAct: destructionActView(profile),
     destructionProcedure: destructionProcedureView(profile),
     processingAgreement: processingAgreementView(profile),
+    processingRegulation: processingRegulationView(profile),
     responsibleOrder: profile.responsibleOrder
       ? {
           number: profile.responsibleOrder.number,

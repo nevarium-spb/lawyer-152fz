@@ -461,6 +461,37 @@ const processingAgreementSchema = z.object(
   { error: 'Опишите поручение обработки персональных данных' },
 );
 
+/**
+ * Положение об обработке ПДн (п. 2 ч. 1 ст. 18.1): для каждой цели — категории и перечень данных,
+ * категории субъектов, способы, сроки и порядок уничтожения. Цели берутся из профиля; категории
+ * данных по каждой цели (специальные, биометрические, общедоступные, иные) называет пользователь.
+ */
+const processingRegulationSchema = z.object(
+  {
+    number: requiredText('Укажите номер приказа, которым утверждается положение'),
+    date: isoDate('Укажите дату утверждения положения'),
+    signatory: staffMemberSchema('руководителя оператора, утверждающего положение'),
+    dataKinds: z
+      .array(
+        z.object(
+          {
+            purpose: requiredText('Укажите цель обработки — как в purposes[].title'),
+            kinds: z
+              .array(z.enum(SYSTEM_DATA_KINDS), {
+                error:
+                  'Укажите категории данных для цели: special — специальные (ст. 10), biometric — биометрические (ст. 11), public — общедоступные (ст. 8), other — иные',
+              })
+              .min(1, 'Укажите хотя бы одну категорию данных для цели'),
+          },
+          { error: 'Укажите цель и категории персональных данных для неё' },
+        ),
+        { error: 'Укажите категории персональных данных по каждой цели обработки' },
+      )
+      .min(1, 'Укажите категории персональных данных хотя бы для одной цели'),
+  },
+  { error: 'Опишите утверждение положения и категории данных по целям' },
+);
+
 /** Сведения, которые нужны не каждому документу, — шаблон перечисляет нужные в `requires`. */
 const sectionShapes = {
   /** Согласие на обработку (ст. 9 ч. 4 п. 8). */
@@ -546,6 +577,10 @@ const sectionShapes = {
   processingAgreement: {
     processingAgreement: processingAgreementSchema,
   },
+  /** Положение об обработке ПДн (п. 2 ч. 1 ст. 18.1). */
+  processingRegulation: {
+    processingRegulation: processingRegulationSchema,
+  },
   /** Уведомления об инциденте в Роскомнадзор (ч. 3.1 ст. 21). */
   incident: {
     incident: incidentSchema,
@@ -618,6 +653,7 @@ export const operatorProfileSchema = z.object({
   destructionAct: destructionActSchema.optional(),
   destructionProcedure: destructionProcedureSchema.optional(),
   processingAgreement: processingAgreementSchema.optional(),
+  processingRegulation: processingRegulationSchema.optional(),
 });
 
 export type OperatorProfile = z.output<typeof operatorProfileSchema>;

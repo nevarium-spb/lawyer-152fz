@@ -5,6 +5,7 @@ import {
   PROCESSING_METHODS,
   PROFILE_SECTIONS,
   PROTECTION_LEVELS,
+  SYSTEM_DATA_KINDS,
   THIRD_PARTY_ROLES,
   profileSectionFields,
 } from '@lawyer-152fz/core';
@@ -331,6 +332,36 @@ const profileShape = z
       .optional()
       .describe(
         'Раздел processingAgreement: договор поручения обработки ПДн (ч. 3 ст. 6). Один договор — один обработчик. Цели, данные, действия и срок уведомления называет пользователь: не придумывай',
+      ),
+    processingRegulation: z
+      .object({
+        number: text('Номер приказа, которым утверждается положение'),
+        date: text('Дата утверждения, ГГГГ-ММ-ДД'),
+        signatory: z
+          .object({
+            fullName: text('ФИО руководителя оператора'),
+            position: text('Должность'),
+          })
+          .optional()
+          .describe('Кто утверждает положение'),
+        dataKinds: z
+          .array(
+            z.object({
+              purpose: text('Цель обработки — точно как в purposes[].title'),
+              kinds: z
+                .array(z.enum(SYSTEM_DATA_KINDS))
+                .optional()
+                .describe(
+                  'Категории данных цели: special — специальные (ст. 10), biometric — биометрические (ст. 11), public — общедоступные (ст. 8), other — иные. Спроси у пользователя, не выбирай сам',
+                ),
+            }),
+          )
+          .optional()
+          .describe('Категории персональных данных по каждой цели профиля'),
+      })
+      .optional()
+      .describe(
+        'Раздел processingRegulation: положение об обработке ПДн (п. 2 ч. 1 ст. 18.1). Цели и их сведения берутся из purposes; категории данных по целям называет пользователь',
       ),
     incident: z
       .object({

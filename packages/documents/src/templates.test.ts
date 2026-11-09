@@ -34,6 +34,7 @@ describe('шаблоны документов (T6.3)', () => {
       'media-register',
       'privacy-policy',
       'processing-agreement',
+      'processing-regulation',
       'protection-level-act',
       'responsible-person-order',
       'rkn-notification',
@@ -709,6 +710,71 @@ describe('шаблоны документов (T6.3)', () => {
         processingAgreement: { ...base, purposes: [] },
       });
       expect(result.ok).toBe(false);
+    });
+  });
+
+  describe('положение об обработке (п. 2 ч. 1 ст. 18.1 Закона)', () => {
+    const base = FULL_REFERENCE_PROFILE.processingRegulation;
+    const render = (profile: Record<string, unknown> = {}) => {
+      const result = generate.render('processing-regulation', {
+        ...FULL_REFERENCE_PROFILE,
+        ...profile,
+      });
+      return result.ok ? result.value.markdown : '';
+    };
+
+    it('по каждой цели — категории, перечень, субъекты, способы и сроки', () => {
+      const markdown = render();
+      for (const required of [
+        'приказом № 16-ПД от 06.11.2026',
+        '### 2.1. Обработка заявок и обращений, поступивших через сайт',
+        '### 2.2. Заключение и исполнение договоров с клиентами',
+        '- Категории персональных данных: иные персональные данные.',
+        '- Перечень персональных данных: фамилия, имя; номер телефона; адрес электронной почты.',
+        '- Категории субъектов персональных данных: посетители сайта',
+        '- Способ обработки: автоматизированная обработка',
+        '- Срок обработки и хранения: 1 год с даты получения заявки',
+        '(часть 7 статьи 5 Закона)',
+        'установленные частями 3–5 статьи 21 Закона',
+        'утверждённым документом № 14-ПД от 04.11.2026',
+      ]) {
+        expect(markdown).toContain(required);
+      }
+      expect(markdown).not.toContain('оператор не указал');
+      expect(markdown).not.toContain('статьям 10 и 11');
+    });
+
+    it('цель без категорий помечает, а не придумывает категории', () => {
+      const markdown = render({
+        processingRegulation: { ...base, dataKinds: base?.dataKinds.slice(0, 1) },
+      });
+      expect(markdown).toContain(
+        '- Категории персональных данных: **оператор не указал** — определите до утверждения положения.',
+      );
+    });
+
+    it('специальные категории — напоминает о ст. 10 и 11', () => {
+      const markdown = render({
+        processingRegulation: {
+          ...base,
+          dataKinds: [
+            { purpose: 'Заключение и исполнение договоров с клиентами', kinds: ['special'] },
+          ],
+        },
+      });
+      expect(markdown).toContain('специальные категории персональных данных (ст. 10 Закона)');
+      expect(markdown).toContain('по статьям 10 и 11 Закона');
+    });
+
+    it('без порядка уничтожения просит его утвердить, предпринимателю — оговорка о п. 2', () => {
+      const markdown = render({ destructionProcedure: undefined, inn: '500100732259' });
+      expect(markdown).toContain('определяются порядком уничтожения персональных данных');
+      expect(markdown).toContain('утвердите отдельным документом');
+      expect(markdown).toContain('Предприниматель определяет состав мер сам');
+    });
+
+    it('не утверждает, что устанавливает процедуры предотвращения нарушений', () => {
+      expect(render()).toContain('Это положение таких процедур не устанавливает.');
     });
   });
 

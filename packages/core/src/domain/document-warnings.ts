@@ -112,6 +112,28 @@ function processingAgreementWarnings(profile: OperatorProfile): readonly string[
   return warnings;
 }
 
+/** Положение строится по целям профиля: категории данных должны быть названы для каждой из них. */
+function processingRegulationWarnings(profile: OperatorProfile): readonly string[] {
+  const regulation = profile.processingRegulation;
+  if (!regulation) return [];
+  const warnings: string[] = [];
+  const named = new Set(regulation.dataKinds.map((entry) => normalize(entry.purpose)));
+  const missing = profile.purposes.filter((purpose) => !named.has(normalize(purpose.title)));
+  if (missing.length > 0) {
+    warnings.push(
+      `Для целей ${missing.map((purpose) => `«${purpose.title}»`).join(', ')} не названы категории персональных данных: в положении они отмечены как не указанные. Положение определяет категории и перечень данных для каждой цели (п. 2 ч. 1 ст. 18.1 152-ФЗ): уточните их у оператора.`,
+    );
+  }
+  const known = new Set(profile.purposes.map((purpose) => normalize(purpose.title)));
+  const unknown = regulation.dataKinds.filter((entry) => !known.has(normalize(entry.purpose)));
+  if (unknown.length > 0) {
+    warnings.push(
+      `Категории данных названы для целей ${unknown.map((entry) => `«${entry.purpose}»`).join(', ')}, которых нет в профиле: в положение они не вошли. Проверьте название цели — оно должно совпадать с purposes[].title.`,
+    );
+  }
+  return warnings;
+}
+
 /**
  * Что пользователь должен узнать о собранном документе, но что не должно попасть в его текст.
  * Документ при этом собирается: решение остаётся за оператором.
@@ -127,5 +149,6 @@ export function documentWarnings(
     ...(sections.includes('publicDistribution') ? distributionWarnings(today) : []),
     ...(sections.includes('processingConsent') ? consentWarnings(profile) : []),
     ...(sections.includes('processingAgreement') ? processingAgreementWarnings(profile) : []),
+    ...(sections.includes('processingRegulation') ? processingRegulationWarnings(profile) : []),
   ];
 }

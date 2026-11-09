@@ -240,6 +240,7 @@ describe('разделы профиля для отдельных докумен
       'destructionAct',
       'destructionProcedure',
       'processingAgreement',
+      'processingRegulation',
       'incident',
       'crossBorder',
     ]);
