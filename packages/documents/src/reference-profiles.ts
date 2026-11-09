@@ -233,6 +233,18 @@ export const FULL_REFERENCE_PROFILE: OperatorProfileInput = {
       { purpose: 'Заключение и исполнение договоров с клиентами', kinds: ['other'] },
     ],
   },
+  internalControlRules: {
+    number: '17-ПД',
+    date: '2026-11-07',
+    signatory: { fullName: 'Орлов Сергей Викторович', position: 'генеральный директор' },
+    schedule: 'ежегодно, в декабре',
+    securityControlMonths: 12,
+    inspectors: [{ fullName: 'Кузнецов Илья Андреевич', position: 'системный администратор' }],
+    unscheduledTriggers: [
+      'после обращения субъекта персональных данных о нарушении его прав',
+      'после выявления инцидента с персональными данными',
+    ],
+  },
 };
 
 /** Только обязательное, без необязательных полей и разделов: ловит метки без защитной секции. */

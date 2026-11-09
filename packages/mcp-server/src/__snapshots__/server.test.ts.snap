@@ -967,6 +967,7 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                     "destructionProcedure",
                     "processingAgreement",
                     "processingRegulation",
+                    "internalControlRules",
                     "incident",
                     "crossBorder",
                   ],
@@ -1439,6 +1440,68 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
             "inn": {
               "description": "ИНН: 10 цифр для организации, 12 — для ИП",
               "type": "string",
+            },
+            "internalControlRules": {
+              "description": "Раздел internalControlRules: правила внутреннего контроля (п. 4 ч. 1 ст. 18.1, п. 17 ПП РФ № 1119). Контроль проводит ответственный из responsiblePerson; периодичность называет пользователь",
+              "properties": {
+                "date": {
+                  "description": "Дата утверждения, ГГГГ-ММ-ДД",
+                  "type": "string",
+                },
+                "inspectors": {
+                  "description": "Кто ещё участвует в проверках, кроме ответственного; только если назвал пользователь",
+                  "items": {
+                    "properties": {
+                      "fullName": {
+                        "description": "ФИО",
+                        "type": "string",
+                      },
+                      "position": {
+                        "description": "Должность",
+                        "type": "string",
+                      },
+                    },
+                    "type": "object",
+                  },
+                  "type": "array",
+                },
+                "number": {
+                  "description": "Номер приказа, которым утверждаются правила",
+                  "type": "string",
+                },
+                "schedule": {
+                  "description": "Периодичность плановых проверок, например «ежегодно, в декабре». Закон её не задаёт: спроси у пользователя",
+                  "type": "string",
+                },
+                "securityControlMonths": {
+                  "description": "Раз в сколько месяцев проводится контроль требований ПП № 1119 (от 1 до 36: не реже 1 раза в 3 года, п. 17). Нужен, если есть обработка в информационных системах. Спроси у пользователя",
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991,
+                  "type": "integer",
+                },
+                "signatory": {
+                  "description": "Кто утверждает правила",
+                  "properties": {
+                    "fullName": {
+                      "description": "ФИО руководителя оператора",
+                      "type": "string",
+                    },
+                    "position": {
+                      "description": "Должность",
+                      "type": "string",
+                    },
+                  },
+                  "type": "object",
+                },
+                "unscheduledTriggers": {
+                  "description": "Основания внеплановых проверок, только если назвал пользователь; без них — «по решению оператора»",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+              },
+              "type": "object",
             },
             "legalAddress": {
               "description": "Адрес оператора с индексом; для организации — адрес из ЕГРЮЛ",
