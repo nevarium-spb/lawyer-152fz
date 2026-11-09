@@ -36,7 +36,10 @@ describe('инструменты документов (T6.4)', () => {
     const { templates } = result.structuredContent as {
       templates: { id: string; requiredFields: string[] }[];
     };
-    expect(templates.map((t) => t.id)).toHaveLength(14);
+    expect(templates.map((t) => t.id)).toHaveLength(15);
+    expect(templates.find((t) => t.id === 'processing-agreement')?.requiredFields).toContain(
+      'processingAgreement',
+    );
     expect(templates.find((t) => t.id === 'harm-assessment')?.requiredFields).toContain(
       'harmAssessment',
     );

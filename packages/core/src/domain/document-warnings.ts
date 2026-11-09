@@ -81,6 +81,37 @@ function consentWarnings(profile: OperatorProfile): readonly string[] {
   ];
 }
 
+const normalize = (text: string) => text.trim().toLowerCase();
+
+/** Договор поручения сверяется с остальным профилем: политика и уведомление РКН должны называть того же обработчика. */
+function processingAgreementWarnings(profile: OperatorProfile): readonly string[] {
+  const agreement = profile.processingAgreement;
+  if (!agreement) return [];
+  const warnings: string[] = [];
+  const processor = normalize(agreement.processor.name);
+  const listed = profile.thirdParties.some(
+    (party) => party.role === 'processor' && normalize(party.name) === processor,
+  );
+  if (!listed) {
+    warnings.push(
+      `«${agreement.processor.name}» нет среди третьих лиц профиля с ролью processor. Добавьте его в thirdParties, чтобы политика и другие документы совпадали с договором: субъект вправе получить наименование и адрес лица, которому поручена обработка (п. 9 ч. 7 ст. 14 152-ФЗ).`,
+    );
+  }
+  const known = new Set(profile.purposes.map((purpose) => normalize(purpose.title)));
+  const unknown = agreement.purposes.filter((purpose) => !known.has(normalize(purpose)));
+  if (unknown.length > 0) {
+    warnings.push(
+      `Цели поручения ${unknown.map((purpose) => `«${purpose}»`).join(', ')} не совпадают с целями обработки в профиле. Обработчик обрабатывает данные в целях оператора: проверьте, что эти цели есть в политике (ч. 3 ст. 6, п. 2 ч. 1 ст. 18.1 152-ФЗ).`,
+    );
+  }
+  if (agreement.processor.country !== 'RU') {
+    warnings.push(
+      'Обработчик находится за рубежом. Ответственность перед субъектом несут и оператор, и обработчик (ч. 6 ст. 6 152-ФЗ). Передача данных ему — трансграничная: до неё нужно уведомить Роскомнадзор (ст. 12 152-ФЗ). Запись, систематизация, накопление, хранение, уточнение и извлечение данных граждан РФ с использованием баз за рубежом не допускаются, кроме случаев пп. 2, 3, 4, 8 ч. 1 ст. 6 (ч. 5 ст. 18 152-ФЗ).',
+    );
+  }
+  return warnings;
+}
+
 /**
  * Что пользователь должен узнать о собранном документе, но что не должно попасть в его текст.
  * Документ при этом собирается: решение остаётся за оператором.
@@ -95,5 +126,6 @@ export function documentWarnings(
     ...(sections.includes('rknNotification') ? notificationWarnings(profile, today) : []),
     ...(sections.includes('publicDistribution') ? distributionWarnings(today) : []),
     ...(sections.includes('processingConsent') ? consentWarnings(profile) : []),
+    ...(sections.includes('processingAgreement') ? processingAgreementWarnings(profile) : []),
   ];
 }

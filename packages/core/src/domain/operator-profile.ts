@@ -422,6 +422,45 @@ const destructionProcedureSchema = z.object(
   { error: 'Опишите порядок уничтожения персональных данных' },
 );
 
+/**
+ * Договор поручения обработки ПДн (ч. 3 ст. 6): один документ — одно лицо, которому поручается
+ * обработка. Цели, перечень данных, действия и срок уведомления об инциденте называет только
+ * пользователь; обязательные условия поручения шаблон берёт из ч. 3 ст. 6.
+ */
+const processingAgreementSchema = z.object(
+  {
+    number: requiredText('Укажите номер договора поручения'),
+    date: isoDate('Укажите дату договора поручения'),
+    processor: z.object(
+      {
+        name: requiredText(
+          'Укажите наименование или ФИО лица, которому поручается обработка (ч. 3 ст. 6)',
+        ),
+        address: requiredText('Укажите адрес лица, которому поручается обработка'),
+        country: countryCode,
+        signatory: staffMemberSchema('лица, подписывающего договор со стороны обработчика'),
+      },
+      { error: 'Опишите лицо, которому поручается обработка персональных данных' },
+    ),
+    operatorSignatory: staffMemberSchema('лица, подписывающего договор со стороны оператора'),
+    purposes: nonEmptyList('Укажите цели обработки, которые поручаются (ч. 3 ст. 6)'),
+    dataCategories: nonEmptyList(
+      'Укажите перечень персональных данных, обработка которых поручается (ч. 3 ст. 6)',
+    ),
+    actions: nonEmptyList(
+      'Укажите перечень действий (операций) с персональными данными, которые совершает обработчик (ч. 3 ст. 6)',
+    ),
+    incidentNotice: requiredText(
+      'Укажите, в какой срок обработчик уведомляет оператора об инциденте по ч. 3.1 ст. 21, например «в течение 4 часов с момента выявления». Закон этот срок не устанавливает; оператор сам уведомляет Роскомнадзор в течение 24 часов',
+    ),
+    term: requiredText('Укажите срок действия поручения').optional(),
+    extraSecurityRequirements: z
+      .array(requiredText('Укажите дополнительное требование к защите данных'))
+      .optional(),
+  },
+  { error: 'Опишите поручение обработки персональных данных' },
+);
+
 /** Сведения, которые нужны не каждому документу, — шаблон перечисляет нужные в `requires`. */
 const sectionShapes = {
   /** Согласие на обработку (ст. 9 ч. 4 п. 8). */
@@ -503,6 +542,10 @@ const sectionShapes = {
   destructionProcedure: {
     destructionProcedure: destructionProcedureSchema,
   },
+  /** Договор поручения обработки ПДн (ч. 3 ст. 6). */
+  processingAgreement: {
+    processingAgreement: processingAgreementSchema,
+  },
   /** Уведомления об инциденте в Роскомнадзор (ч. 3.1 ст. 21). */
   incident: {
     incident: incidentSchema,
@@ -574,6 +617,7 @@ export const operatorProfileSchema = z.object({
   harmAssessment: harmAssessmentSchema.optional(),
   destructionAct: destructionActSchema.optional(),
   destructionProcedure: destructionProcedureSchema.optional(),
+  processingAgreement: processingAgreementSchema.optional(),
 });
 
 export type OperatorProfile = z.output<typeof operatorProfileSchema>;

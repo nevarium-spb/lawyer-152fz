@@ -108,6 +108,69 @@ describe('предупреждения к документу', () => {
     });
   });
 
+  describe('договор поручения', () => {
+    const agreement = (overrides: Record<string, unknown> = {}) => ({
+      number: '1-П',
+      date: '2026-11-02',
+      processor: {
+        name: 'ООО «Хостинг»',
+        address: 'г. Санкт-Петербург',
+        country: 'RU',
+        signatory: { fullName: 'Котов К. К.', position: 'директор' },
+      },
+      operatorSignatory: { fullName: 'Иванов И. И.', position: 'директор' },
+      purposes: ['Обработка заявок с сайта'],
+      dataCategories: ['номер телефона'],
+      actions: ['хранение'],
+      incidentNotice: 'в течение 4 часов с момента выявления',
+      ...overrides,
+    });
+    const hosting = {
+      role: 'processor',
+      name: 'ООО «Хостинг»',
+      address: 'СПб',
+      purpose: 'хостинг',
+    };
+
+    it('обработчик есть в профиле, цели совпадают, он в РФ — предупреждений нет', () => {
+      expect(
+        warn(['processingAgreement'], {
+          thirdParties: [hosting],
+          processingAgreement: agreement(),
+        }),
+      ).toEqual([]);
+    });
+
+    it('обработчика нет среди processor — просит добавить в thirdParties', () => {
+      const warnings = warn(['processingAgreement'], {
+        thirdParties: [{ ...hosting, role: 'recipient' }],
+        processingAgreement: agreement(),
+      });
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0]).toContain('thirdParties');
+    });
+
+    it('цель поручения не из профиля — называет её', () => {
+      const warnings = warn(['processingAgreement'], {
+        thirdParties: [hosting],
+        processingAgreement: agreement({ purposes: ['Рассылка новостей'] }),
+      });
+      expect(warnings.join()).toContain('«Рассылка новостей»');
+    });
+
+    it('обработчик за рубежом — ч. 6 ст. 6, ст. 12 и ч. 5 ст. 18', () => {
+      const warnings = warn(['processingAgreement'], {
+        thirdParties: [hosting],
+        processingAgreement: agreement({
+          processor: { ...agreement().processor, country: 'DE' },
+        }),
+      });
+      expect(warnings.join()).toContain('ч. 6 ст. 6');
+      expect(warnings.join()).toContain('ст. 12');
+      expect(warnings.join()).toContain('ч. 5 ст. 18');
+    });
+  });
+
   it('раздел не нужен документу — и предупреждения по нему не нужны', () => {
     expect(warn([])).toEqual([]);
   });

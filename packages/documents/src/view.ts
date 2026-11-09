@@ -268,6 +268,32 @@ function destructionProcedureView(profile: OperatorProfile) {
   };
 }
 
+/** Договор поручения (ч. 3 ст. 6): иностранный обработчик меняет ответственность (ч. 6 ст. 6). */
+function processingAgreementView(profile: OperatorProfile) {
+  const agreement = profile.processingAgreement;
+  if (!agreement) return null;
+  const extra = agreement.extraSecurityRequirements ?? [];
+  return {
+    number: agreement.number,
+    date: formatDate(agreement.date),
+    processor: {
+      name: agreement.processor.name,
+      address: agreement.processor.address,
+      country: country(agreement.processor.country),
+      signatory: agreement.processor.signatory,
+    },
+    foreign: agreement.processor.country !== 'RU',
+    operatorSignatory: agreement.operatorSignatory,
+    purposes: agreement.purposes,
+    dataCategories: agreement.dataCategories,
+    actions: joinList(agreement.actions),
+    incidentNotice: agreement.incidentNotice,
+    term: agreement.term ?? null,
+    hasExtraSecurityRequirements: extra.length > 0,
+    extraSecurityRequirements: extra,
+  };
+}
+
 export function buildView(profile: OperatorProfile, context: RenderContext) {
   const processors = profile.thirdParties.filter((party) => party.role === 'processor');
   const recipients = profile.thirdParties.filter((party) => party.role === 'recipient');
@@ -336,6 +362,7 @@ export function buildView(profile: OperatorProfile, context: RenderContext) {
     harmAssessment: harmAssessmentView(profile),
     destructionAct: destructionActView(profile),
     destructionProcedure: destructionProcedureView(profile),
+    processingAgreement: processingAgreementView(profile),
     responsibleOrder: profile.responsibleOrder
       ? {
           number: profile.responsibleOrder.number,
