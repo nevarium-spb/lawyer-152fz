@@ -27,7 +27,7 @@ describe('скилл pd-docs (T7.7)', () => {
     expect(next).toContain('24 часа');
   });
 
-  it.each(['harm-assessment', 'destruction-act', 'destruction-procedure'])(
+  it.each(['harm-assessment', 'destruction-act', 'destruction-procedure', 'processing-agreement'])(
     'описывает шаблон %s: в таблице выбора и в «Что дальше»',
     (id) => {
       const table = skill.slice(skill.indexOf('## 1.'), skill.indexOf('## 2.'));

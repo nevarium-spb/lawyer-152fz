@@ -33,6 +33,7 @@ describe('шаблоны документов (T6.3)', () => {
       'incident-notification',
       'media-register',
       'privacy-policy',
+      'processing-agreement',
       'protection-level-act',
       'responsible-person-order',
       'rkn-notification',
@@ -644,6 +645,70 @@ describe('шаблоны документов (T6.3)', () => {
       const markdown = render('mixed');
       expect(markdown).toContain('- начальник отдела информационных технологий.');
       expect(markdown).toContain('| бумажные носители | измельчение в шредере |');
+    });
+  });
+
+  describe('договор поручения (ч. 3 ст. 6 Закона)', () => {
+    const base = FULL_REFERENCE_PROFILE.processingAgreement;
+    const render = (override: Record<string, unknown> = {}) => {
+      const result = generate.render('processing-agreement', {
+        ...FULL_REFERENCE_PROFILE,
+        processingAgreement: { ...base, ...override },
+      });
+      return result.ok ? result.value.markdown : '';
+    };
+
+    it('содержит все условия поручения из ч. 3 ст. 6', () => {
+      const markdown = render();
+      for (const required of [
+        '# Договор поручения обработки персональных данных № 15-ПД',
+        '- Обработка заявок и обращений, поступивших через сайт', // цели
+        '- номер телефона', // перечень данных
+        'которые совершает Обработчик: запись; хранение; удаление; уничтожение', // действия
+        'не раскрывать третьим лицам и не распространять', // конфиденциальность, ст. 7
+        'соблюдать требования статьи 18.1 Закона',
+        'Соблюдать требования части 5 статьи 18 Закона',
+        'в том числе до начала обработки персональных данных', // документы по запросу
+        'Обеспечивать безопасность персональных данных', // безопасность
+        '(ч. 1 ст. 19 Закона)', // требования к защите по ст. 19
+        '10. контроль за принимаемыми мерами',
+        '(ч. 3.1 ст. 21 Закона), в течение 4 часов с момента выявления инцидента', // уведомление
+      ]) {
+        expect(markdown).toContain(required);
+      }
+    });
+
+    it('срок поручения и дополнительные требования — только если их назвал оператор', () => {
+      const full = render();
+      expect(full).toContain('1.6. Поручение действует на срок действия договора хостинга');
+      expect(full).toContain('- резервные копии хранятся в зашифрованном виде');
+      const bare = render({ term: undefined, extraSecurityRequirements: undefined });
+      expect(bare).not.toContain('1.6.');
+      expect(bare).not.toContain('3.3.');
+    });
+
+    it('обработчик в РФ — отвечает оператор (ч. 5 ст. 6); за рубежом — оба (ч. 6 ст. 6)', () => {
+      const domestic = render();
+      expect(domestic).toContain('(ч. 5 ст. 6 Закона)');
+      expect(domestic).not.toContain('ч. 6 ст. 6');
+      expect(domestic).not.toContain('ч. 3 ст. 12');
+      const foreign = render({ processor: { ...base?.processor, country: 'DE' } });
+      expect(foreign).toContain('несут Оператор и Обработчик (ч. 6 ст. 6 Закона)');
+      expect(foreign).toContain('оператор уведомляет Роскомнадзор (ч. 3 ст. 12 Закона)');
+    });
+
+    it('не придумывает срок уведомления об инциденте и называет 24 часа оператора', () => {
+      const markdown = render();
+      expect(markdown).toContain('закон не устанавливает');
+      expect(markdown).toContain('в течение двадцати четырёх часов');
+    });
+
+    it('без условий поручения договор не собирается молча', () => {
+      const result = generate.render('processing-agreement', {
+        ...FULL_REFERENCE_PROFILE,
+        processingAgreement: { ...base, purposes: [] },
+      });
+      expect(result.ok).toBe(false);
     });
   });
 

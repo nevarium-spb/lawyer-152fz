@@ -965,6 +965,7 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                     "harmAssessment",
                     "destructionAct",
                     "destructionProcedure",
+                    "processingAgreement",
                     "incident",
                     "crossBorder",
                   ],
@@ -1495,6 +1496,102 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
             "ogrn": {
               "description": "ОГРН (13 цифр) или ОГРНИП (15 цифр), если есть",
               "type": "string",
+            },
+            "processingAgreement": {
+              "description": "Раздел processingAgreement: договор поручения обработки ПДн (ч. 3 ст. 6). Один договор — один обработчик. Цели, данные, действия и срок уведомления называет пользователь: не придумывай",
+              "properties": {
+                "actions": {
+                  "description": "Действия (операции), которые совершает обработчик",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+                "dataCategories": {
+                  "description": "Перечень персональных данных, обработка которых поручается",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+                "date": {
+                  "description": "Дата договора, ГГГГ-ММ-ДД",
+                  "type": "string",
+                },
+                "extraSecurityRequirements": {
+                  "description": "Дополнительные требования оператора к защите данных, если есть",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+                "incidentNotice": {
+                  "description": "Срок, в который обработчик уведомляет оператора об инциденте. Закон его не задаёт: называет пользователь; оператору нужно уведомить РКН в течение 24 часов",
+                  "type": "string",
+                },
+                "number": {
+                  "description": "Номер договора поручения",
+                  "type": "string",
+                },
+                "operatorSignatory": {
+                  "description": "Кто подписывает договор от имени оператора",
+                  "properties": {
+                    "fullName": {
+                      "description": "ФИО подписанта",
+                      "type": "string",
+                    },
+                    "position": {
+                      "description": "Должность",
+                      "type": "string",
+                    },
+                  },
+                  "type": "object",
+                },
+                "processor": {
+                  "description": "Лицо, которому поручается обработка (role processor)",
+                  "properties": {
+                    "address": {
+                      "description": "Адрес",
+                      "type": "string",
+                    },
+                    "country": {
+                      "description": "Код страны ISO 3166-1, где находится обработчик; не подставляй RU без подтверждения",
+                      "type": "string",
+                    },
+                    "name": {
+                      "description": "Наименование лица, которому поручается обработка (как в thirdParties)",
+                      "type": "string",
+                    },
+                    "signatory": {
+                      "description": "Кто подписывает договор от имени обработчика",
+                      "properties": {
+                        "fullName": {
+                          "description": "ФИО подписанта",
+                          "type": "string",
+                        },
+                        "position": {
+                          "description": "Должность",
+                          "type": "string",
+                        },
+                      },
+                      "type": "object",
+                    },
+                  },
+                  "type": "object",
+                },
+                "purposes": {
+                  "description": "Цели обработки по поручению — названия как в purposes[].title",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+                "term": {
+                  "description": "Срок действия поручения, если оператор его называет",
+                  "type": "string",
+                },
+              },
+              "type": "object",
             },
             "processingEndCondition": {
               "description": "Раздел rknNotification: срок или условие прекращения обработки",

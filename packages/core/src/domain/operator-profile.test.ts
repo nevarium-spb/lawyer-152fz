@@ -239,6 +239,7 @@ describe('разделы профиля для отдельных докумен
       'harmAssessment',
       'destructionAct',
       'destructionProcedure',
+      'processingAgreement',
       'incident',
       'crossBorder',
     ]);
