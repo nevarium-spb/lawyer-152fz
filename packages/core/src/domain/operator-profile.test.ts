@@ -241,6 +241,7 @@ describe('разделы профиля для отдельных докумен
       'destructionProcedure',
       'processingAgreement',
       'processingRegulation',
+      'internalControlRules',
       'incident',
       'crossBorder',
     ]);

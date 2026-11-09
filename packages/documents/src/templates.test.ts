@@ -31,6 +31,7 @@ describe('шаблоны документов (T6.3)', () => {
       'destruction-procedure',
       'harm-assessment',
       'incident-notification',
+      'internal-control-rules',
       'media-register',
       'privacy-policy',
       'processing-agreement',
@@ -775,6 +776,92 @@ describe('шаблоны документов (T6.3)', () => {
 
     it('не утверждает, что устанавливает процедуры предотвращения нарушений', () => {
       expect(render()).toContain('Это положение таких процедур не устанавливает.');
+    });
+  });
+
+  describe('правила внутреннего контроля (п. 4 ч. 1 ст. 18.1 Закона)', () => {
+    const base = FULL_REFERENCE_PROFILE.internalControlRules;
+    const render = (profile: Record<string, unknown> = {}) => {
+      const result = generate.render('internal-control-rules', {
+        ...FULL_REFERENCE_PROFILE,
+        ...profile,
+      });
+      return result.ok ? result.value.markdown : '';
+    };
+
+    it('называет ответственного, периодичность и сроки устранения нарушений из закона', () => {
+      const markdown = render();
+      for (const required of [
+        'приказом № 17-ПД от 07.11.2026',
+        'назначенное приказом № 12-ПД',
+        'Петрова Анна Сергеевна, руководитель юридического отдела (пункт 1 части 4 статьи 22.1 Закона)',
+        '- системный администратор Кузнецов Илья Андреевич;',
+        '4.1. Плановые проверки проводятся: ежегодно, в декабре.',
+        '- после выявления инцидента с персональными данными;',
+        'не реже одного раза в 12 месяцев',
+        'не реже 1 раза в 3 года в сроки, определяемые Оператором',
+        'лицензию на осуществление деятельности по технической защите конфиденциальной информации',
+        '(пункт 9 части 2 статьи 19 Закона)',
+        '(часть 3 статьи 6 Закона)',
+        'не превышающий трёх рабочих дней',
+        'не превышающий десяти рабочих дней',
+        'в течение семи рабочих дней',
+        '(часть 2 статьи 22.1 Закона)',
+      ]) {
+        expect(markdown).toContain(required);
+      }
+      expect(markdown).not.toContain('Укажите, раз в сколько месяцев');
+    });
+
+    it('без срока контроля по ПП № 1119 оставляет предельный срок и просит его указать', () => {
+      const markdown = render({
+        internalControlRules: { ...base, securityControlMonths: undefined },
+      });
+      expect(markdown).not.toContain('не реже одного раза в');
+      expect(markdown).toContain('не реже 1 раза в 3 года в сроки, определяемые Оператором');
+      expect(markdown).toContain('Укажите, раз в сколько месяцев');
+    });
+
+    it.each([
+      [1, '1 месяц'],
+      [3, '3 месяца'],
+      [11, '11 месяцев'],
+      [22, '22 месяца'],
+      [36, '36 месяцев'],
+    ])('срок %i — «%s»', (months, text) => {
+      const markdown = render({ internalControlRules: { ...base, securityControlMonths: months } });
+      expect(markdown).toContain(`не реже одного раза в ${text} `);
+    });
+
+    it('срок контроля больше трёх лет не принимается (п. 17 ПП № 1119)', () => {
+      const result = generate.render('internal-control-rules', {
+        ...FULL_REFERENCE_PROFILE,
+        internalControlRules: { ...base, securityControlMonths: 37 },
+      });
+      expect(result.ok).toBe(false);
+    });
+
+    it('без обработки в информационных системах — без контроля по ПП № 1119', () => {
+      const markdown = render({
+        purposes: FULL_REFERENCE_PROFILE.purposes.map((purpose) => ({
+          ...purpose,
+          methods: 'non-automated',
+        })),
+      });
+      expect(markdown).not.toContain('пункт 17');
+      expect(markdown).not.toContain('пункт 9 части 2 статьи 19');
+    });
+
+    it('без оснований внеплановых проверок и участников — по решению оператора', () => {
+      const markdown = render({
+        internalControlRules: { ...base, inspectors: undefined, unscheduledTriggers: undefined },
+      });
+      expect(markdown).toContain('4.2. Внеплановые проверки проводятся по решению Оператора.');
+      expect(markdown).not.toContain('2.2.');
+    });
+
+    it('не выдаёт предложенный порядок за требование закона', () => {
+      expect(render()).toContain('Пункты 4.1, 4.2, 5.1 и 6.4 предложены шаблоном');
     });
   });
 

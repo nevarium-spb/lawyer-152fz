@@ -134,6 +134,17 @@ function processingRegulationWarnings(profile: OperatorProfile): readonly string
   return warnings;
 }
 
+/** Правила внутреннего контроля: при обработке в информационных системах срок контроля по ПП № 1119 определяет оператор. */
+function internalControlRulesWarnings(profile: OperatorProfile): readonly string[] {
+  const rules = profile.internalControlRules;
+  if (!rules) return [];
+  const automated = profile.purposes.some((purpose) => purpose.methods !== 'non-automated');
+  if (!automated || rules.securityControlMonths !== undefined) return [];
+  return [
+    'Есть цели с обработкой в информационных системах, но срок контроля выполнения требований к защите не указан. Этот контроль проводится не реже 1 раза в 3 года в сроки, определяемые оператором (п. 17 ПП РФ № 1119): укажите securityControlMonths, иначе в правилах останется только предельный срок.',
+  ];
+}
+
 /**
  * Что пользователь должен узнать о собранном документе, но что не должно попасть в его текст.
  * Документ при этом собирается: решение остаётся за оператором.
@@ -150,5 +161,6 @@ export function documentWarnings(
     ...(sections.includes('processingConsent') ? consentWarnings(profile) : []),
     ...(sections.includes('processingAgreement') ? processingAgreementWarnings(profile) : []),
     ...(sections.includes('processingRegulation') ? processingRegulationWarnings(profile) : []),
+    ...(sections.includes('internalControlRules') ? internalControlRulesWarnings(profile) : []),
   ];
 }

@@ -331,6 +331,37 @@ function processingRegulationView(profile: OperatorProfile) {
   };
 }
 
+/** «1 месяц», «3 месяца», «12 месяцев». */
+function monthsText(count: number): string {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  const number = String(count);
+  if (mod10 === 1 && mod100 !== 11) return `${number} месяц`;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return `${number} месяца`;
+  return `${number} месяцев`;
+}
+
+/** Правила внутреннего контроля (п. 4 ч. 1 ст. 18.1): контроль по ПП № 1119 нужен, если есть обработка в информационных системах. */
+function internalControlRulesView(profile: OperatorProfile) {
+  const rules = profile.internalControlRules;
+  if (!rules) return null;
+  const inspectors = rules.inspectors ?? [];
+  const triggers = rules.unscheduledTriggers ?? [];
+  return {
+    number: rules.number,
+    date: formatDate(rules.date),
+    signatory: rules.signatory,
+    schedule: rules.schedule,
+    hasAutomated: profile.purposes.some((purpose) => purpose.methods !== 'non-automated'),
+    securityControlPeriod:
+      rules.securityControlMonths === undefined ? null : monthsText(rules.securityControlMonths),
+    hasInspectors: inspectors.length > 0,
+    inspectors,
+    hasTriggers: triggers.length > 0,
+    triggers,
+  };
+}
+
 export function buildView(profile: OperatorProfile, context: RenderContext) {
   const processors = profile.thirdParties.filter((party) => party.role === 'processor');
   const recipients = profile.thirdParties.filter((party) => party.role === 'recipient');
@@ -401,6 +432,7 @@ export function buildView(profile: OperatorProfile, context: RenderContext) {
     destructionProcedure: destructionProcedureView(profile),
     processingAgreement: processingAgreementView(profile),
     processingRegulation: processingRegulationView(profile),
+    internalControlRules: internalControlRulesView(profile),
     responsibleOrder: profile.responsibleOrder
       ? {
           number: profile.responsibleOrder.number,

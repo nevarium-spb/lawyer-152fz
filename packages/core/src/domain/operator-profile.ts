@@ -492,6 +492,34 @@ const processingRegulationSchema = z.object(
   { error: 'Опишите утверждение положения и категории данных по целям' },
 );
 
+/**
+ * Правила внутреннего контроля (п. 2 и п. 4 ч. 1 ст. 18.1, п. 1 ч. 4 ст. 22.1, п. 17 ПП РФ № 1119).
+ * Периодичность плановых проверок и участников называет оператор; контроль требований ПП № 1119 —
+ * не реже 1 раза в 3 года (п. 17), поэтому срок в месяцах ограничен 36.
+ */
+const internalControlRulesSchema = z.object(
+  {
+    number: requiredText('Укажите номер приказа, которым утверждаются правила'),
+    date: isoDate('Укажите дату утверждения правил'),
+    signatory: staffMemberSchema('руководителя оператора, утверждающего правила'),
+    schedule: requiredText(
+      'Укажите периодичность плановых проверок внутреннего контроля, например «ежегодно, в декабре». Закон её не задаёт: её определяет оператор',
+    ),
+    securityControlMonths: z
+      .number({ error: 'Укажите, раз в сколько месяцев проводится контроль требований ПП № 1119' })
+      .int('Срок — целое число месяцев')
+      .min(1, 'Срок — не меньше одного месяца')
+      .max(
+        36,
+        'Контроль выполнения требований ПП № 1119 проводится не реже 1 раза в 3 года (п. 17): не больше 36 месяцев',
+      )
+      .optional(),
+    inspectors: z.array(staffMemberSchema('участника проверок')).optional(),
+    unscheduledTriggers: z.array(requiredText('Укажите основание внеплановой проверки')).optional(),
+  },
+  { error: 'Опишите утверждение правил и периодичность проверок' },
+);
+
 /** Сведения, которые нужны не каждому документу, — шаблон перечисляет нужные в `requires`. */
 const sectionShapes = {
   /** Согласие на обработку (ст. 9 ч. 4 п. 8). */
@@ -581,6 +609,10 @@ const sectionShapes = {
   processingRegulation: {
     processingRegulation: processingRegulationSchema,
   },
+  /** Правила внутреннего контроля (п. 2 и п. 4 ч. 1 ст. 18.1, п. 17 ПП РФ № 1119). */
+  internalControlRules: {
+    internalControlRules: internalControlRulesSchema,
+  },
   /** Уведомления об инциденте в Роскомнадзор (ч. 3.1 ст. 21). */
   incident: {
     incident: incidentSchema,
@@ -654,6 +686,7 @@ export const operatorProfileSchema = z.object({
   destructionProcedure: destructionProcedureSchema.optional(),
   processingAgreement: processingAgreementSchema.optional(),
   processingRegulation: processingRegulationSchema.optional(),
+  internalControlRules: internalControlRulesSchema.optional(),
 });
 
 export type OperatorProfile = z.output<typeof operatorProfileSchema>;

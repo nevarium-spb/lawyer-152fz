@@ -200,6 +200,41 @@ describe('предупреждения к документу', () => {
     });
   });
 
+  describe('правила внутреннего контроля', () => {
+    const rules = (extra: Record<string, unknown> = {}) => ({
+      internalControlRules: {
+        number: '1-ПД',
+        date: '2026-11-02',
+        signatory: { fullName: 'Иванов И. И.', position: 'директор' },
+        schedule: 'ежегодно',
+        ...extra,
+      },
+    });
+    const purposesWith = (methods: string) =>
+      validProfileInput().purposes.map((purpose) => ({ ...purpose, methods }));
+
+    it('обработка в информационных системах без срока контроля — напоминает о п. 17 ПП № 1119', () => {
+      const warnings = warn(['internalControlRules'], {
+        ...rules(),
+        purposes: purposesWith('mixed'),
+      });
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0]).toContain('п. 17 ПП РФ № 1119');
+    });
+
+    it('срок указан или обработка без средств автоматизации — предупреждений нет', () => {
+      expect(
+        warn(['internalControlRules'], {
+          ...rules({ securityControlMonths: 24 }),
+          purposes: purposesWith('automated'),
+        }),
+      ).toEqual([]);
+      expect(
+        warn(['internalControlRules'], { ...rules(), purposes: purposesWith('non-automated') }),
+      ).toEqual([]);
+    });
+  });
+
   it('раздел не нужен документу — и предупреждения по нему не нужны', () => {
     expect(warn([])).toEqual([]);
   });
