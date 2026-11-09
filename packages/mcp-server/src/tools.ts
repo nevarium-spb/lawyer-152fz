@@ -65,7 +65,9 @@ export function registerNormTools(server: McpServer, lookup: LookupNorms, kbVers
         acts: z
           .array(z.string())
           .optional()
-          .describe('Ограничить актами: 152-fz, koap, pp-687, pp-1119, rkn-order-18'),
+          .describe(
+            'Ограничить актами: 152-fz, koap, pp-687, pp-1119, rkn-order-18, rkn-order-178, rkn-order-179',
+          ),
         limit: z.number().optional().describe('Сколько результатов вернуть: 1–20, по умолчанию 5'),
       },
       outputSchema: { kbVersion: z.string(), hits: z.array(searchHitShape) },

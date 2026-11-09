@@ -172,6 +172,41 @@ export const FULL_REFERENCE_PROFILE: OperatorProfileInput = {
       },
     ],
   },
+  harmAssessment: {
+    date: '2026-11-04',
+    assessmentDate: '2026-11-03',
+    conductedBy: 'commission',
+    assessors: [
+      { fullName: 'Петрова Анна Сергеевна', position: 'руководитель юридического отдела' },
+      { fullName: 'Громов Илья Андреевич', position: 'начальник отдела информационных технологий' },
+    ],
+    cases: ['public-distribution', 'additional-purposes', 'public-sources'],
+  },
+  destructionAct: {
+    destructionDate: '2026-11-05',
+    processors: [
+      { name: 'ООО «Хостинг»', address: '190000, г. Санкт-Петербург, ул. Серверная, д. 5' },
+    ],
+    subjects: ['Иванов Иван Иванович', 'клиент по договору № 17 от 12.03.2026'],
+    destroyers: [
+      { fullName: 'Громов Илья Андреевич', position: 'начальник отдела информационных технологий' },
+    ],
+    dataCategories: ['фамилия, имя, отчество', 'номер телефона', 'адрес электронной почты'],
+    media: [{ name: 'анкета клиента', sheets: 3 }],
+    systems: ['CRM'],
+    method: 'измельчение бумажных носителей; удаление записей из CRM средствами системы',
+    reason: 'достижение цели обработки',
+  },
+  destructionProcedure: {
+    number: '14-ПД',
+    date: '2026-11-04',
+    signatory: { fullName: 'Орлов Сергей Викторович', position: 'генеральный директор' },
+    executors: ['начальник отдела информационных технологий', 'руководитель юридического отдела'],
+    methods: [
+      { medium: 'бумажные носители', method: 'измельчение в шредере' },
+      { medium: 'CRM', method: 'удаление записей средствами системы с очисткой резервных копий' },
+    ],
+  },
 };
 
 /** Только обязательное, без необязательных полей и разделов: ловит метки без защитной секции. */

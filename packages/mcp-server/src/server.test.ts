@@ -125,6 +125,20 @@ describe('get_norm', () => {
     expect(text).not.toContain('Правительства РФ');
   });
 
+  it('приказы РКН № 178 и № 179: нормы читаются, срок действия до 01.03.2029 назван (ADR-0016)', async () => {
+    const harm = await call('get_norm', { id: 'rkn-order-178/item-2.1' });
+    const harmNorm = (harm.structuredContent as { norm: { validUntil?: string; text: string } })
+      .norm;
+    expect(harmNorm.validUntil).toBe('2029-03-01');
+    expect(harmNorm.text).toContain('2.1. Высокую в случаях:');
+    expect(textOf(harm)).toContain('Акт действует до 01.03.2029');
+
+    const destruction = await call('get_norm', { id: 'rkn-order-179/item-8' });
+    const { norm } = destruction.structuredContent as { norm: { text: string } };
+    expect(norm.text).toContain('в течение 3 лет с момента уничтожения персональных данных');
+    expect(textOf(destruction)).toContain('номер опубликования 0001202211290008');
+  });
+
   it.each([
     ['ст. 18', 'например 152-fz/art-18/part-5'],
     ['152-fz/art-99', 'не найдена в базе'],
@@ -197,6 +211,8 @@ describe('ресурс lawyer://kb/info', () => {
       'koap',
       'pp-1119',
       'pp-687',
+      'rkn-order-178',
+      'rkn-order-179',
       'rkn-order-18',
     ]);
     expect(info.acts.find((act) => act.id === 'pp-1119')?.sourceType).toBe('official');
