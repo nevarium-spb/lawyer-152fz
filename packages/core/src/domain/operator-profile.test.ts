@@ -243,6 +243,8 @@ describe('разделы профиля для отдельных докумен
       'processingRegulation',
       'internalControlRules',
       'securityOfficerOrder',
+      'acknowledgmentSheet',
+      'visitorLog',
       'incident',
       'crossBorder',
     ]);

@@ -969,6 +969,8 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                     "processingRegulation",
                     "internalControlRules",
                     "securityOfficerOrder",
+                    "acknowledgmentSheet",
+                    "visitorLog",
                     "incident",
                     "crossBorder",
                   ],
@@ -1073,6 +1075,36 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                 "signatory",
                 "entries",
               ],
+              "type": "object",
+            },
+            "acknowledgmentSheet": {
+              "description": "Раздел acknowledgmentSheet: лист ознакомления работников (п. 6 ч. 1 ст. 18.1; при бумажной обработке — п. 6 ПП РФ № 687)",
+              "properties": {
+                "documents": {
+                  "description": "Локальные акты, с которыми знакомятся работники, например «Положение об обработке персональных данных»; называет пользователь",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+                "employees": {
+                  "description": "Работники, только если назвал пользователь; без них лист выйдет с пустыми строками",
+                  "items": {
+                    "properties": {
+                      "fullName": {
+                        "description": "ФИО работника",
+                        "type": "string",
+                      },
+                      "position": {
+                        "description": "Должность",
+                        "type": "string",
+                      },
+                    },
+                    "type": "object",
+                  },
+                  "type": "array",
+                },
+              },
               "type": "object",
             },
             "consentTerm": {
@@ -2025,6 +2057,71 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                 "type": "object",
               },
               "type": "array",
+            },
+            "visitorLog": {
+              "description": "Раздел visitorLog: акт о ведении журнала пропуска посетителей (п. 8 ПП РФ № 687). Все сведения называет пользователь: не придумывай",
+              "properties": {
+                "accessPersons": {
+                  "description": "Лица (поимённо или по должностям), имеющие доступ к журналу",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+                "dataComposition": {
+                  "description": "Сведения, которые запрашиваются у посетителя",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+                "date": {
+                  "description": "Дата акта, ГГГГ-ММ-ДД",
+                  "type": "string",
+                },
+                "keepers": {
+                  "description": "Лица, ответственные за ведение и сохранность журнала",
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+                "number": {
+                  "description": "Номер акта (приказа)",
+                  "type": "string",
+                },
+                "purpose": {
+                  "description": "Цель ведения журнала — лучше точно как в purposes[].title",
+                  "type": "string",
+                },
+                "recordingMethod": {
+                  "description": "Способ фиксации сведений, например запись в бумажном журнале",
+                  "type": "string",
+                },
+                "retention": {
+                  "description": "Сроки обработки персональных данных в журнале",
+                  "type": "string",
+                },
+                "signatory": {
+                  "description": "Кто утверждает акт",
+                  "properties": {
+                    "fullName": {
+                      "description": "ФИО руководителя оператора",
+                      "type": "string",
+                    },
+                    "position": {
+                      "description": "Должность",
+                      "type": "string",
+                    },
+                  },
+                  "type": "object",
+                },
+                "unverifiedEntry": {
+                  "description": "Порядок пропуска без подтверждения подлинности сведений, которые сообщил посетитель",
+                  "type": "string",
+                },
+              },
+              "type": "object",
             },
             "website": {
               "description": "Сайт оператора, полный URL",

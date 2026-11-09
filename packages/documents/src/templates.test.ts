@@ -23,6 +23,7 @@ describe('шаблоны документов (T6.3)', () => {
   it('загружены все шаблоны из Приложения Б плана', () => {
     expect(templates.list().map((t) => t.id)).toEqual([
       'access-list',
+      'acknowledgment-sheet',
       'consent-distribution',
       'consent-processing-web',
       'consent-processing',
@@ -40,6 +41,7 @@ describe('шаблоны документов (T6.3)', () => {
       'responsible-person-order',
       'rkn-notification',
       'security-officer-order',
+      'visitor-log-act',
     ]);
   });
 
@@ -909,6 +911,80 @@ describe('шаблоны документов (T6.3)', () => {
       const result = generate.render('security-officer-order', {
         ...FULL_REFERENCE_PROFILE,
         securityOfficerOrder: { ...base, systems: [] },
+      });
+      expect(result.ok).toBe(false);
+    });
+  });
+
+  describe('лист ознакомления (п. 6 ч. 1 ст. 18.1 Закона, п. 6 ПП № 687)', () => {
+    const base = FULL_REFERENCE_PROFILE.acknowledgmentSheet;
+    const render = (profile: Record<string, unknown> = {}) => {
+      const result = generate.render('acknowledgment-sheet', {
+        ...FULL_REFERENCE_PROFILE,
+        ...profile,
+      });
+      return result.ok ? result.value.markdown : '';
+    };
+
+    it('перечисляет документы и работников, при бумажной обработке — информирование по п. 6 ПП № 687', () => {
+      const markdown = render();
+      for (const required of [
+        '(пункт 6 части 1 статьи 18.1',
+        '  - Положение об обработке персональных данных;',
+        '| 1 | Смирнова Мария Ивановна | менеджер по работе с клиентами |  |  |',
+        'о факте такой обработки, о категориях обрабатываемых персональных данных',
+        '- Заключение и исполнение договоров с клиентами:',
+        'по договору с оператором',
+      ]) {
+        expect(markdown).toContain(required);
+      }
+      expect(markdown).not.toContain('- Обработка заявок и обращений, поступивших через сайт:');
+    });
+
+    it('без работников — пустые строки для заполнения от руки', () => {
+      const markdown = render({ acknowledgmentSheet: { ...base, employees: undefined } });
+      expect(markdown).toContain('| 10 |  |  |  |  |');
+    });
+
+    it('только автоматизированная обработка — без п. 6 ПП № 687', () => {
+      const markdown = render({
+        purposes: FULL_REFERENCE_PROFILE.purposes.map((purpose) => ({
+          ...purpose,
+          methods: 'automated',
+        })),
+      });
+      expect(markdown).not.toContain('687');
+    });
+  });
+
+  describe('акт о журнале пропуска (п. 8 ПП № 687)', () => {
+    const render = () => {
+      const result = generate.render('visitor-log-act', FULL_REFERENCE_PROFILE);
+      return result.ok ? result.value.markdown : '';
+    };
+
+    it('содержит все сведения подп. «а» и запреты подп. «б» и «в» п. 8', () => {
+      const markdown = render();
+      for (const required of [
+        'приказом № 19-ПД от 09.11.2026',
+        '1. Цель обработки персональных данных, осуществляемой без использования средств автоматизации: Однократный пропуск посетителей в офис.',
+        '2. Способ фиксации сведений: запись от руки в бумажном журнале на ресепшене.',
+        '3. Состав информации, запрашиваемой у субъектов персональных данных: фамилия, имя, отчество; дата и время прихода.',
+        '4. Лица, имеющие доступ к журналу: администратор ресепшена; офис-менеджер.',
+        '5. Лица, ответственные за ведение и сохранность журнала: офис-менеджер.',
+        '6. Сроки обработки персональных данных: 1 год с даты последней записи в журнале.',
+        '7. Порядок пропуска субъекта персональных данных на территорию без подтверждения подлинности',
+        'Копирование информации, содержащейся в журнале, не допускается (подпункт «б» пункта 8 Положения)',
+        'не более одного раза в каждом случае пропуска',
+      ]) {
+        expect(markdown).toContain(required);
+      }
+    });
+
+    it('без сведений подп. «а» акт не собирается молча', () => {
+      const result = generate.render('visitor-log-act', {
+        ...FULL_REFERENCE_PROFILE,
+        visitorLog: { ...FULL_REFERENCE_PROFILE.visitorLog, unverifiedEntry: undefined },
       });
       expect(result.ok).toBe(false);
     });
