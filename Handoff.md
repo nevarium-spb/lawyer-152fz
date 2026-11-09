@@ -1,6 +1,6 @@
 # Handoff: lawyer-152fz
 
-Состояние на 09.11.2026 (`main` = `cc9bfbf`, PR #23). Репозиторий `G:\lawyer-152fz-new` (клон `nevarium-spb/lawyer-152fz`; папка `G:\lawyer-152fz` пуста, работать только в клоне, см. «Состояние»). Пиши по-русски. Начни с памяти `~/.claude/projects/G--nevarium/memory/lawyer-152fz.md` и списка задач `m7-hardening` в claude-mem.
+Состояние на 09.11.2026: последнее изменение кода и шаблонов — `240becf` (PR #25); коммиты после него в `main` правят только этот файл, текущую вершину смотри `git log -1 origin/main`. Репозиторий `G:\lawyer-152fz-new` (клон `nevarium-spb/lawyer-152fz`; папка `G:\lawyer-152fz` пуста, работать только в клоне, см. «Состояние»). Пиши по-русски. Начни с памяти `~/.claude/projects/G--nevarium/memory/lawyer-152fz.md` и списка задач `m7-hardening` в claude-mem.
 
 ## Приоритет и цель
 
