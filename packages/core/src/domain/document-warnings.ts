@@ -168,6 +168,19 @@ function securityOfficerOrderWarnings(profile: OperatorProfile): readonly string
   return warnings;
 }
 
+/** Журнал пропуска — тоже обработка: его цель должна быть среди целей профиля (п. 8 «а» ПП № 687). */
+function visitorLogWarnings(profile: OperatorProfile): readonly string[] {
+  const log = profile.visitorLog;
+  if (!log) return [];
+  const known = profile.purposes.some(
+    (purpose) => normalize(purpose.title) === normalize(log.purpose),
+  );
+  if (known) return [];
+  return [
+    `Цели журнала «${log.purpose}» нет среди целей обработки в профиле. Журнал пропуска — обработка без средств автоматизации со своей целью (п. 8 «а» ПП РФ № 687): добавьте её в purposes, чтобы она попала в политику и уведомление Роскомнадзора, или назовите цель точно как в purposes[].title.`,
+  ];
+}
+
 /**
  * Что пользователь должен узнать о собранном документе, но что не должно попасть в его текст.
  * Документ при этом собирается: решение остаётся за оператором.
@@ -186,5 +199,6 @@ export function documentWarnings(
     ...(sections.includes('processingRegulation') ? processingRegulationWarnings(profile) : []),
     ...(sections.includes('internalControlRules') ? internalControlRulesWarnings(profile) : []),
     ...(sections.includes('securityOfficerOrder') ? securityOfficerOrderWarnings(profile) : []),
+    ...(sections.includes('visitorLog') ? visitorLogWarnings(profile) : []),
   ];
 }

@@ -36,7 +36,13 @@ describe('инструменты документов (T6.4)', () => {
     const { templates } = result.structuredContent as {
       templates: { id: string; requiredFields: string[] }[];
     };
-    expect(templates.map((t) => t.id)).toHaveLength(18);
+    expect(templates.map((t) => t.id)).toHaveLength(20);
+    expect(templates.find((t) => t.id === 'acknowledgment-sheet')?.requiredFields).toContain(
+      'acknowledgmentSheet',
+    );
+    expect(templates.find((t) => t.id === 'visitor-log-act')?.requiredFields).toContain(
+      'visitorLog',
+    );
     expect(templates.find((t) => t.id === 'security-officer-order')?.requiredFields).toContain(
       'securityOfficerOrder',
     );

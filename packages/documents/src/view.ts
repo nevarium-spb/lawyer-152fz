@@ -403,6 +403,53 @@ function securityOfficerOrderView(profile: OperatorProfile) {
   };
 }
 
+/** Пустых строк в листе ознакомления, если работники не названы. */
+const BLANK_ACKNOWLEDGMENT_ROWS = 10;
+
+/** Лист ознакомления: при обработке без средств автоматизации работников информируют по п. 6 ПП № 687. */
+function acknowledgmentSheetView(profile: OperatorProfile) {
+  const sheet = profile.acknowledgmentSheet;
+  if (!sheet) return null;
+  const employees = sheet.employees ?? [];
+  const nonAutomated = profile.purposes
+    .filter((purpose) => purpose.methods !== 'automated')
+    .map((purpose) => ({ title: purpose.title, dataCategories: joinList(purpose.dataCategories) }));
+  return {
+    documents: sheet.documents,
+    hasNonAutomated: nonAutomated.length > 0,
+    nonAutomatedPurposes: nonAutomated,
+    rows: employees.map((employee, index) => ({
+      number: index + 1,
+      fullName: employee.fullName,
+      position: employee.position,
+    })),
+    hasBlankRows: employees.length === 0,
+    // Рендерер не подставляет пустые значения: пустые строки — это только их номера.
+    blankRows:
+      employees.length > 0
+        ? []
+        : Array.from({ length: BLANK_ACKNOWLEDGMENT_ROWS }, (_, index) => index + 1),
+  };
+}
+
+/** Акт о журнале пропуска (п. 8 «а» ПП № 687): все сведения — со слов оператора. */
+function visitorLogView(profile: OperatorProfile) {
+  const log = profile.visitorLog;
+  if (!log) return null;
+  return {
+    number: log.number,
+    date: formatDate(log.date),
+    signatory: log.signatory,
+    purpose: log.purpose,
+    recordingMethod: log.recordingMethod,
+    dataComposition: joinList(log.dataComposition),
+    accessPersons: joinList(log.accessPersons),
+    keepers: joinList(log.keepers),
+    retention: log.retention,
+    unverifiedEntry: log.unverifiedEntry,
+  };
+}
+
 export function buildView(profile: OperatorProfile, context: RenderContext) {
   const processors = profile.thirdParties.filter((party) => party.role === 'processor');
   const recipients = profile.thirdParties.filter((party) => party.role === 'recipient');
@@ -475,6 +522,8 @@ export function buildView(profile: OperatorProfile, context: RenderContext) {
     processingRegulation: processingRegulationView(profile),
     internalControlRules: internalControlRulesView(profile),
     securityOfficerOrder: securityOfficerOrderView(profile),
+    acknowledgmentSheet: acknowledgmentSheetView(profile),
+    visitorLog: visitorLogView(profile),
     responsibleOrder: profile.responsibleOrder
       ? {
           number: profile.responsibleOrder.number,

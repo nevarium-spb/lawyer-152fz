@@ -545,6 +545,52 @@ const securityOfficerOrderSchema = z.object(
   { error: 'Опишите приказ: номер, дату, подписанта, системы и ответственных' },
 );
 
+/**
+ * Лист ознакомления (п. 6 ч. 1 ст. 18.1; при обработке без средств автоматизации — п. 6 ПП РФ № 687).
+ * Локальные акты называет оператор; без работников лист выходит с пустыми строками.
+ */
+const acknowledgmentSheetSchema = z.object(
+  {
+    documents: nonEmptyList(
+      'Перечислите локальные акты, с которыми знакомятся работники, например «Положение об обработке персональных данных»',
+    ),
+    employees: z.array(staffMemberSchema('работника, который знакомится с документами')).optional(),
+  },
+  { error: 'Перечислите документы, с которыми знакомятся работники' },
+);
+
+/**
+ * Акт о ведении журнала пропуска (п. 8 «а» ПП РФ № 687): все сведения акта называет оператор —
+ * норма перечисляет их, но не заполняет.
+ */
+const visitorLogSchema = z.object(
+  {
+    number: requiredText('Укажите номер акта (приказа)'),
+    date: isoDate('Укажите дату акта'),
+    signatory: staffMemberSchema('руководителя оператора, утверждающего акт'),
+    purpose: requiredText(
+      'Укажите цель ведения журнала, например «однократный пропуск посетителей в офис»',
+    ),
+    recordingMethod: requiredText(
+      'Укажите способ фиксации сведений, например «запись от руки в бумажном журнале на посту охраны»',
+    ),
+    dataComposition: nonEmptyList(
+      'Перечислите сведения, которые запрашиваются у посетителя, например «фамилия, имя, отчество»',
+    ),
+    accessPersons: nonEmptyList(
+      'Перечислите лиц (поимённо или по должностям), имеющих доступ к журналу',
+    ),
+    keepers: nonEmptyList(
+      'Перечислите лиц (поимённо или по должностям), ответственных за ведение и сохранность журнала',
+    ),
+    retention: requiredText('Укажите сроки обработки персональных данных в журнале'),
+    unverifiedEntry: requiredText(
+      'Опишите порядок пропуска без подтверждения подлинности сведений, которые сообщил посетитель',
+    ),
+  },
+  { error: 'Опишите журнал пропуска: все сведения из п. 8 «а» ПП РФ № 687' },
+);
+
 /** Сведения, которые нужны не каждому документу, — шаблон перечисляет нужные в `requires`. */
 const sectionShapes = {
   /** Согласие на обработку (ст. 9 ч. 4 п. 8). */
@@ -642,6 +688,14 @@ const sectionShapes = {
   securityOfficerOrder: {
     securityOfficerOrder: securityOfficerOrderSchema,
   },
+  /** Лист ознакомления работников (п. 6 ч. 1 ст. 18.1, п. 6 ПП РФ № 687). */
+  acknowledgmentSheet: {
+    acknowledgmentSheet: acknowledgmentSheetSchema,
+  },
+  /** Акт о ведении журнала пропуска (п. 8 ПП РФ № 687). */
+  visitorLog: {
+    visitorLog: visitorLogSchema,
+  },
   /** Уведомления об инциденте в Роскомнадзор (ч. 3.1 ст. 21). */
   incident: {
     incident: incidentSchema,
@@ -717,6 +771,8 @@ export const operatorProfileSchema = z.object({
   processingRegulation: processingRegulationSchema.optional(),
   internalControlRules: internalControlRulesSchema.optional(),
   securityOfficerOrder: securityOfficerOrderSchema.optional(),
+  acknowledgmentSheet: acknowledgmentSheetSchema.optional(),
+  visitorLog: visitorLogSchema.optional(),
 });
 
 export type OperatorProfile = z.output<typeof operatorProfileSchema>;

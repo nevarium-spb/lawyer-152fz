@@ -35,6 +35,8 @@ describe('скилл pd-docs (T7.7)', () => {
     'processing-regulation',
     'internal-control-rules',
     'security-officer-order',
+    'acknowledgment-sheet',
+    'visitor-log-act',
   ])('описывает шаблон %s: в таблице выбора и в «Что дальше»', (id) => {
     const table = skill.slice(skill.indexOf('## 1.'), skill.indexOf('## 2.'));
     const next = skill.slice(skill.indexOf('## 4. Что дальше'));

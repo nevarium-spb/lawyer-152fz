@@ -277,6 +277,34 @@ describe('предупреждения к документу', () => {
     });
   });
 
+  describe('акт о журнале пропуска', () => {
+    const log = (purpose: string) => ({
+      visitorLog: {
+        number: '1-ПД',
+        date: '2026-11-02',
+        signatory: { fullName: 'Иванов И. И.', position: 'директор' },
+        purpose,
+        recordingMethod: 'запись в бумажном журнале',
+        dataComposition: ['фамилия, имя, отчество'],
+        accessPersons: ['охранник'],
+        keepers: ['охранник'],
+        retention: '1 год',
+        unverifiedEntry: 'документ не проверяется',
+      },
+    });
+
+    it('цель журнала есть в профиле — предупреждений нет', () => {
+      const title = validProfileInput().purposes[0]?.title ?? '';
+      expect(warn(['visitorLog'], log(title))).toEqual([]);
+    });
+
+    it('цели журнала нет в профиле — предупреждает', () => {
+      const [warning] = warn(['visitorLog'], log('Пропуск посетителей'));
+      expect(warning).toContain('«Пропуск посетителей»');
+      expect(warning).toContain('п. 8 «а» ПП РФ № 687');
+    });
+  });
+
   it('раздел не нужен документу — и предупреждения по нему не нужны', () => {
     expect(warn([])).toEqual([]);
   });
