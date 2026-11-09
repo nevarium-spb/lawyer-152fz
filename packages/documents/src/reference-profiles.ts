@@ -245,6 +245,21 @@ export const FULL_REFERENCE_PROFILE: OperatorProfileInput = {
       'после выявления инцидента с персональными данными',
     ],
   },
+  securityOfficerOrder: {
+    number: '18-ПД',
+    date: '2026-11-08',
+    signatory: { fullName: 'Орлов Сергей Викторович', position: 'генеральный директор' },
+    systems: [
+      {
+        name: 'CRM',
+        officer: { fullName: 'Кузнецов Илья Андреевич', position: 'системный администратор' },
+      },
+      {
+        name: 'Кадровый учёт',
+        officer: { fullName: 'Кузнецов Илья Андреевич', position: 'системный администратор' },
+      },
+    ],
+  },
 };
 
 /** Только обязательное, без необязательных полей и разделов: ловит метки без защитной секции. */

@@ -362,6 +362,47 @@ function internalControlRulesView(profile: OperatorProfile) {
   };
 }
 
+/**
+ * Приказ по п. 14 ПП № 1119: назначение обязательно с 3-го уровня (пп. 15, 16 включают п. 14).
+ * Уровень системы — из акта уровня защищённости (пп. 9–12), иначе из профиля; сам код его не подбирает.
+ */
+function securityOfficerOrderView(profile: OperatorProfile) {
+  const order = profile.securityOfficerOrder;
+  if (!order) return null;
+  const key = (text: string) => text.trim().toLowerCase();
+  const assessed = profile.protectionAssessment?.systems ?? [];
+  const declared = profile.protectionLevel;
+  const systems = order.systems.map((system, index) => {
+    const match = assessed.find((candidate) => key(candidate.name) === key(system.name));
+    const result = match ? determineProtectionLevel(match) : null;
+    const level =
+      result?.kind === 'level'
+        ? result.level
+        : !match && declared !== undefined && declared !== 'not-determined'
+          ? Number(declared)
+          : null;
+    return {
+      number: index + 1,
+      name: system.name,
+      officer: system.officer,
+      level,
+      fromAssessment: result?.kind === 'level',
+    };
+  });
+  const names = (items: typeof systems) => items.map((system) => `«${system.name}»`).join(', ');
+  const optional = systems.filter((system) => system.level === 4);
+  const undetermined = systems.filter((system) => system.level === null);
+  return {
+    number: order.number,
+    date: formatDate(order.date),
+    signatory: order.signatory,
+    systems,
+    optionalSystems: optional.length > 0 ? names(optional) : null,
+    undeterminedSystems: undetermined.length > 0 ? names(undetermined) : null,
+    hasLevel1: systems.some((system) => system.level === 1),
+  };
+}
+
 export function buildView(profile: OperatorProfile, context: RenderContext) {
   const processors = profile.thirdParties.filter((party) => party.role === 'processor');
   const recipients = profile.thirdParties.filter((party) => party.role === 'recipient');
@@ -433,6 +474,7 @@ export function buildView(profile: OperatorProfile, context: RenderContext) {
     processingAgreement: processingAgreementView(profile),
     processingRegulation: processingRegulationView(profile),
     internalControlRules: internalControlRulesView(profile),
+    securityOfficerOrder: securityOfficerOrderView(profile),
     responsibleOrder: profile.responsibleOrder
       ? {
           number: profile.responsibleOrder.number,

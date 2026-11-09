@@ -520,6 +520,31 @@ const internalControlRulesSchema = z.object(
   { error: 'Опишите утверждение правил и периодичность проверок' },
 );
 
+/**
+ * Приказ о назначении ответственного за безопасность ПДн в информационной системе (п. 14 ПП РФ № 1119).
+ * Системы и ответственных называет оператор; уровень защищённости код берёт из акта или профиля.
+ */
+const securityOfficerOrderSchema = z.object(
+  {
+    number: requiredText('Укажите номер приказа'),
+    date: isoDate('Укажите дату приказа'),
+    signatory: staffMemberSchema('руководителя оператора, подписывающего приказ'),
+    systems: z
+      .array(
+        z.object(
+          {
+            name: requiredText('Укажите информационную систему персональных данных'),
+            officer: staffMemberSchema('ответственного за безопасность данных в этой системе'),
+          },
+          { error: 'Укажите систему и ответственного за безопасность данных в ней' },
+        ),
+        { error: 'Перечислите информационные системы и ответственных за безопасность в них' },
+      )
+      .min(1, 'Укажите хотя бы одну информационную систему и ответственного'),
+  },
+  { error: 'Опишите приказ: номер, дату, подписанта, системы и ответственных' },
+);
+
 /** Сведения, которые нужны не каждому документу, — шаблон перечисляет нужные в `requires`. */
 const sectionShapes = {
   /** Согласие на обработку (ст. 9 ч. 4 п. 8). */
@@ -613,6 +638,10 @@ const sectionShapes = {
   internalControlRules: {
     internalControlRules: internalControlRulesSchema,
   },
+  /** Приказ об ответственном за безопасность ПДн в информационной системе (п. 14 ПП РФ № 1119). */
+  securityOfficerOrder: {
+    securityOfficerOrder: securityOfficerOrderSchema,
+  },
   /** Уведомления об инциденте в Роскомнадзор (ч. 3.1 ст. 21). */
   incident: {
     incident: incidentSchema,
@@ -687,6 +716,7 @@ export const operatorProfileSchema = z.object({
   processingAgreement: processingAgreementSchema.optional(),
   processingRegulation: processingRegulationSchema.optional(),
   internalControlRules: internalControlRulesSchema.optional(),
+  securityOfficerOrder: securityOfficerOrderSchema.optional(),
 });
 
 export type OperatorProfile = z.output<typeof operatorProfileSchema>;

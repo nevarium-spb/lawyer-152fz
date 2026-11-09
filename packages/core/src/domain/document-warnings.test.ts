@@ -235,6 +235,48 @@ describe('предупреждения к документу', () => {
     });
   });
 
+  describe('приказ об ответственном за безопасность в информационной системе', () => {
+    const order = {
+      securityOfficerOrder: {
+        number: '1-ПД',
+        date: '2026-11-02',
+        signatory: { fullName: 'Иванов И. И.', position: 'директор' },
+        systems: [{ name: 'CRM', officer: { fullName: 'Петров П. П.', position: 'инженер' } }],
+      },
+    };
+    const purposesWith = (methods: string) =>
+      validProfileInput().purposes.map((purpose) => ({ ...purpose, methods }));
+    const assessment = (name: string) => ({
+      protectionAssessment: {
+        date: '2026-11-01',
+        systems: [
+          { name, dataKind: 'other', employeesOnly: false, subjectsCount: 500, threatType: '3' },
+        ],
+      },
+    });
+
+    it('система есть в акте, обработка автоматизированная — предупреждений нет', () => {
+      expect(
+        warn(['securityOfficerOrder'], {
+          ...order,
+          ...assessment('CRM'),
+          purposes: purposesWith('automated'),
+        }),
+      ).toEqual([]);
+    });
+
+    it('система не из акта и обработка без автоматизации — два предупреждения', () => {
+      const warnings = warn(['securityOfficerOrder'], {
+        ...order,
+        ...assessment('Сайт'),
+        purposes: purposesWith('non-automated'),
+      });
+      expect(warnings).toHaveLength(2);
+      expect(warnings[0]).toContain('п. 1');
+      expect(warnings[1]).toContain('«CRM»');
+    });
+  });
+
   it('раздел не нужен документу — и предупреждения по нему не нужны', () => {
     expect(warn([])).toEqual([]);
   });
