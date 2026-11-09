@@ -68,7 +68,7 @@ export function createGenerateDocument(deps: GenerateDocumentDeps): GenerateDocu
         normRefs: info.normRefs,
         markdown: `${body.value.trimEnd()}\n`,
         disclaimer: LEGAL_DISCLAIMER,
-        warnings: documentWarnings(info.requires, profile.value, date),
+        warnings: documentWarnings(info.requires, profile.value, date, templateId),
       });
     },
   };

@@ -5,11 +5,16 @@ import { documentWarnings } from './document-warnings';
 import { IMPLEMENTED_MEASURES, operatorProfileSchema } from './operator-profile';
 import type { ProfileSection } from './operator-profile';
 
-const warn = (sections: readonly ProfileSection[], overrides: Record<string, unknown> = {}) =>
+const warn = (
+  sections: readonly ProfileSection[],
+  overrides: Record<string, unknown> = {},
+  templateId = 'test-template',
+) =>
   documentWarnings(
     sections,
     operatorProfileSchema.parse({ ...validProfileInput(), ...overrides }),
     '2026-11-02',
+    templateId,
   );
 
 describe('предупреждения к документу', () => {
@@ -60,9 +65,54 @@ describe('предупреждения к документу', () => {
         ['publicDistribution'],
         operatorProfileSchema.parse(validProfileInput()),
         today,
+        'consent-distribution',
       );
     expect(at('2027-08-31')).toEqual([]);
     expect(at('2027-09-01').join()).toContain('№ 18');
+  });
+
+  describe('согласие для формы на сайте и специальные категории', () => {
+    const [base] = validProfileInput().purposes;
+    const withData = (dataCategories: string[], legalBasis = 'согласие субъекта') => ({
+      purposes: [{ ...base, title: 'Подбор программы тренировок', dataCategories, legalBasis }],
+    });
+
+    it('данные о здоровье в цели по согласию — нужна письменная форма (п. 1 ч. 2 ст. 10, ч. 4 ст. 9)', () => {
+      const warnings = warn(
+        ['consent', 'processingConsent'],
+        withData(['ФИО', 'сведения о состоянии здоровья']),
+        'consent-processing-web',
+      ).join();
+      expect(warnings).toContain('«Подбор программы тренировок»');
+      expect(warnings).toContain('п. 1 ч. 2 ст. 10');
+      expect(warnings).toContain('ч. 4 ст. 9');
+      expect(warnings).toContain('consent-processing');
+    });
+
+    it('биометрия — ссылка на ч. 1 ст. 11', () => {
+      const warnings = warn(
+        ['consent', 'processingConsent'],
+        withData(['биометрическое изображение лица']),
+        'consent-processing-web',
+      ).join();
+      expect(warnings).toContain('ч. 1 ст. 11');
+    });
+
+    it('письменный вариант, обычные данные и цель не по согласию — без этого предупреждения', () => {
+      const special = withData(['сведения о состоянии здоровья']);
+      const sections: ProfileSection[] = ['consent', 'processingConsent'];
+      expect(warn(sections, special, 'consent-processing').join()).not.toContain('ч. 1 ст. 10');
+      expect(
+        warn(sections, withData(['ФИО', 'телефон']), 'consent-processing-web').join(),
+      ).not.toContain('ч. 1 ст. 10');
+      const contract = withData(
+        ['сведения о состоянии здоровья'],
+        'исполнение договора (п. 5 ч. 1 ст. 6)',
+      );
+      expect(warn(['consent'], contract, 'consent-processing-web').join()).not.toContain(
+        'ч. 1 ст. 10',
+      );
+    });
   });
 
   describe('согласие на обработку', () => {
