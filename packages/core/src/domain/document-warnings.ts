@@ -1,5 +1,6 @@
 import { IMPLEMENTED_MEASURES, isConsentBasis } from './operator-profile';
 import type { ImplementedMeasure, OperatorProfile, ProfileSection } from './operator-profile';
+import { specialCategoryInText } from './special-categories';
 
 const MEASURE_TITLES: Record<ImplementedMeasure, string> = {
   'responsible-person': 'ответственный за организацию обработки',
@@ -78,6 +79,21 @@ function consentWarnings(profile: OperatorProfile): readonly string[] {
   return [
     CONSENT_PROOF_WARNING,
     `${separate}Для продвижения прямыми контактами с помощью средств связи нужно предварительное согласие, его получение доказывает оператор, а по требованию субъекта обработку прекращают немедленно (ст. 15 152-ФЗ). Письменной формы ст. 15 не называет, но устойчивой практики нет: выбор между вариантом для сайта и письменным оставьте оператору. Законодательство о рекламе в базу норм не входит и не проверялось.`,
+  ];
+}
+
+/**
+ * Вариант согласия для формы на сайте не годится для специальных категорий и биометрии: для них закон требует
+ * письменную форму. Данные распознаются по словам в перечне, поэтому это признак, а не установленный факт.
+ */
+function webConsentWarnings(profile: OperatorProfile): readonly string[] {
+  const flagged = profile.purposes
+    .filter((purpose) => isConsentBasis(purpose.legalBasis))
+    .filter((purpose) => specialCategoryInText(purpose.dataCategories.join(' ')) !== undefined);
+  if (flagged.length === 0) return [];
+  const titles = flagged.map((purpose) => `«${purpose.title}»`).join(', ');
+  return [
+    `В перечне данных цели ${titles} есть признаки специальных категорий (ч. 1 ст. 10 152-ФЗ) или биометрии (ч. 1 ст. 11 152-ФЗ). Специальные категории по согласию обрабатываются только при согласии в письменной форме (п. 1 ч. 2 ст. 10), биометрия, которая используется для установления личности, — тоже (ч. 1 ст. 11). Письменная форма — бумага с собственноручной подписью или электронный документ с электронной подписью (ч. 4 ст. 9); отметки в форме на сайте для этого недостаточно. Используйте шаблон consent-processing. Признак найден по словам в перечне данных: проверьте его сами.`,
   ];
 }
 
@@ -189,12 +205,14 @@ export function documentWarnings(
   sections: readonly ProfileSection[],
   profile: OperatorProfile,
   today: string,
+  templateId: string,
 ): readonly string[] {
   return [
     ...(sections.includes('measures') ? measureWarnings(profile) : []),
     ...(sections.includes('rknNotification') ? notificationWarnings(profile, today) : []),
     ...(sections.includes('publicDistribution') ? distributionWarnings(today) : []),
     ...(sections.includes('processingConsent') ? consentWarnings(profile) : []),
+    ...(templateId === 'consent-processing-web' ? webConsentWarnings(profile) : []),
     ...(sections.includes('processingAgreement') ? processingAgreementWarnings(profile) : []),
     ...(sections.includes('processingRegulation') ? processingRegulationWarnings(profile) : []),
     ...(sections.includes('internalControlRules') ? internalControlRulesWarnings(profile) : []),
