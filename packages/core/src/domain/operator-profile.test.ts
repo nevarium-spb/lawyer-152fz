@@ -190,6 +190,31 @@ describe('разделы профиля для отдельных докумен
     expect(paths(result)).toEqual(['consentTerm', 'publicData']);
   });
 
+  describe('ресурсы для распространения — адрес с http или https (п. 4 приказа РКН № 18)', () => {
+    const withResources = (resources: string[]) =>
+      parseFor(['publicDistribution'], {
+        ...validProfileInput(),
+        publicData: { purpose: 'размещение отзывов', dataCategories: ['имя'], resources },
+      });
+
+    it.each([['https://site.example/reviews'], ['http://site.example/reviews.html']])(
+      'принимает %s',
+      (url) => {
+        expect(withResources([url]).ok).toBe(true);
+      },
+    );
+
+    it.each([
+      ['ftp://site.example/reviews'],
+      ['mailto:info@site.example'],
+      ['site.example/reviews'],
+    ])('отклоняет %s', (url) => {
+      const result = withResources([url]);
+      expect(paths(result)).toEqual(['publicData.resources.0']);
+      expect(!result.ok && result.error.issues[0]?.message).toContain('http или https');
+    });
+  });
+
   it('согласие на обработку не собирается, если ни одна цель не основана на согласии', () => {
     const input = validProfileInput();
     const result = parseFor(['processingConsent'], {
