@@ -75,6 +75,13 @@ describe('шаблоны документов (T6.3)', () => {
       return result.ok ? result.value.markdown : '';
     };
 
+    it('ссылается на все девять пунктов Требований в базе', () => {
+      const info = templates.list().find((template) => template.id === 'consent-distribution');
+      for (const item of ['1', '2', '3', '4', '5', '6', '7', '8', '9']) {
+        expect(info?.normRefs).toContain(`rkn-order-18/item-${item}`);
+      }
+    });
+
     it('содержит сведения всех девяти подпунктов Требований', () => {
       const markdown = render();
       for (const required of [

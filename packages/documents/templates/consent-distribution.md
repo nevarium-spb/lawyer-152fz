@@ -15,6 +15,15 @@ normRefs:
   - 152-fz/art-10.1/part-10
   - 152-fz/art-10.1/part-12
   - 152-fz/art-9/part-9
+  - rkn-order-18/item-1
+  - rkn-order-18/item-2
+  - rkn-order-18/item-3
+  - rkn-order-18/item-4
+  - rkn-order-18/item-5
+  - rkn-order-18/item-6
+  - rkn-order-18/item-7
+  - rkn-order-18/item-8
+  - rkn-order-18/item-9
 requires:
   - consent
   - publicDistribution
