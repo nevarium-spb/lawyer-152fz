@@ -403,6 +403,39 @@ const profileShape = z
       .describe(
         'Раздел internalControlRules: правила внутреннего контроля (п. 4 ч. 1 ст. 18.1, п. 17 ПП РФ № 1119). Контроль проводит ответственный из responsiblePerson; периодичность называет пользователь',
       ),
+    securityOfficerOrder: z
+      .object({
+        number: text('Номер приказа'),
+        date: text('Дата приказа, ГГГГ-ММ-ДД'),
+        signatory: z
+          .object({
+            fullName: text('ФИО руководителя оператора'),
+            position: text('Должность'),
+          })
+          .optional()
+          .describe('Кто подписывает приказ'),
+        systems: z
+          .array(
+            z.object({
+              name: text(
+                'Информационная система — точно как в protectionAssessment.systems[].name, если акт есть',
+              ),
+              officer: z
+                .object({
+                  fullName: text('ФИО'),
+                  position: text('Должность'),
+                })
+                .optional()
+                .describe('Ответственный за безопасность данных в этой системе'),
+            }),
+          )
+          .optional()
+          .describe('Информационные системы и ответственные в них; называет пользователь'),
+      })
+      .optional()
+      .describe(
+        'Раздел securityOfficerOrder: приказ об ответственном за безопасность ПДн в информационной системе (п. 14 ПП РФ № 1119). Уровень защищённости шаблон берёт из protectionAssessment или protectionLevel: не подставляй его сам',
+      ),
     incident: z
       .object({
         discoveredAt: text('Дата и время выявления инцидента, например «2026-11-02 10:30»'),

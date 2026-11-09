@@ -39,6 +39,7 @@ describe('шаблоны документов (T6.3)', () => {
       'protection-level-act',
       'responsible-person-order',
       'rkn-notification',
+      'security-officer-order',
     ]);
   });
 
@@ -862,6 +863,54 @@ describe('шаблоны документов (T6.3)', () => {
 
     it('не выдаёт предложенный порядок за требование закона', () => {
       expect(render()).toContain('Пункты 4.1, 4.2, 5.1 и 6.4 предложены шаблоном');
+    });
+  });
+
+  describe('приказ об ответственном за безопасность в информационной системе (п. 14 ПП № 1119)', () => {
+    const base = FULL_REFERENCE_PROFILE.securityOfficerOrder;
+    const render = (profile: Record<string, unknown> = {}) => {
+      const result = generate.render('security-officer-order', {
+        ...FULL_REFERENCE_PROFILE,
+        ...profile,
+      });
+      return result.ok ? result.value.markdown : '';
+    };
+
+    it('по каждой системе — ответственный и уровень из акта или профиля', () => {
+      const markdown = render();
+      for (const required of [
+        '# Приказ № 18-ПД',
+        'пунктом 14 Требований',
+        '- в информационной системе «CRM» (уровень защищённости персональных данных: 4-й) — системный администратор Кузнецов Илья Андреевич;',
+        '- в информационной системе «Кадровый учёт» (уровень защищённости персональных данных: 3-й) — системный администратор',
+        'Для систем «CRM» указан 4-й уровень защищённости',
+        '(пункт 3 Требований)',
+      ]) {
+        expect(markdown).toContain(required);
+      }
+      expect(markdown).not.toContain('не определён');
+      expect(markdown).not.toContain('подпункт «б» пункта 16');
+    });
+
+    it('без уровня в акте и профиле — просит его определить, а не подбирает', () => {
+      const markdown = render({ protectionLevel: 'not-determined' });
+      expect(markdown).toContain(
+        '- в информационной системе «Кадровый учёт» — системный администратор',
+      );
+      expect(markdown).toContain('Для систем «Кадровый учёт» уровень защищённости не определён');
+    });
+
+    it('1-й уровень — напоминает о структурном подразделении (пп. «б» п. 16)', () => {
+      const markdown = render({ protectionLevel: '1' });
+      expect(markdown).toContain('подпункт «б» пункта 16 Требований');
+    });
+
+    it('без систем приказ не собирается молча', () => {
+      const result = generate.render('security-officer-order', {
+        ...FULL_REFERENCE_PROFILE,
+        securityOfficerOrder: { ...base, systems: [] },
+      });
+      expect(result.ok).toBe(false);
     });
   });
 

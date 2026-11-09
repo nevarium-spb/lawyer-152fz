@@ -242,6 +242,7 @@ describe('разделы профиля для отдельных докумен
       'processingAgreement',
       'processingRegulation',
       'internalControlRules',
+      'securityOfficerOrder',
       'incident',
       'crossBorder',
     ]);

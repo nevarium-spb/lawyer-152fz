@@ -145,6 +145,29 @@ function internalControlRulesWarnings(profile: OperatorProfile): readonly string
   ];
 }
 
+/** Приказ по п. 14 ПП № 1119 касается информационных систем: системы должны совпадать с актом уровня защищённости. */
+function securityOfficerOrderWarnings(profile: OperatorProfile): readonly string[] {
+  const order = profile.securityOfficerOrder;
+  if (!order) return [];
+  const warnings: string[] = [];
+  if (profile.purposes.every((purpose) => purpose.methods === 'non-automated')) {
+    warnings.push(
+      'Все цели в профиле обрабатываются без средств автоматизации. Требования ПП РФ № 1119 касаются обработки в информационных системах персональных данных (п. 1): проверьте, есть ли у оператора такие системы.',
+    );
+  }
+  const assessed = profile.protectionAssessment?.systems;
+  if (assessed) {
+    const known = new Set(assessed.map((system) => normalize(system.name)));
+    const unknown = order.systems.filter((system) => !known.has(normalize(system.name)));
+    if (unknown.length > 0) {
+      warnings.push(
+        `Систем ${unknown.map((system) => `«${system.name}»`).join(', ')} нет в акте уровня защищённости (protectionAssessment): их уровень взят из профиля или не определён. Проверьте название — оно должно совпадать с protectionAssessment.systems[].name.`,
+      );
+    }
+  }
+  return warnings;
+}
+
 /**
  * Что пользователь должен узнать о собранном документе, но что не должно попасть в его текст.
  * Документ при этом собирается: решение остаётся за оператором.
@@ -162,5 +185,6 @@ export function documentWarnings(
     ...(sections.includes('processingAgreement') ? processingAgreementWarnings(profile) : []),
     ...(sections.includes('processingRegulation') ? processingRegulationWarnings(profile) : []),
     ...(sections.includes('internalControlRules') ? internalControlRulesWarnings(profile) : []),
+    ...(sections.includes('securityOfficerOrder') ? securityOfficerOrderWarnings(profile) : []),
   ];
 }

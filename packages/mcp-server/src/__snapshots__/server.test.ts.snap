@@ -968,6 +968,7 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                     "processingAgreement",
                     "processingRegulation",
                     "internalControlRules",
+                    "securityOfficerOrder",
                     "incident",
                     "crossBorder",
                   ],
@@ -1937,6 +1938,61 @@ exports[`контракт MCP-инструментов (T3.3) > схемы, оп
                 "number": {
                   "description": "Регистрационный номер",
                   "type": "string",
+                },
+              },
+              "type": "object",
+            },
+            "securityOfficerOrder": {
+              "description": "Раздел securityOfficerOrder: приказ об ответственном за безопасность ПДн в информационной системе (п. 14 ПП РФ № 1119). Уровень защищённости шаблон берёт из protectionAssessment или protectionLevel: не подставляй его сам",
+              "properties": {
+                "date": {
+                  "description": "Дата приказа, ГГГГ-ММ-ДД",
+                  "type": "string",
+                },
+                "number": {
+                  "description": "Номер приказа",
+                  "type": "string",
+                },
+                "signatory": {
+                  "description": "Кто подписывает приказ",
+                  "properties": {
+                    "fullName": {
+                      "description": "ФИО руководителя оператора",
+                      "type": "string",
+                    },
+                    "position": {
+                      "description": "Должность",
+                      "type": "string",
+                    },
+                  },
+                  "type": "object",
+                },
+                "systems": {
+                  "description": "Информационные системы и ответственные в них; называет пользователь",
+                  "items": {
+                    "properties": {
+                      "name": {
+                        "description": "Информационная система — точно как в protectionAssessment.systems[].name, если акт есть",
+                        "type": "string",
+                      },
+                      "officer": {
+                        "description": "Ответственный за безопасность данных в этой системе",
+                        "properties": {
+                          "fullName": {
+                            "description": "ФИО",
+                            "type": "string",
+                          },
+                          "position": {
+                            "description": "Должность",
+                            "type": "string",
+                          },
+                        },
+                        "type": "object",
+                      },
+                    },
+                    "type": "object",
+                  },
+                  "type": "array",
                 },
               },
               "type": "object",
