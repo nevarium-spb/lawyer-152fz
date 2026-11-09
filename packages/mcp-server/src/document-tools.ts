@@ -1,4 +1,6 @@
 import {
+  HARM_CASES,
+  HARM_CASE_IDS,
   IMPLEMENTED_MEASURES,
   PROCESSING_METHODS,
   PROFILE_SECTIONS,
@@ -211,6 +213,87 @@ const profileShape = z
       .optional()
       .describe(
         'Раздел accessList: перечень лиц, допущенных к данным в информационных системах (пп. «в» п. 13 ПП № 1119). Должности и обязанности называет пользователь: не придумывай',
+      ),
+    harmAssessment: z
+      .object({
+        date: text('Дата издания акта оценки вреда, ГГГГ-ММ-ДД'),
+        assessmentDate: text('Дата проведения оценки вреда, ГГГГ-ММ-ДД'),
+        conductedBy: z
+          .enum(['responsible-person', 'commission'])
+          .describe(
+            'Кто проводил оценку (п. 1 приказа № 178): ответственный за организацию обработки или комиссия оператора',
+          ),
+        assessors: z.array(
+          z.object({
+            fullName: text('ФИО лица, проводившего оценку'),
+            position: text('Должность'),
+          }),
+        ),
+        cases: z
+          .array(z.enum(HARM_CASE_IDS))
+          .describe(
+            `Случаи пп. 2.1–2.3 п. 2 приказа № 178, которые есть у оператора, по ответам пользователя; [] — ни одного. Степень вреда считает шаблон, не называй её сам. Случаи: ${HARM_CASES.map((harmCase) => `${harmCase.id} — ${harmCase.text}`).join('; ')}`,
+          ),
+      })
+      .optional()
+      .describe(
+        'Раздел harmAssessment: акт оценки вреда субъектам ПДн (приказ РКН № 178). Случаи и лиц называет пользователь: не придумывай',
+      ),
+    destructionAct: z
+      .object({
+        destructionDate: text('Дата уничтожения персональных данных, ГГГГ-ММ-ДД'),
+        processors: z
+          .array(z.object({ name: text('Наименование или ФИО'), address: text('Адрес') }))
+          .optional()
+          .describe(
+            'Лица, обрабатывавшие эти данные по поручению оператора; не передавай, если обработка не поручалась (подтверди у пользователя)',
+          ),
+        subjects: list(
+          'ФИО субъектов или иная информация, относящаяся к определённым лицам, чьи данные уничтожены',
+        ),
+        destroyers: z.array(
+          z.object({
+            fullName: text('ФИО лица, уничтожившего данные'),
+            position: text('Должность'),
+          }),
+        ),
+        dataCategories: list('Категории уничтоженных персональных данных'),
+        media: z
+          .array(
+            z.object({
+              name: text('Наименование уничтоженного материального носителя'),
+              sheets: z.number().describe('Количество листов'),
+            }),
+          )
+          .optional()
+          .describe('Носители при обработке без средств автоматизации'),
+        systems: list('Информационные системы, из которых уничтожены данные (с автоматизацией)'),
+        method: text('Способ уничтожения'),
+        reason: text('Причина уничтожения'),
+      })
+      .optional()
+      .describe(
+        'Раздел destructionAct: акт об уничтожении ПДн (приказ РКН № 179). Нужен хотя бы один носитель или одна система. Всё называет пользователь: не придумывай',
+      ),
+    destructionProcedure: z
+      .object({
+        number: text('Номер документа, которым утверждается порядок'),
+        date: text('Дата утверждения, ГГГГ-ММ-ДД'),
+        signatory: z.object({
+          fullName: text('ФИО руководителя оператора'),
+          position: text('Должность'),
+        }),
+        executors: list('Должности работников, которые уничтожают данные и подписывают акт'),
+        methods: z.array(
+          z.object({
+            medium: text('Носитель или информационная система'),
+            method: text('Способ уничтожения'),
+          }),
+        ),
+      })
+      .optional()
+      .describe(
+        'Раздел destructionProcedure: порядок уничтожения ПДн (ст. 21 Закона, приказ РКН № 179). Исполнителей и способы называет пользователь: не придумывай',
       ),
     incident: z
       .object({

@@ -1,4 +1,9 @@
-import { determineProtectionLevel, isConsentBasis } from '@lawyer-152fz/core';
+import {
+  HARM_DEGREE_INFO,
+  determineHarmDegree,
+  determineProtectionLevel,
+  isConsentBasis,
+} from '@lawyer-152fz/core';
 import type {
   ImplementedMeasure,
   OperatorProfile,
@@ -193,6 +198,76 @@ function accessListView(profile: OperatorProfile) {
   };
 }
 
+/** Акт оценки вреда (приказ № 178): степень считает код по отмеченным случаям, при разных — высшая (п. 6). */
+function harmAssessmentView(profile: OperatorProfile) {
+  const assessment = profile.harmAssessment;
+  if (!assessment) return null;
+  const result = determineHarmDegree(assessment.cases);
+  const degree = result.kind === 'degree' ? HARM_DEGREE_INFO[result.degree] : null;
+  return {
+    date: formatDate(assessment.date),
+    assessmentDate: formatDate(assessment.assessmentDate),
+    byResponsible: assessment.conductedBy === 'responsible-person',
+    assessors: assessment.assessors,
+    hasDegree: degree !== null,
+    degree: degree?.title ?? null,
+    basis: degree?.point ?? null,
+    mixed: result.kind === 'degree' && result.mixed,
+    cases:
+      result.kind === 'degree'
+        ? result.cases.map((harmCase, index) => ({
+            number: index + 1,
+            text: harmCase.text,
+            degree: HARM_DEGREE_INFO[harmCase.degree].title,
+            point: HARM_DEGREE_INFO[harmCase.degree].point,
+          }))
+        : [],
+    reason: result.kind === 'undetermined' ? result.reason : null,
+  };
+}
+
+/** Акт об уничтожении (приказ № 179): выгрузка из журнала нужна, если данные были в информационных системах. */
+function destructionActView(profile: OperatorProfile) {
+  const act = profile.destructionAct;
+  if (!act) return null;
+  const media = act.media ?? [];
+  const systems = act.systems ?? [];
+  const processors = act.processors ?? [];
+  return {
+    destructionDate: formatDate(act.destructionDate),
+    hasProcessors: processors.length > 0,
+    processors,
+    subjects: act.subjects,
+    destroyers: act.destroyers,
+    dataCategories: joinList(act.dataCategories),
+    hasMedia: media.length > 0,
+    media: media.map((medium, index) => ({ number: index + 1, ...medium })),
+    hasSystems: systems.length > 0,
+    systems,
+    method: act.method,
+    reason: act.reason,
+  };
+}
+
+/** Порядок уничтожения: какие документы подтверждают уничтожение, зависит от способа обработки (пп. 1, 2, 7 приказа № 179). */
+function destructionProcedureView(profile: OperatorProfile) {
+  const procedure = profile.destructionProcedure;
+  if (!procedure) return null;
+  const automated = profile.purposes.some((purpose) => purpose.methods !== 'non-automated');
+  const nonAutomated = profile.purposes.some((purpose) => purpose.methods !== 'automated');
+  return {
+    number: procedure.number,
+    date: formatDate(procedure.date),
+    signatory: procedure.signatory,
+    executors: procedure.executors,
+    methods: procedure.methods,
+    hasAutomated: automated,
+    automatedOnly: automated && !nonAutomated,
+    nonAutomatedOnly: nonAutomated && !automated,
+    both: automated && nonAutomated,
+  };
+}
+
 export function buildView(profile: OperatorProfile, context: RenderContext) {
   const processors = profile.thirdParties.filter((party) => party.role === 'processor');
   const recipients = profile.thirdParties.filter((party) => party.role === 'recipient');
@@ -258,6 +333,9 @@ export function buildView(profile: OperatorProfile, context: RenderContext) {
     mediaRegister: mediaRegisterView(profile),
     protectionAssessment: protectionAssessmentView(profile),
     accessList: accessListView(profile),
+    harmAssessment: harmAssessmentView(profile),
+    destructionAct: destructionActView(profile),
+    destructionProcedure: destructionProcedureView(profile),
     responsibleOrder: profile.responsibleOrder
       ? {
           number: profile.responsibleOrder.number,

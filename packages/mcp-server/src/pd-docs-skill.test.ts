@@ -26,4 +26,19 @@ describe('скилл pd-docs (T7.7)', () => {
     expect(next).toContain('договор поручения');
     expect(next).toContain('24 часа');
   });
+
+  it.each(['harm-assessment', 'destruction-act', 'destruction-procedure'])(
+    'описывает шаблон %s: в таблице выбора и в «Что дальше»',
+    (id) => {
+      const table = skill.slice(skill.indexOf('## 1.'), skill.indexOf('## 2.'));
+      const next = skill.slice(skill.indexOf('## 4. Что дальше'));
+      expect(table).toContain(`\`${id}\``);
+      expect(next).toContain(`\`${id}\``);
+    },
+  );
+
+  it('степень вреда не называет сам: её считает шаблон по случаям пользователя', () => {
+    expect(skill).toContain('Степень вреда');
+    expect(skill).toMatch(/Не\s+придумывай\s+случаи/);
+  });
 });
