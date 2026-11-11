@@ -692,6 +692,19 @@ describe('шаблоны документов (T6.3)', () => {
       expect(bare).not.toContain('3.3.');
     });
 
+    it('подсказка про дополнительные требования не ссылается на несуществующий пункт 3.3', () => {
+      const withExtra = render();
+      expect(withExtra).toContain('3.3. Оператор устанавливает также следующие требования');
+      expect(withExtra).toContain('пункт 3.3 — дополнительные требования оператора');
+      for (const extra of [undefined, []]) {
+        const bare = render({ extraSecurityRequirements: extra });
+        expect(bare).not.toContain('3.3');
+        expect(bare).toContain(
+          'поле дополнительных требований профиля (extraSecurityRequirements)',
+        );
+      }
+    });
+
     it('обработчик в РФ — отвечает оператор (ч. 5 ст. 6); за рубежом — оба (ч. 6 ст. 6)', () => {
       const domestic = render();
       expect(domestic).toContain('(ч. 5 ст. 6 Закона)');
