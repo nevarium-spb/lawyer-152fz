@@ -11,6 +11,6 @@
   "dependencies": {
     "@lawyer-152fz/core": "workspace:*",
     "cheerio": "1.2.0",
-    "ignore": "7.0.14"
+    "ignore": "7.0.16"
   }
 }
