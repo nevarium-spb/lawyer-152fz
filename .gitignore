@@ -16,3 +16,5 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .gstack/
+# Рабочий журнал сессий — локальный, в публичный репозиторий не попадает
+/Handoff.md
